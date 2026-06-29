@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operato — The AI Operating System for Restaurants</title>
+<style>
+:root{
+  --bg:#0b0d12;
+  --bg-soft:#11141b;
+  --panel:#151922;
+  --panel-2:#1b2030;
+  --border:#262c3a;
+  --border-soft:#1e2430;
+  --text:#e8ecf4;
+  --text-2:#aeb6c6;
+  --text-3:#6f7a90;
+  --accent:#7c9cff;
+  --accent-2:#9b7cff;
+  --accent-soft:rgba(124,156,255,.12);
+  --amber:#ffb454;
+  --amber-soft:rgba(255,180,84,.12);
+  --green:#5ad19a;
+  --green-soft:rgba(90,209,154,.12);
+  --radius:14px;
+  --radius-sm:10px;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono','Cascadia Code',Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:
+    radial-gradient(1100px 500px at 80% -10%,rgba(124,156,255,.10),transparent 60%),
+    radial-gradient(900px 500px at -10% 0%,rgba(155,124,255,.08),transparent 55%),
+    var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  padding:0;
+}
+.page{max-width:1040px;margin:0 auto;padding:40px 28px 90px}
+
+/* ---------- top brand bar ---------- */
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:22px;color:#0b0d12;letter-spacing:-1px;
+  box-shadow:0 8px 24px rgba(124,156,255,.35);
+}
+.brand-txt b{font-size:18px;font-weight:700;letter-spacing:-.3px;display:block}
+.brand-txt span{font-size:12px;color:var(--text-3)}
+.print-btn{
+  border:1px solid var(--border);background:var(--panel);color:var(--text-2);
+  padding:9px 16px;border-radius:99px;font-size:13px;cursor:pointer;font-family:var(--sans);
+  transition:all .15s;display:inline-flex;align-items:center;gap:7px;
+}
+.print-btn:hover{border-color:var(--accent);color:var(--text);background:var(--panel-2)}
+
+/* ---------- tabs ---------- */
+.tabs{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:26px;padding-bottom:16px;
+  border-bottom:1px solid var(--border-soft);position:sticky;top:0;z-index:20;
+  background:linear-gradient(var(--bg),var(--bg) 70%,transparent);padding-top:8px;
+}
+.tab{
+  padding:7px 15px;border-radius:99px;font-size:13px;cursor:pointer;font-family:var(--sans);
+  border:1px solid transparent;color:var(--text-3);background:transparent;transition:all .15s;font-weight:500;
+}
+.tab:hover{color:var(--text);background:var(--panel)}
+.tab.active{
+  background:var(--accent-soft);border-color:var(--accent);color:var(--text);
+}
+
+/* ---------- sections ---------- */
+.sec{display:none;animation:fade .25s ease}
+.sec.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h2{font-size:21px;font-weight:700;letter-spacing:-.4px;margin-bottom:6px}
+h2 + .lede{margin-bottom:20px}
+.lede{font-size:14px;color:var(--text-2);margin-bottom:18px;max-width:760px}
+h3{font-size:15px;font-weight:600;margin:26px 0 12px;letter-spacing:-.2px}
+h3:first-of-type{margin-top:20px}
+p{font-size:13.5px;color:var(--text-2);margin-bottom:12px}
+
+/* hero */
+.hero{
+  background:linear-gradient(135deg,var(--panel-2),var(--panel));
+  border:1px solid var(--border);border-radius:var(--radius);padding:26px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(124,156,255,.18),transparent 70%);
+}
+.hero-tag{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);
+  padding:4px 11px;border-radius:99px;margin-bottom:14px;
+}
+.hero-name{font-size:34px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.hero-name .accent{background:linear-gradient(120deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:14px;color:var(--text-2);margin-bottom:18px;max-width:640px;line-height:1.55}
+.badges{display:flex;flex-wrap:wrap;gap:7px;position:relative;z-index:1}
+.badge{padding:4px 12px;border-radius:99px;font-size:12px;border:1px solid var(--border);color:var(--text-2);background:rgba(255,255,255,.02)}
+
+/* cards */
+.card{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:15px 17px;margin-bottom:11px}
+.card.glow{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),transparent)}
+.ct{font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.cs{font-size:13px;color:var(--text-2);line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+
+/* feature lists */
+ul.fl{list-style:none}
+ul.fl li{font-size:13px;color:var(--text-2);padding:7px 0;border-bottom:1px solid var(--border-soft);display:flex;gap:10px;line-height:1.5}
+ul.fl li:last-child{border:none}
+ul.fl li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:7px}
+ul.fl.amber li::before{background:var(--amber)}
+ul.fl.green li::before{background:var(--green)}
+code{font-family:var(--mono);font-size:12px;background:var(--panel-2);padding:1px 6px;border-radius:5px;color:var(--accent)}
+
+pre{
+  background:#0a0c11;border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:16px 18px;font-family:var(--mono);font-size:12px;line-height:1.7;color:#cdd6e8;
+  margin-bottom:16px;overflow-x:auto;white-space:pre;
+}
+
+/* table-like rows */
+.trow{display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-bottom:1px solid var(--border-soft)}
+.trow:last-child{border:none}
+.tn{font-size:13.5px;font-weight:600;color:var(--text);min-width:185px;flex-shrink:0}
+.tw{font-size:13px;color:var(--text-2);flex:1;line-height:1.55}
+
+/* month header */
+.mh{
+  font-size:12px;font-weight:600;color:var(--amber);background:var(--amber-soft);
+  border:1px solid rgba(255,180,84,.3);border-radius:99px;padding:6px 14px;margin:22px 0 14px;display:inline-block;
+}
+.week{display:flex;gap:14px;margin-bottom:12px}
+.wn{min-width:60px;font-size:12px;font-weight:600;color:var(--text-3);padding-top:2px;flex-shrink:0}
+.wc{flex:1;background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:12px 15px}
+.wt{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.wd{font-size:13px;color:var(--text-2);line-height:1.55}
+
+/* ai flow */
+.ai-flow{display:flex;flex-direction:column;gap:9px;margin:14px 0 18px}
+.ai-step{display:flex;gap:12px;align-items:flex-start}
+.ai-n{
+  width:24px;height:24px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--accent);
+  color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.ai-t{font-size:13px;color:var(--text-2);line-height:1.55;padding-top:2px}
+
+/* interview */
+.ipoint{padding:15px 0;border-bottom:1px solid var(--border-soft)}
+.ipoint:last-child{border:none}
+.iq{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.iq::before{content:'Q  ';color:var(--accent);font-weight:700}
+.ia{font-size:13px;color:var(--text-2);line-height:1.65}
+
+/* key-value resume */
+.kv{display:flex;gap:12px;margin-bottom:9px}
+.kk{font-size:12px;color:var(--text-3);min-width:120px;padding-top:1px;flex-shrink:0;font-weight:500}
+.kv2{font-size:13px;color:var(--text)}
+
+/* vision: phase roadmap */
+.phase{display:flex;gap:0;margin:18px 0;position:relative}
+.roadmap{display:flex;flex-direction:column;gap:0;margin:16px 0 24px}
+.rm-item{display:flex;gap:16px;position:relative;padding-bottom:20px}
+.rm-item:last-child{padding-bottom:0}
+.rm-rail{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.rm-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);z-index:1}
+.rm-item.future .rm-dot{background:var(--text-3);box-shadow:0 0 0 4px rgba(111,122,144,.12)}
+.rm-line{width:2px;flex:1;background:var(--border);margin-top:2px}
+.rm-item:last-child .rm-line{display:none}
+.rm-body{padding-bottom:4px;flex:1}
+.rm-phase{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.rm-item.future .rm-phase{color:var(--text-3)}
+.rm-title{font-size:14.5px;font-weight:600;margin-bottom:4px}
+.rm-desc{font-size:13px;color:var(--text-2);line-height:1.55}
+
+/* vertical chips */
+.verticals{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:11px;margin:14px 0}
+.vchip{
+  background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);
+  padding:14px;text-align:center;transition:all .15s;
+}
+.vchip.live{border-color:var(--green);background:linear-gradient(180deg,var(--green-soft),transparent)}
+.vico{font-size:24px;margin-bottom:7px;display:block}
+.vname{font-size:13.5px;font-weight:600;margin-bottom:3px}
+.vstat{font-size:11px;color:var(--text-3)}
+.vchip.live .vstat{color:var(--green);font-weight:600}
+
+/* before/after */
+.ba{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin:18px 0}
+.ba-box{background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:18px;text-align:center}
+.ba-box.now{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),transparent)}
+.ba-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.ba-box.now .ba-label{color:var(--accent)}
+.ba-val{font-size:15px;font-weight:700;line-height:1.4}
+.ba-arrow{font-size:24px;color:var(--text-3)}
+
+.callout{
+  background:linear-gradient(135deg,var(--accent-soft),var(--amber-soft));
+  border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin:18px 0;
+}
+.callout .ct{margin-bottom:6px}
+
+.foot{margin-top:40px;padding-top:20px;border-top:1px solid var(--border-soft);font-size:12px;color:var(--text-3);text-align:center}
+
+/* responsive */
+@media (max-width:680px){
+  .grid2,.grid3,.ba{grid-template-columns:1fr}
+  .ba-arrow{transform:rotate(90deg)}
+  .tn{min-width:130px}
+  .hero-name{font-size:27px}
+}
+
+/* print -> PDF: show everything, drop dark chrome */
+@media print{
+  body{background:#fff;color:#111}
+  .page{max-width:none;padding:0}
+  .tabs,.print-btn{display:none!important}
+  .sec{display:block!important;page-break-inside:auto;margin-bottom:30px}
+  .sec + .sec{page-break-before:always}
+  .hero,.card,.wc,.vchip,.ba-box,.callout{border-color:#ddd;background:#fafafa!important;color:#111}
+  h2,h3,.hero-name,.ct,.wt,.iq,.rm-title,.vname{color:#111}
+  p,.cs,.tw,.wd,.ia,.rm-desc,.hero-sub,.lede{color:#333}
+  pre{background:#f4f4f6;color:#111;border-color:#ddd}
+  .hero-name .accent,.iq::before{-webkit-text-fill-color:#3355cc;color:#3355cc}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brandbar">
+    <div class="brand">
+      <div class="logo">O</div>
+      <div class="brand-txt">
+        <b>Operato</b>
+        <span     </span>
+      </div>
+    </div>
+    <button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="sw(0)">Overview</button>
+    <button class="tab" onclick="sw(1)">Vision &amp; Platform</button>
+    <button class="tab" onclick="sw(2)">Tech Stack</button>
+    <button class="tab" onclick="sw(3)">Database</button>
+    <button class="tab" onclick="sw(4)">Modules</button>
+    <button class="tab" onclick="sw(5)">AI Features</button>
+    <button class="tab" onclick="sw(6)">File Structure</button>
+    <button class="tab" onclick="sw(7)">Timeline</button>
+    <button class="tab" onclick="sw(8)">Interview Prep</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="sec active" id="s0">
+    <div class="hero">
+      <span class="hero-tag">AI-Native SaaS Platform</span>
+      <div class="hero-name"><span class="accent">Operato</span></div>
+      <div class="hero-sub">The AI Operating System for Restaurants — an AI assistant that talks to your <em>actual</em> business database, not a demo dataset. Built restaurant-first, architected to become the AI operating system for any small business.</div>
+      <div class="badges">
+        <span class="badge">Multi-tenant SaaS</span><span class="badge">Next.js 15 App Router</span><span class="badge">Text-to-SQL AI</span><span class="badge">Streaming responses</span><span class="badge">PostgreSQL + Prisma</span><span class="badge">Stripe subscriptions</span><span class="badge">Vertical-extensible core</span>
+      </div>
+    </div>
+
+    <h3>Why this is interview-worthy</h3>
+    <p>Most portfolio projects are CRUD apps with a chatbot bolted on. Operato has AI as a core architectural layer — natural language queries run against real business data via text-to-SQL, responses stream in real time, and the system reasons about inventory velocity and business trends. And it's not just an app — it's a <b>platform</b> with restaurant as the first vertical. That's a 45-minute technical conversation about architecture and product strategy, not "I built a hotel app."</p>
+
+    <div class="grid2">
+      <div class="card glow"><div class="ct">🤖 The AI difference</div><div class="cs">"Who are my top 10 customers this month?" actually runs SQL against your DB, not a hardcoded response. You built the safety layer, the schema context, and the streaming UI.</div></div>
+      <div class="card glow"><div class="ct">🧩 The platform difference</div><div class="cs">Restaurant is vertical #1. The same multi-tenant core, AI engine and billing extend to cafés, cloud kitchens and retail. You're demonstrating platform thinking, not a single app.</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="ct">🍽 Why the restaurant domain first</div><div class="cs">You've built inventory and CRM at ZenDevX. You know what real business owners need. Domain expertise on top of AI architecture is the senior signal — and it's a focused, demoable wedge.</div></div>
+      <div class="card"><div class="ct">📈 Why it scales the story</div><div class="cs">"I built an AI OS and shipped restaurant as the first vertical" reframes a portfolio project as a startup. It signals you think in systems, roadmaps and reuse.</div></div>
+    </div>
+
+    <h3>Resume line</h3>
+    <div class="card">
+      <div class="kv"><span class="kk">Project</span><span class="kv2">Operato — multi-tenant AI operating system for restaurants (first vertical of a multi-industry platform)</span></div>
+      <div class="kv"><span class="kk">Stack</span><span class="kv2">Next.js 15, TypeScript, Prisma, PostgreSQL (Neon), Clerk, Stripe, Anthropic API</span></div>
+      <div class="kv"><span class="kk">AI layer</span><span class="kv2">Text-to-SQL with parameterised queries, streaming responses, weekly auto-summaries, velocity-based alerts</span></div>
+      <div class="kv"><span class="kk">Architecture</span><span class="kv2">Multi-tenant (shared DB, row-level isolation), vertical-extensible module system, Vercel Cron, Playwright E2E</span></div>
+      <div class="kv"><span class="kk">Live</span><span class="kv2">operato.app — demo credentials in README</span></div>
+    </div>
+
+    <h3>Three AI features (each a separate engineering problem)</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Text-to-SQL assistant — owner types a business question, Claude generates safe SQL, executes against their data, streams back analysis</li>
+        <li>Weekly business summary — auto-generated every Monday via Cron, stored in DB, shown on the dashboard. No setup required.</li>
+        <li>Smart inventory alerts — calculates sales velocity, tells the owner how many days until stockout and exactly how much to reorder</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- VISION & PLATFORM -->
+  <div class="sec" id="s1">
+    <h2>Vision &amp; Platform</h2>
+    <p class="lede">Don't build a restaurant app. Build an AI operating system for small businesses — and ship restaurant as the first vertical. Same architecture, much bigger story.</p>
+
+    <div class="ba">
+      <div class="ba-box">
+        <div class="ba-label">Positioned as</div>
+        <div class="ba-val">Restaurant<br>Management SaaS</div>
+      </div>
+      <div class="ba-arrow">→</div>
+      <div class="ba-box now">
+        <div class="ba-label">Positioned as</div>
+        <div class="ba-val">AI Business<br>Operating System</div>
+      </div>
+    </div>
+
+    <p>The product, the code and the first launch are identical. What changes is the <b>framing and the architecture intent</b>: every module is built as a vertical-aware capability on a shared core, so the restaurant becomes "vertical #1" rather than "the whole product." In interviews this is the difference between presenting an app and presenting a platform.</p>
+
+    <h3>The verticals — one core, many industries</h3>
+    <p>Each vertical reuses the same tenant model, auth, billing, dashboard shell and AI engine. Only the domain modules (menu vs. catalog, tables vs. counters) and the AI's schema context change.</p>
+    <div class="verticals">
+      <div class="vchip live"><span class="vico">🍽</span><div class="vname">Restaurant</div><div class="vstat">● Vertical #1 — Live</div></div>
+      <div class="vchip"><span class="vico">☕</span><div class="vname">Café</div><div class="vstat">Next</div></div>
+      <div class="vchip"><span class="vico">🥐</span><div class="vname">Bakery</div><div class="vstat">Planned</div></div>
+      <div class="vchip"><span class="vico">🛵</span><div class="vname">Cloud Kitchen</div><div class="vstat">Planned</div></div>
+      <div class="vchip"><span class="vico">🍔</span><div class="vname">Fast Food</div><div class="vstat">Planned</div></div>
+      <div class="vchip"><span class="vico">🛍</span><div class="vname">Retail Store</div><div class="vstat">Expansion</div></div>
+    </div>
+
+    <h3>Phased roadmap</h3>
+    <div class="roadmap">
+      <div class="rm-item">
+        <div class="rm-rail"><div class="rm-dot"></div><div class="rm-line"></div></div>
+        <div class="rm-body">
+          <div class="rm-phase">Phase 1 — Now</div>
+          <div class="rm-title">Restaurant OS (the wedge)</div>
+          <div class="rm-desc">Ship the full restaurant vertical: menu, orders, inventory, CRM, staff, and the three AI features. Prove the AI-talks-to-your-data thesis with one industry done deeply.</div>
+        </div>
+      </div>
+      <div class="rm-item future">
+        <div class="rm-rail"><div class="rm-dot"></div><div class="rm-line"></div></div>
+        <div class="rm-body">
+          <div class="rm-phase">Phase 2 — Adjacent food verticals</div>
+          <div class="rm-title">Café, Bakery, Cloud Kitchen, Fast Food</div>
+          <div class="rm-desc">Extract the shared core into a vertical config. New industries become a module pack + a new AI schema context — not a new app. Validates that the platform abstraction holds.</div>
+        </div>
+      </div>
+      <div class="rm-item future">
+        <div class="rm-rail"><div class="rm-dot"></div><div class="rm-line"></div></div>
+        <div class="rm-body">
+          <div class="rm-phase">Phase 3 — Beyond food</div>
+          <div class="rm-title">Retail &amp; service businesses</div>
+          <div class="rm-desc">Catalog replaces menu, counters replace tables, the CRM/inventory/AI core stays. Proves the OS generalises past hospitality into any inventory + customer business.</div>
+        </div>
+      </div>
+      <div class="rm-item future">
+        <div class="rm-rail"><div class="rm-dot"></div><div class="rm-line"></div></div>
+        <div class="rm-body">
+          <div class="rm-phase">Phase 4 — Horizontal AI OS</div>
+          <div class="rm-title">The AI Business Operating System</div>
+          <div class="rm-desc">A vertical marketplace + agentic actions (the AI doesn't just answer, it drafts the purchase order, schedules the shift, messages the customer). Restaurant was simply the first niche.</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>What stays the same vs. what swaps per vertical</h3>
+    <div class="grid2">
+      <div class="card">
+        <div class="ct">🔒 Shared core (build once)</div>
+        <ul class="fl green">
+          <li>Multi-tenant model + row-level isolation</li>
+          <li>Clerk auth &amp; Organizations</li>
+          <li>Stripe billing &amp; plans</li>
+          <li>Dashboard shell, layout, charts</li>
+          <li>AI engine: text-to-SQL, summaries, alerts</li>
+          <li>Inventory + CRM primitives</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="ct">🔁 Per-vertical (swap in)</div>
+        <ul class="fl amber">
+          <li>Domain entities — Menu → Catalog, Table → Counter</li>
+          <li>AI schema context + example queries</li>
+          <li>Vertical-specific KPIs on the dashboard</li>
+          <li>Terminology &amp; onboarding copy</li>
+          <li>Optional modules toggled per industry</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="ct">🎤 The interview soundbite</div>
+      <div class="cs">"I didn't build a restaurant app — I built an AI operating system for small businesses and shipped restaurant as the first vertical. The tenant model, billing and AI engine are vertical-agnostic; onboarding a café is a config pack and a new schema context, not a rewrite." This reframes the whole project from a CRUD demo to a platform with a roadmap.</div>
+    </div>
+
+    <h3>How the architecture already supports this</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>The AI never sees the raw Prisma schema — it reads a generated <code>schema-context.ts</code> description, which is exactly the seam where a new vertical plugs in</li>
+        <li>Modules are isolated under <code>lib/</code> and feature folders, so a vertical is a bounded set of modules, not tangled code</li>
+        <li>Shared-DB + tenant id means a new vertical is a new tenant type, not new infrastructure</li>
+        <li>Stripe plans and the dashboard shell are domain-agnostic from day one</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="sec" id="s2">
+    <h2>Tech Stack</h2>
+    <p class="lede">Chosen for velocity, interview signal, and the ability to extend into a multi-vertical platform without re-platforming.</p>
+
+    <h3>Frontend &amp; Framework</h3>
+    <div class="trow"><span class="tn">Next.js 15 (App Router)</span><span class="tw">Server Components + streaming built-in. Default stack at every product company hiring right now. RSC shows you're ahead of most React devs.</span></div>
+    <div class="trow"><span class="tn">TypeScript (strict)</span><span class="tw">Non-negotiable at serious companies. End-to-end types from Prisma schema → API routes → React components.</span></div>
+    <div class="trow"><span class="tn">Shadcn UI + Tailwind</span><span class="tw">Copy-paste components you own. Signals you understand design systems, not just UI libraries. Already in your current stack.</span></div>
+    <div class="trow"><span class="tn">TanStack Query</span><span class="tw">Already your core strength. Server state, caching, optimistic updates — shows production maturity.</span></div>
+
+    <h3>Auth &amp; Multi-tenancy</h3>
+    <div class="trow"><span class="tn">Clerk</span><span class="tw">Best multi-tenant auth in 2025. Native Organizations API maps directly to the tenant-per-business model — which is exactly what makes multi-vertical possible. Webhooks sync users to your DB. One week saved vs NextAuth.</span></div>
+
+    <h3>Database</h3>
+    <div class="trow"><span class="tn">PostgreSQL (Neon)</span><span class="tw">Serverless Postgres, free tier, first-class Vercel integration. Neon branching is a bonus interview talking point about DB-per-feature-branch workflows.</span></div>
+    <div class="trow"><span class="tn">Prisma ORM</span><span class="tw">You already know it from RoyalStay. Type-safe queries. The schema becomes the source of truth for the AI's database context too.</span></div>
+
+    <h3>AI Layer</h3>
+    <div class="trow"><span class="tn">Anthropic Claude API</span><span class="tw">Best for structured JSON output (SQL generation step) and long-form analysis (summaries). <code>claude-sonnet-4-6</code> for the speed + quality balance.</span></div>
+    <div class="trow"><span class="tn">Vercel AI SDK</span><span class="tw">streamText() on server + useChat() on client. Makes streaming UI trivial. Core interview talking point — shows you understand streaming architecture.</span></div>
+
+    <h3>Payments &amp; Uploads</h3>
+    <div class="trow"><span class="tn">Stripe</span><span class="tw">Subscription billing (Free/Pro). Webhooks for plan changes. Shows you can build real SaaS revenue flow, not just features — and it's vertical-agnostic from day one.</span></div>
+    <div class="trow"><span class="tn">Uploadthing</span><span class="tw">Menu/catalog item image uploads. Zero config with Next.js. Not worth building yourself for a portfolio project.</span></div>
+
+    <h3>Testing &amp; DevOps</h3>
+    <div class="trow"><span class="tn">Playwright</span><span class="tw">Already on your resume from your current job. E2E tests for auth, order creation, AI query flow — exactly what interviewers want to see.</span></div>
+    <div class="trow"><span class="tn">Zod</span><span class="tw">Runtime validation on all API route inputs. Pairs with TypeScript for truly end-to-end type safety.</span></div>
+    <div class="trow"><span class="tn">Vercel Cron</span><span class="tw">Monday weekly summary generation. Simple setup, good interview talking point about scheduled jobs in serverless environments.</span></div>
+
+    <h3>Deliberate exclusions</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>No separate Node/Express backend — Next.js Route Handlers handle everything, reducing complexity</li>
+        <li>No LangChain — direct Anthropic API calls are simpler and show deeper understanding of what's actually happening</li>
+        <li>No Redis for this scope — mention you'd add it for caching AI responses at scale (interview point)</li>
+        <li>No Docker locally — Neon + Vercel handles infra; add if you want a bonus talking point</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DATABASE -->
+  <div class="sec" id="s3">
+    <h2>Database Schema (Prisma)</h2>
+    <p class="lede">Shared DB + <code>restaurantId</code> on every table. Simplest multi-tenant pattern, used by most early-stage SaaS — and the seam that later becomes <code>tenantId</code> across verticals.</p>
+
+    <h3>Core + Menu</h3>
+<pre>// prisma/schema.prisma
+
+model Restaurant {
+  id               String    @id @default(cuid())
+  name             String
+  slug             String    @unique
+  logo             String?
+  timezone         String    @default("Asia/Kolkata")
+  currency         String    @default("INR")
+  plan             Plan      @default(FREE)
+  planExpiresAt    DateTime?
+  stripeCustomerId String?   @unique
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  members         RestaurantMember[]
+  categories      MenuCategory[]
+  menuItems       MenuItem[]
+  tables          RestaurantTable[]
+  orders          Order[]
+  inventoryItems  InventoryItem[]
+  customers       Customer[]
+  staff           Staff[]
+  aiQueries       AiQuery[]
+  weeklySummaries WeeklySummary[]
+}
+
+enum Plan { FREE  PRO }
+
+model RestaurantMember {
+  id           String     @id @default(cuid())
+  restaurantId String
+  clerkUserId  String
+  role         MemberRole @default(STAFF)
+  createdAt    DateTime   @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId],
+    references: [id], onDelete: Cascade)
+  @@unique([restaurantId, clerkUserId])
+  @@index([clerkUserId])
+}
+
+enum MemberRole { OWNER  MANAGER  STAFF }
+
+model MenuCategory {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems  MenuItem[]
+}
+
+model MenuItem {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  categoryId      String?
+  name            String
+  description     String?
+  price           Decimal  @db.Decimal(10, 2)
+  image           String?
+  isAvailable     Boolean  @default(true)
+  isVeg           Boolean  @default(false)
+  preparationTime Int?     // minutes
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category      MenuCategory? @relation(fields: [categoryId], references: [id])
+  orderItems    OrderItem[]
+  inventoryItem InventoryItem?
+  @@index([restaurantId, isAvailable])
+}</pre>
+
+    <h3>Orders &amp; Tables</h3>
+<pre>model RestaurantTable {
+  id           String      @id @default(cuid())
+  restaurantId String
+  number       Int
+  label        String?     // "Window Table", "VIP"
+  capacity     Int         @default(4)
+  status       TableStatus @default(AVAILABLE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  restaurant Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders     Order[]
+  @@unique([restaurantId, number])
+}
+
+enum TableStatus { AVAILABLE  OCCUPIED  RESERVED  INACTIVE }
+
+model Order {
+  id           String      @id @default(cuid())
+  restaurantId String
+  orderNumber  String      // human-readable "ORD-0042"
+  tableId      String?
+  customerId   String?
+  status       OrderStatus @default(PENDING)
+  type         OrderType   @default(DINE_IN)
+  subtotal     Decimal     @db.Decimal(10, 2)
+  tax          Decimal     @db.Decimal(10, 2) @default(0)
+  discount     Decimal     @db.Decimal(10, 2) @default(0)
+  totalAmount  Decimal     @db.Decimal(10, 2)
+  notes        String?
+  servedAt     DateTime?
+  paidAt       DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  restaurant RestaurantTable? @relation(fields: [tableId], references: [id])
+  orderItems OrderItem[]
+  @@index([restaurantId, status])
+  @@index([restaurantId, createdAt])  // AI queries filter by date heavily
+}
+
+enum OrderStatus { PENDING  CONFIRMED  PREPARING  READY  SERVED  PAID  CANCELLED }
+enum OrderType   { DINE_IN  TAKEAWAY  DELIVERY }
+
+model OrderItem {
+  id         String     @id @default(cuid())
+  orderId    String
+  menuItemId String
+  quantity   Int
+  unitPrice  Decimal    @db.Decimal(10, 2)
+  totalPrice Decimal    @db.Decimal(10, 2)
+  notes      String?
+  status     ItemStatus @default(PENDING)
+  createdAt  DateTime   @default(now())
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+enum ItemStatus { PENDING  PREPARING  READY  SERVED }</pre>
+
+    <h3>Inventory, Customers, Staff, AI</h3>
+<pre>model InventoryItem {
+  id                String  @id @default(cuid())
+  restaurantId      String
+  menuItemId        String? @unique  // optional link to menu
+  name              String
+  unit              String  // kg, liters, pieces
+  currentStock      Decimal @db.Decimal(10,3) @default(0)
+  lowStockThreshold Decimal @db.Decimal(10,3) @default(10)
+  costPerUnit       Decimal? @db.Decimal(10,2)
+  supplier          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  restaurant   Restaurant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItem     MenuItem?             @relation(fields: [menuItemId], references: [id])
+  transactions InventoryTransaction[]
+}
+
+model InventoryTransaction {
+  id              String          @id @default(cuid())
+  inventoryItemId String
+  type            TransactionType
+  quantity        Decimal         @db.Decimal(10, 3)
+  balanceAfter    Decimal         @db.Decimal(10, 3) // audit trail
+  notes           String?
+  createdAt       DateTime        @default(now())
+}
+
+enum TransactionType { STOCK_IN  STOCK_OUT  ADJUSTMENT  WASTE }
+
+model Customer {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  email        String?
+  phone        String?
+  totalSpend   Decimal  @db.Decimal(10,2) @default(0) // denormalised
+  visitCount   Int      @default(0)                    // denormalised
+  lastVisitAt  DateTime?
+  tags         String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders     Order[]
+  @@unique([restaurantId, phone])
+  @@index([restaurantId, totalSpend])
+}
+
+model Staff {
+  id           String    @id @default(cuid())
+  restaurantId String
+  name         String
+  role         StaffRole
+  email        String?
+  phone        String?
+  salary       Decimal?  @db.Decimal(10,2)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  shifts     Shift[]
+}
+
+enum StaffRole { CHEF  SOUS_CHEF  WAITER  MANAGER  CASHIER  DELIVERY  HELPER }
+
+model Shift {
+  id          String    @id @default(cuid())
+  staffId     String
+  startTime   DateTime
+  endTime     DateTime?
+  hoursWorked Decimal?  @db.Decimal(5,2)
+  notes       String?
+  createdAt   DateTime  @default(now())
+}
+
+model AiQuery {
+  id           String   @id @default(cuid())
+  restaurantId String
+  userId       String
+  query        String
+  generatedSQL String?
+  response     String   @db.Text
+  createdAt    DateTime @default(now())
+  @@index([restaurantId, createdAt])
+}
+
+model WeeklySummary {
+  id           String   @id @default(cuid())
+  restaurantId String
+  weekStart    DateTime
+  weekEnd      DateTime
+  summary      String   @db.Text
+  metrics      Json     // raw numbers used to generate summary
+  createdAt    DateTime @default(now())
+  @@unique([restaurantId, weekStart])
+}</pre>
+
+    <h3>Key design decisions to explain in interviews</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Shared DB + restaurantId — simplest multi-tenant pattern, appropriate for early SaaS, easy to migrate to schema-per-tenant later. This same column generalises to <code>tenantId</code> when verticals arrive.</li>
+        <li>balanceAfter on InventoryTransaction — complete audit trail without summing all transactions on every read</li>
+        <li>orderNumber separate from id — UUID is for joins, "ORD-0042" is for staff and customer communication</li>
+        <li>totalSpend + visitCount denormalised on Customer — fast AI queries without slow aggregation joins</li>
+        <li>@@index on all date + status filters — shows you think about query performance from schema design</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="sec" id="s4">
+    <h2>Module Breakdown</h2>
+    <p class="lede">Build in this order — each module's data feeds the next, and all feed the AI assistant. These modules are the "restaurant vertical pack" sitting on the shared core.</p>
+
+    <h3>1. Menu &amp; Items</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Category management with drag-to-reorder (dnd-kit)</li>
+        <li>Menu item CRUD — name, price, description, image, veg/non-veg toggle, prep time</li>
+        <li>Image upload via Uploadthing — file → CDN URL stored in DB</li>
+        <li>Toggle availability without deleting (isAvailable flag — staff use this daily)</li>
+        <li>AI query example: "Which items haven't sold in the last 2 weeks?"</li>
+      </ul>
+    </div>
+
+    <h3>2. Orders &amp; Tables</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Visual table grid — each table card shows number, capacity, current status with colour</li>
+        <li>Create order for a table — search menu items, set quantities and notes</li>
+        <li>Order status pipeline — Pending → Preparing → Ready → Served → Paid (one click per step)</li>
+        <li>On payment: auto-update customer totalSpend + visitCount via Prisma transaction</li>
+        <li>Order history with filters (date range, status, type, customer)</li>
+        <li>AI query example: "What's our average order value this week vs last week?"</li>
+      </ul>
+    </div>
+
+    <h3>3. Inventory &amp; Stock</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Link inventory items to menu items (optional — "Paneer" → "Paneer Tikka")</li>
+        <li>Manual stock-in — quantity, cost per unit, supplier, notes</li>
+        <li>Low stock alert panel — items below threshold sorted by urgency (days remaining)</li>
+        <li>Full transaction history — every movement logged with balance after</li>
+        <li>AI query example: "What should I reorder before the weekend based on this week's sales?"</li>
+      </ul>
+    </div>
+
+    <h3>4. Customers &amp; CRM</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Customer profile auto-created on first order (phone as unique key per restaurant)</li>
+        <li>Visit history, total spend, last seen — displayed on profile page</li>
+        <li>Manual tags — VIP, Regular, Has Allergies, Birthday Month etc.</li>
+        <li>Customer list sorted by spend, visit count, or last visit</li>
+        <li>AI query example: "Who are my top 10 customers by spend this month?"</li>
+      </ul>
+    </div>
+
+    <h3>5. Staff &amp; Shifts</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Staff directory — name, role, contact, salary (optional), active status</li>
+        <li>Shift logging — clock in/out or manual entry with start and end time</li>
+        <li>Hours worked auto-calculated from shift times</li>
+        <li>Weekly schedule view — who's working each day this week</li>
+        <li>AI query example: "Who worked the most hours this month?" or "Which waiter handled the most orders?"</li>
+      </ul>
+    </div>
+
+    <h3>Overview Dashboard</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Metric cards — today's revenue, order count, avg order value, new customers</li>
+        <li>Revenue chart — last 7 days vs previous 7 days (Recharts)</li>
+        <li>Top 5 items by quantity sold this week</li>
+        <li>Low stock alerts inline (not buried in the inventory tab)</li>
+        <li>Latest weekly AI summary shown at the top — the first thing the owner reads</li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <div class="ct">🧩 Platform note</div>
+      <div class="cs">When a second vertical arrives, Menu→Catalog and Tables→Counters swap out, but Inventory, Customers/CRM, Staff and the Overview dashboard are reused almost verbatim. That reuse ratio is the whole platform thesis.</div>
+    </div>
+  </div>
+
+  <!-- AI FEATURES -->
+  <div class="sec" id="s5">
+    <h2>AI Features</h2>
+    <p class="lede">Three distinct features — each a separate engineering problem. Together they're what makes this project worth talking about, and the AI engine is the part that's fully vertical-agnostic.</p>
+
+    <h3>1. Text-to-SQL Query Assistant</h3>
+    <p>Owner types a business question. Claude generates SQL, you execute it safely, Claude streams back the analysis.</p>
+
+    <div class="ai-flow">
+      <div class="ai-step"><div class="ai-n">1</div><div class="ai-t">User types: "Which items sold most yesterday?"</div></div>
+      <div class="ai-step"><div class="ai-n">2</div><div class="ai-t">Send to Claude with schema context + restaurantId + instruction to return a parameterised SELECT only, as JSON</div></div>
+      <div class="ai-step"><div class="ai-n">3</div><div class="ai-t">Claude returns <code>{ sql: "SELECT...", params: ["2024-01-15"] }</code></div></div>
+      <div class="ai-step"><div class="ai-n">4</div><div class="ai-t">Validate: starts with SELECT, tables are whitelisted, restaurantId always injected as a param — never interpolated</div></div>
+      <div class="ai-step"><div class="ai-n">5</div><div class="ai-t">Execute via Prisma $queryRaw with safe parameterised values</div></div>
+      <div class="ai-step"><div class="ai-n">6</div><div class="ai-t">Stream results back through Claude for natural-language analysis — useChat() in the frontend renders tokens live</div></div>
+    </div>
+
+<pre>// app/api/restaurants/[id]/ai/query/route.ts
+export async function POST(req, { params }) {
+  const { query } = await req.json()
+  const restaurantId = params.id  // always from URL, never body
+
+  // Step 1: Generate SQL
+  const sqlRes = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    system: buildSchemaContext(restaurantId) + SAFETY_RULES,
+    messages: [{ role: 'user', content: query }]
+  })
+  const { sql, sqlParams } = JSON.parse(sqlRes.content[0].text)
+
+  // Step 2: Validate (critical for security)
+  if (!sql.trim().toUpperCase().startsWith('SELECT')) {
+    return Response.json({ error: 'Invalid query' }, { status: 400 })
+  }
+
+  // Step 3: Execute (restaurantId always as param, never string)
+  const data = await prisma.$queryRaw(
+    Prisma.sql([sql], restaurantId, ...sqlParams)
+  )
+
+  // Step 4: Stream natural language response
+  const stream = streamText({
+    model: 'claude-sonnet-4-6',
+    prompt: `Data: ${JSON.stringify(data)}\nQuestion: ${query}\nAnswer naturally.`
+  })
+
+  return stream.toAIStreamResponse()
+}</pre>
+
+    <h3>2. Weekly Business Summary (Vercel Cron)</h3>
+    <p>Auto-generated every Monday. No setup from the business owner. Stored in DB, shown on the dashboard.</p>
+
+<pre>// vercel.json
+{ "crons": [{ "path": "/api/cron/weekly-summary", "schedule": "0 6 * * 1" }] }
+
+// api/cron/weekly-summary/route.ts
+const restaurants = await prisma.restaurant.findMany()
+
+for (const r of restaurants) {
+  const metrics = {
+    revenue: await getWeekRevenue(r.id, weekStart, weekEnd),
+    topItems: await getTopItems(r.id, weekStart, weekEnd, 5),
+    newCustomers: await getNewCustomers(r.id, weekStart, weekEnd),
+    orderCount: await getOrderCount(r.id, weekStart, weekEnd),
+    busiestDay: await getBusiestDay(r.id, weekStart, weekEnd),
+    lowStockItems: await getLowStock(r.id),
+  }
+
+  const { text } = await generateText({
+    model: 'claude-sonnet-4-6',
+    prompt: `Write a brief, friendly weekly summary for a restaurant owner.
+    Data: ${JSON.stringify(metrics)}`
+  })
+
+  await prisma.weeklySummary.upsert({
+    where: { restaurantId_weekStart: { restaurantId: r.id, weekStart } },
+    create: { restaurantId: r.id, weekStart, weekEnd, summary: text, metrics },
+    update: { summary: text, metrics }
+  })
+}</pre>
+
+    <h3>3. Smart Inventory Alerts</h3>
+    <p>Not just "stock is low" — calculates sales velocity and gives a specific reorder recommendation.</p>
+
+<pre>// lib/ai/inventory-alerts.ts
+
+// Calculate how many units sold per day (avg over last 7 days)
+const salesVelocity = await getDailyUsageByItem(restaurantId, 7)
+
+const urgentItems = inventoryItems
+  .map(item => ({
+    ...item,
+    daysLeft: item.currentStock / (salesVelocity[item.id] || 0.1),
+    weeklyUsage: (salesVelocity[item.id] || 0) * 7
+  }))
+  .filter(item => item.daysLeft < 4)  // less than 4 days
+  .sort((a, b) => a.daysLeft - b.daysLeft)
+
+const { text } = await generateText({
+  model: 'claude-sonnet-4-6',
+  prompt: `Based on sales velocity, suggest reorder quantities.
+  Items: ${JSON.stringify(urgentItems.map(i => ({
+    name: i.name, current: i.currentStock, unit: i.unit,
+    daysLeft: Math.round(i.daysLeft * 10) / 10,
+    weeklyUsage: Math.round(i.weeklyUsage * 100) / 100
+  })))}`
+})
+
+// Returns: "Paneer (0.8 days left) — order 5kg urgently.
+//           Tomatoes (1.2 days left) — order 8kg by tomorrow."</pre>
+
+    <div class="callout">
+      <div class="ct">🚀 Future AI: agentic actions (Phase 4)</div>
+      <div class="cs">Today the AI answers. Next it acts: instead of "order 5kg of paneer," it drafts the purchase order to the supplier, proposes a shift to cover the busiest day, or messages a lapsed VIP customer — with the owner approving in one tap. That's the leap from assistant to operating system.</div>
+    </div>
+  </div>
+
+  <!-- FILE STRUCTURE -->
+  <div class="sec" id="s6">
+    <h2>File Structure</h2>
+    <p class="lede">Restaurant ships first under this layout; the boundaries (route groups, isolated <code>lib/ai</code>, feature folders) are exactly where future verticals plug in.</p>
+<pre>/
+├── app/
+│   ├── (auth)/
+│   │   ├── sign-in/[[...sign-in]]/page.tsx
+│   │   └── sign-up/[[...sign-up]]/page.tsx
+│   │
+│   ├── (marketing)/
+│   │   ├── page.tsx              # Landing page
+│   │   └── pricing/page.tsx
+│   │
+│   ├── onboarding/
+│   │   └── page.tsx              # Business setup after sign-up
+│   │
+│   ├── dashboard/
+│   │   └── [restaurantId]/
+│   │       ├── layout.tsx        # Sidebar + auth + ownership check
+│   │       ├── page.tsx          # Overview / analytics
+│   │       ├── menu/page.tsx
+│   │       ├── orders/
+│   │       │   ├── page.tsx      # Table grid + active orders
+│   │       │   └── history/page.tsx
+│   │       ├── inventory/page.tsx
+│   │       ├── customers/
+│   │       │   ├── page.tsx
+│   │       │   └── [customerId]/page.tsx
+│   │       ├── staff/page.tsx
+│   │       └── ai/page.tsx       # AI assistant chat UI
+│   │
+│   └── api/
+│       ├── webhooks/
+│       │   ├── clerk/route.ts    # Sync user to RestaurantMember
+│       │   └── stripe/route.ts   # Plan changes
+│       ├── cron/
+│       │   └── weekly-summary/route.ts
+│       └── restaurants/
+│           └── [restaurantId]/
+│               ├── menu/route.ts
+│               ├── orders/route.ts
+│               ├── inventory/route.ts
+│               ├── customers/route.ts
+│               ├── staff/route.ts
+│               └── ai/
+│                   ├── query/route.ts    # Text-to-SQL streaming
+│                   └── summary/route.ts  # On-demand summary
+│
+├── components/
+│   ├── ui/                # shadcn (never edit these)
+│   ├── layout/
+│   │   ├── sidebar.tsx
+│   │   └── header.tsx
+│   ├── orders/
+│   ├── inventory/
+│   ├── customers/
+│   └── ai/
+│       ├── chat-interface.tsx
+│       └── message-stream.tsx
+│
+├── lib/
+│   ├── db.ts                      # Prisma singleton
+│   ├── auth.ts                    # Clerk helpers + middleware
+│   ├── ai/
+│   │   ├── text-to-sql.ts         # SQL generation + validation
+│   │   ├── schema-context.ts      # DB schema description for Claude
+│   │   ├── weekly-summary.ts
+│   │   └── inventory-alerts.ts
+│   ├── verticals/                 # ← future: per-industry config packs
+│   │   └── restaurant.ts          #   entities, KPIs, AI examples, copy
+│   ├── validations/               # Zod schemas per route
+│   └── utils.ts
+│
+├── hooks/
+│   ├── use-restaurant.ts
+│   └── use-ai-stream.ts
+│
+├── prisma/
+│   ├── schema.prisma
+│   └── seed.ts                    # Realistic demo data
+│
+├── tests/e2e/                     # Playwright
+│   ├── auth.spec.ts
+│   ├── orders.spec.ts
+│   └── ai-query.spec.ts
+│
+└── types/index.ts</pre>
+
+    <h3>Key architecture notes</h3>
+    <div class="card">
+      <ul class="fl">
+        <li>Route Groups — (auth) and (marketing) share no layout with dashboard, clean separation</li>
+        <li>All dashboard routes are under [restaurantId] — ownership check happens once in layout.tsx, not repeated per route</li>
+        <li>schema-context.ts builds a natural-language description of your DB for Claude — not the raw Prisma schema (too verbose, wastes tokens). This is the file a new vertical overrides.</li>
+        <li>lib/verticals/ is the seam for the platform play — each industry is a config pack (entities, KPIs, AI examples, terminology), not a forked app</li>
+        <li>lib/ai/ is completely separate from components — AI logic is testable independently of React</li>
+        <li>seed.ts is critical for portfolio — without real demo data, the AI assistant looks useless</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="sec" id="s7">
+    <h2>3-Month Timeline</h2>
+    <p class="lede">Target: project live, tested, and interview-ready by the first week of September. Phase 1 (the restaurant vertical) is the entire 3-month scope — verticals come after.</p>
+
+    <div class="mh">June — Foundation (2 weeks left)</div>
+    <div class="week"><div class="wn">Week 1</div><div class="wc"><div class="wt">Setup + Auth + Onboarding</div><div class="wd">Init Next.js 15 + Clerk + Prisma + Neon + Shadcn. Business onboarding flow (name, slug, timezone). Clerk webhook to sync user. Deploy skeleton to Vercel.</div></div></div>
+    <div class="week"><div class="wn">Week 2</div><div class="wc"><div class="wt">Dashboard shell + Menu module</div><div class="wd">Sidebar navigation with all routes. Overview page with placeholder cards. Full Menu + Categories CRUD. Image upload via Uploadthing. Menu item toggle availability.</div></div></div>
+
+    <div class="mh">July — Core Modules (4 weeks)</div>
+    <div class="week"><div class="wn">Week 1</div><div class="wc"><div class="wt">Orders + Tables</div><div class="wd">Visual table grid with status colours. Create order flow (select items, quantities, notes). Status pipeline with single-click updates. Order history with filters.</div></div></div>
+    <div class="week"><div class="wn">Week 2</div><div class="wc"><div class="wt">Inventory</div><div class="wd">Inventory CRUD. Link to menu items. Stock-in flow. Low stock dashboard. Full transaction history with balanceAfter.</div></div></div>
+    <div class="week"><div class="wn">Week 3</div><div class="wc"><div class="wt">Customers + Staff</div><div class="wd">Customer auto-creation from paid orders. CRM list + profile page. Staff directory. Shift logging with hours calculation. Weekly schedule view.</div></div></div>
+    <div class="week"><div class="wn">Week 4</div><div class="wc"><div class="wt">Overview dashboard + Seed data</div><div class="wd">Real metrics on overview page. Recharts revenue chart. Write comprehensive seed.ts with 3 months of realistic demo data — this makes the AI actually useful.</div></div></div>
+
+    <div class="mh">August — AI + Polish + Launch (4 weeks)</div>
+    <div class="week"><div class="wn">Week 1</div><div class="wc"><div class="wt">Text-to-SQL AI assistant</div><div class="wd">Schema context builder. SQL generation + validation. Streaming API route. Chat UI with useChat(). Test 20+ different business questions.</div></div></div>
+    <div class="week"><div class="wn">Week 2</div><div class="wc"><div class="wt">Weekly summary + Inventory alerts</div><div class="wd">Vercel Cron config. Weekly summary generation and storage. Display on dashboard. Smart reorder suggestions with velocity calculation.</div></div></div>
+    <div class="week"><div class="wn">Week 3</div><div class="wc"><div class="wt">Testing + Error handling + Polish</div><div class="wd">Playwright E2E for auth, order creation, AI query. Error boundaries. Skeleton loading states. Proper 403/404 handling. Mobile responsive check.</div></div></div>
+    <div class="week"><div class="wn">Week 4</div><div class="wc"><div class="wt">Stripe + Landing page + Demo</div><div class="wd">Stripe subscription flow. Landing page that positions Operato as the AI OS (restaurant first). 3-minute Loom demo. Update resume. GitHub README with architecture diagram.</div></div></div>
+
+    <div class="mh">September — Job Search Push</div>
+    <div class="week"><div class="wn">Goal</div><div class="wc"><div class="wt">2–3 active interview processes by mid-September</div><div class="wd">Resume updated with Operato as lead project. LinkedIn outreach to Bangalore EMs (not just portal applications). Use interview practice from the June–July pipeline to close offers in October.</div></div></div>
+
+    <div class="mh">Beyond — Platform expansion (post-launch, optional)</div>
+    <div class="week"><div class="wn">Stretch</div><div class="wc"><div class="wt">Extract the vertical config + ship vertical #2</div><div class="wd">Refactor restaurant-specific code into <code>lib/verticals/restaurant.ts</code>, then stand up Café as a config pack to prove the platform abstraction. Even a half-built second vertical massively strengthens the "I built a platform" story.</div></div></div>
+  </div>
+
+  <!-- INTERVIEW PREP -->
+  <div class="sec" id="s8">
+    <h2>Interview Talking Points</h2>
+    <p class="lede">Questions you'll definitely get. Answers that signal senior engineering judgment and product thinking.</p>
+
+    <div class="ipoint">
+      <div class="iq">"Walk me through the project."</div>
+      <div class="ia">Operato is an AI operating system for small businesses, and I shipped restaurant as the first vertical. The core — multi-tenant model, Clerk auth, Stripe billing, dashboard shell, and an AI engine that does text-to-SQL over the tenant's real data — is vertical-agnostic. The restaurant-specific part is a module pack (menu, orders, tables) plus an AI schema context. So I'm not demoing a CRUD app; I'm demoing one industry, deeply built, on a platform designed to add more.</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"How does the multi-tenant architecture work?"</div>
+      <div class="ia">Shared database, shared schema — every table has a restaurantId foreign key. On every API route, I extract restaurantId from the URL, verify the authenticated Clerk user belongs to that restaurant via RestaurantMember, then filter all queries by that restaurantId. I considered separate schemas per tenant but chose shared because it's simpler operationally and appropriate for early-stage scale. The same tenant column generalises across verticals, and I'd migrate to schema-per-tenant as a natural next step.</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"How did you make the AI text-to-SQL safe?"</div>
+      <div class="ia">Three layers. First, Claude is instructed to return only SELECT statements as structured JSON — not raw text. Second, before execution I validate: check it starts with SELECT, whitelist allowed table names, reject anything else. Third, restaurantId is always injected as a Prisma parameterised value — never string-interpolated. So even if Claude generated a technically valid query, it can only ever read data for the authenticated restaurant.</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"How does streaming work in the AI responses?"</div>
+      <div class="ia">I use the Vercel AI SDK's streamText on the server, which returns a ReadableStream from the Anthropic API. On the client, useChat() from the AI SDK handles the SSE connection and renders tokens as they arrive. Users see the first words within ~300ms even when Claude is generating a long summary. The key architectural choice was separating the SQL generation step (non-streaming, structured JSON) from the natural-language response step (streaming).</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"How would you add a second industry — say a café or a retail store?"</div>
+      <div class="ia">It's a config pack, not a fork. The shared core (tenancy, auth, billing, inventory, CRM, AI engine) stays. I add a vertical definition under lib/verticals that declares the domain entities (Catalog instead of Menu, Counters instead of Tables), the dashboard KPIs, and — crucially — the AI schema context plus example question-to-SQL pairs for that domain. Because the AI reads a generated description rather than the raw schema, swapping the context is most of the work. That reuse ratio is the entire point of building it as an OS.</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"Why Clerk over NextAuth?"</div>
+      <div class="ia">Clerk has a native Organizations API that maps exactly to my multi-tenant model. With NextAuth I'd have built the organisation/member system from scratch — about a week of work. Clerk also provides webhooks for user lifecycle events, which I use to sync users to my RestaurantMember table on sign-up. The tradeoff is vendor lock-in, which I'd reconsider at scale, but the velocity was worth it here.</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"What would you do differently at real scale?"</div>
+      <div class="ia">Schema-per-tenant instead of shared DB for stronger data isolation. A proper queue (BullMQ or Inngest) for weekly summaries instead of Vercel Cron — Cron doesn't retry failed jobs reliably. Redis caching for common AI queries. Rate limiting on the AI endpoints per tenant per day. And proper observability — right now I log to the AiQuery table, which works for a portfolio, but I'd use something like Datadog in production.</div>
+    </div>
+
+    <div class="ipoint">
+      <div class="iq">"How did you handle the database context for AI?"</div>
+      <div class="ia">I built a schema-context.ts that generates a natural-language description of the DB — table names, column names, relationships, what each table represents — rather than sending the raw Prisma schema. The Prisma schema has too many technical details Claude doesn't need and it wastes tokens. I also inject 5–6 example question-to-SQL pairs that show Claude the pattern for common business queries, which significantly improved accuracy on domain-specific questions. This file is also the per-vertical seam.</div>
+    </div>
+  </div>
+
+  <div class="foot">Operato — The AI Operating System for Restaurants · Project &amp; interview-prep doc · Tip: use “Save as PDF” for a clean export.</div>
+
+</div>
+
+<script>
+function sw(i){
+  document.querySelectorAll('.sec').forEach((s,j)=>s.classList.toggle('active',j===i))
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i))
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+</script>
+</body>
+</html>
