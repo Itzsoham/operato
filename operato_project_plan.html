@@ -262,6 +262,7 @@ pre{
     <button class="tab" onclick="sw(6)">File Structure</button>
     <button class="tab" onclick="sw(7)">Timeline</button>
     <button class="tab" onclick="sw(8)">Interview Prep</button>
+    <button class="tab" onclick="sw(9)">Landing Page</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -271,7 +272,7 @@ pre{
       <div class="hero-name"><span class="accent">Operato</span></div>
       <div class="hero-sub">The AI Operating System for Restaurants — an AI assistant that talks to your <em>actual</em> business database, not a demo dataset. Built restaurant-first, architected to become the AI operating system for any small business.</div>
       <div class="badges">
-        <span class="badge">Multi-tenant SaaS</span><span class="badge">Next.js 15 App Router</span><span class="badge">Text-to-SQL AI</span><span class="badge">Streaming responses</span><span class="badge">PostgreSQL + Prisma</span><span class="badge">Stripe subscriptions</span><span class="badge">Vertical-extensible core</span>
+        <span class="badge">Multi-tenant SaaS</span><span class="badge">Next.js 15 App Router</span><span class="badge">Text-to-SQL AI</span><span class="badge">Streaming responses</span><span class="badge">PostgreSQL + Prisma</span><span class="badge">Razorpay subscriptions</span><span class="badge">Vertical-extensible core</span>
       </div>
     </div>
 
@@ -290,7 +291,7 @@ pre{
     <h3>Resume line</h3>
     <div class="card">
       <div class="kv"><span class="kk">Project</span><span class="kv2">Operato — multi-tenant AI operating system for restaurants (first vertical of a multi-industry platform)</span></div>
-      <div class="kv"><span class="kk">Stack</span><span class="kv2">Next.js 15, TypeScript, Prisma, PostgreSQL (Neon), Clerk, Stripe, Anthropic API</span></div>
+      <div class="kv"><span class="kk">Stack</span><span class="kv2">Next.js 15, TypeScript, Prisma, PostgreSQL (Neon), Better Auth, Razorpay, Google Gemini (Vercel AI SDK)</span></div>
       <div class="kv"><span class="kk">AI layer</span><span class="kv2">Text-to-SQL with parameterised queries, streaming responses, weekly auto-summaries, velocity-based alerts</span></div>
       <div class="kv"><span class="kk">Architecture</span><span class="kv2">Multi-tenant (shared DB, row-level isolation), vertical-extensible module system, Vercel Cron, Playwright E2E</span></div>
       <div class="kv"><span class="kk">Live</span><span class="kv2">operato.app — demo credentials in README</span></div>
@@ -299,7 +300,7 @@ pre{
     <h3>Three AI features (each a separate engineering problem)</h3>
     <div class="card">
       <ul class="fl">
-        <li>Text-to-SQL assistant — owner types a business question, Claude generates safe SQL, executes against their data, streams back analysis</li>
+        <li>Text-to-SQL assistant — owner types a business question, Gemini generates safe SQL, executes against their data, streams back analysis</li>
         <li>Weekly business summary — auto-generated every Monday via Cron, stored in DB, shown on the dashboard. No setup required.</li>
         <li>Smart inventory alerts — calculates sales velocity, tells the owner how many days until stockout and exactly how much to reorder</li>
       </ul>
@@ -378,8 +379,8 @@ pre{
         <div class="ct">🔒 Shared core (build once)</div>
         <ul class="fl green">
           <li>Multi-tenant model + row-level isolation</li>
-          <li>Clerk auth &amp; Organizations</li>
-          <li>Stripe billing &amp; plans</li>
+          <li>Better Auth (self-hosted) &amp; RestaurantMember model</li>
+          <li>Razorpay billing &amp; plans</li>
           <li>Dashboard shell, layout, charts</li>
           <li>AI engine: text-to-SQL, summaries, alerts</li>
           <li>Inventory + CRM primitives</li>
@@ -408,7 +409,7 @@ pre{
         <li>The AI never sees the raw Prisma schema — it reads a generated <code>schema-context.ts</code> description, which is exactly the seam where a new vertical plugs in</li>
         <li>Modules are isolated under <code>lib/</code> and feature folders, so a vertical is a bounded set of modules, not tangled code</li>
         <li>Shared-DB + tenant id means a new vertical is a new tenant type, not new infrastructure</li>
-        <li>Stripe plans and the dashboard shell are domain-agnostic from day one</li>
+        <li>Razorpay plans and the dashboard shell are domain-agnostic from day one</li>
       </ul>
     </div>
   </div>
@@ -425,18 +426,18 @@ pre{
     <div class="trow"><span class="tn">TanStack Query</span><span class="tw">Already your core strength. Server state, caching, optimistic updates — shows production maturity.</span></div>
 
     <h3>Auth &amp; Multi-tenancy</h3>
-    <div class="trow"><span class="tn">Clerk</span><span class="tw">Best multi-tenant auth in 2025. Native Organizations API maps directly to the tenant-per-business model — which is exactly what makes multi-vertical possible. Webhooks sync users to your DB. One week saved vs NextAuth.</span></div>
+    <div class="trow"><span class="tn">Better Auth</span><span class="tw">Self-hosted TypeScript auth — users live in your own Postgres, so there's no user-sync webhook: onboarding creates the Restaurant + RestaurantMember in one transaction. The RestaurantMember table maps directly to the tenant-per-business model. No vendor lock-in; you own the auth surface and the data.</span></div>
 
     <h3>Database</h3>
     <div class="trow"><span class="tn">PostgreSQL (Neon)</span><span class="tw">Serverless Postgres, free tier, first-class Vercel integration. Neon branching is a bonus interview talking point about DB-per-feature-branch workflows.</span></div>
     <div class="trow"><span class="tn">Prisma ORM</span><span class="tw">You already know it from RoyalStay. Type-safe queries. The schema becomes the source of truth for the AI's database context too.</span></div>
 
     <h3>AI Layer</h3>
-    <div class="trow"><span class="tn">Anthropic Claude API</span><span class="tw">Best for structured JSON output (SQL generation step) and long-form analysis (summaries). <code>claude-sonnet-4-6</code> for the speed + quality balance.</span></div>
+    <div class="trow"><span class="tn">Google Gemini (Vercel AI SDK)</span><span class="tw">Gemini 2.5 Flash via <code>@ai-sdk/google</code> (with Flash-Lite for the batch cron). Free tier, no card — tight but enough for a portfolio demo. <code>generateObject</code> for the structured SQL step, <code>streamText</code> for analysis. Pin the model in one constant so it's a one-line swap.</span></div>
     <div class="trow"><span class="tn">Vercel AI SDK</span><span class="tw">streamText() on server + useChat() on client. Makes streaming UI trivial. Core interview talking point — shows you understand streaming architecture.</span></div>
 
     <h3>Payments &amp; Uploads</h3>
-    <div class="trow"><span class="tn">Stripe</span><span class="tw">Subscription billing (Free/Pro). Webhooks for plan changes. Shows you can build real SaaS revenue flow, not just features — and it's vertical-agnostic from day one.</span></div>
+    <div class="trow"><span class="tn">Razorpay</span><span class="tw">Subscription billing (Free/Pro) for India (INR). Webhook — HMAC-SHA256 over the raw body, idempotent + reconciled — drives plan changes. Shows you can build real SaaS revenue flow, not just features — and it's vertical-agnostic from day one.</span></div>
     <div class="trow"><span class="tn">Uploadthing</span><span class="tw">Menu/catalog item image uploads. Zero config with Next.js. Not worth building yourself for a portfolio project.</span></div>
 
     <h3>Testing &amp; DevOps</h3>
@@ -448,7 +449,7 @@ pre{
     <div class="card">
       <ul class="fl">
         <li>No separate Node/Express backend — Next.js Route Handlers handle everything, reducing complexity</li>
-        <li>No LangChain — direct Anthropic API calls are simpler and show deeper understanding of what's actually happening</li>
+        <li>No LangChain — direct Vercel AI SDK calls to Gemini are simpler and show deeper understanding of what's actually happening</li>
         <li>No Redis for this scope — mention you'd add it for caching AI responses at scale (interview point)</li>
         <li>No Docker locally — Neon + Vercel handles infra; add if you want a bonus talking point</li>
       </ul>
@@ -472,7 +473,8 @@ model Restaurant {
   currency         String    @default("INR")
   plan             Plan      @default(FREE)
   planExpiresAt    DateTime?
-  stripeCustomerId String?   @unique
+  razorpayCustomerId     String?   @unique
+  razorpaySubscriptionId String?   @unique
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -481,9 +483,12 @@ model Restaurant {
   menuItems       MenuItem[]
   tables          RestaurantTable[]
   orders          Order[]
+  orderItems      OrderItem[]
   inventoryItems  InventoryItem[]
+  inventoryTxns   InventoryTransaction[]
   customers       Customer[]
   staff           Staff[]
+  shifts          Shift[]
   aiQueries       AiQuery[]
   weeklySummaries WeeklySummary[]
 }
@@ -493,14 +498,15 @@ enum Plan { FREE  PRO }
 model RestaurantMember {
   id           String     @id @default(cuid())
   restaurantId String
-  clerkUserId  String
+  userId       String   // FK to Better Auth user.id
   role         MemberRole @default(STAFF)
   createdAt    DateTime   @default(now())
 
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   restaurant Restaurant @relation(fields: [restaurantId],
     references: [id], onDelete: Cascade)
-  @@unique([restaurantId, clerkUserId])
-  @@index([clerkUserId])
+  @@unique([restaurantId, userId])
+  @@index([userId])
 }
 
 enum MemberRole { OWNER  MANAGER  STAFF }
@@ -575,7 +581,9 @@ model Order {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  restaurant RestaurantTable? @relation(fields: [tableId], references: [id])
+  restaurant Restaurant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade) // FIX: real tenant relation (was missing)
+  table      RestaurantTable? @relation(fields: [tableId], references: [id])                          // FIX: was mislabeled "restaurant"
+  customer   Customer?        @relation(fields: [customerId], references: [id])                        // FIX: was missing
   orderItems OrderItem[]
   @@index([restaurantId, status])
   @@index([restaurantId, createdAt])  // AI queries filter by date heavily
@@ -585,18 +593,21 @@ enum OrderStatus { PENDING  CONFIRMED  PREPARING  READY  SERVED  PAID  CANCELLED
 enum OrderType   { DINE_IN  TAKEAWAY  DELIVERY }
 
 model OrderItem {
-  id         String     @id @default(cuid())
-  orderId    String
-  menuItemId String
-  quantity   Int
-  unitPrice  Decimal    @db.Decimal(10, 2)
-  totalPrice Decimal    @db.Decimal(10, 2)
-  notes      String?
-  status     ItemStatus @default(PENDING)
-  createdAt  DateTime   @default(now())
+  id           String     @id @default(cuid())
+  orderId      String
+  restaurantId String                // FIX: denormalized so AI filter/RLS needs no JOIN
+  menuItemId   String
+  quantity     Int
+  unitPrice    Decimal    @db.Decimal(10, 2)
+  totalPrice   Decimal    @db.Decimal(10, 2)
+  notes        String?
+  status       ItemStatus @default(PENDING)
+  createdAt    DateTime   @default(now())
 
-  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItem   MenuItem   @relation(fields: [menuItemId], references: [id])
+  @@index([restaurantId])
 }
 
 enum ItemStatus { PENDING  PREPARING  READY  SERVED }</pre>
@@ -623,11 +634,16 @@ enum ItemStatus { PENDING  PREPARING  READY  SERVED }</pre>
 model InventoryTransaction {
   id              String          @id @default(cuid())
   inventoryItemId String
+  restaurantId    String          // FIX: denormalized for direct tenant filtering / RLS
   type            TransactionType
   quantity        Decimal         @db.Decimal(10, 3)
   balanceAfter    Decimal         @db.Decimal(10, 3) // audit trail
   notes           String?
   createdAt       DateTime        @default(now())
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade) // FIX: back-relation was missing
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  @@index([restaurantId, createdAt])
 }
 
 enum TransactionType { STOCK_IN  STOCK_OUT  ADJUSTMENT  WASTE }
@@ -647,7 +663,7 @@ model Customer {
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orders     Order[]
-  @@unique([restaurantId, phone])
+  @@unique([restaurantId, phone])  // phone nullable → NULLs are distinct in PG; don't auto-create a Customer without a phone (Module 4)
   @@index([restaurantId, totalSpend])
 }
 
@@ -670,13 +686,18 @@ model Staff {
 enum StaffRole { CHEF  SOUS_CHEF  WAITER  MANAGER  CASHIER  DELIVERY  HELPER }
 
 model Shift {
-  id          String    @id @default(cuid())
-  staffId     String
-  startTime   DateTime
-  endTime     DateTime?
-  hoursWorked Decimal?  @db.Decimal(5,2)
-  notes       String?
-  createdAt   DateTime  @default(now())
+  id           String    @id @default(cuid())
+  staffId      String
+  restaurantId String              // FIX: denormalized tenant key
+  startTime    DateTime
+  endTime      DateTime?
+  hoursWorked  Decimal?  @db.Decimal(5,2)
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  staff      Staff      @relation(fields: [staffId], references: [id], onDelete: Cascade)      // FIX: was missing
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  @@index([restaurantId, startTime])
 }
 
 model AiQuery {
@@ -709,6 +730,10 @@ model WeeklySummary {
         <li>orderNumber separate from id — UUID is for joins, "ORD-0042" is for staff and customer communication</li>
         <li>totalSpend + visitCount denormalised on Customer — fast AI queries without slow aggregation joins</li>
         <li>@@index on all date + status filters — shows you think about query performance from schema design</li>
+        <li><b>Generate-able relations (fixed)</b> — Order now back-relates to Restaurant, Table and Customer (the original mislabeled <code>Order.restaurant</code> as a Table); Shift↔Staff and InventoryTransaction↔InventoryItem are wired on both sides. Without this, <code>prisma generate</code> fails.</li>
+        <li><b>restaurantId denormalised onto OrderItem, InventoryTransaction, Shift</b> — these are exactly the tables the AI's marquee queries hit, so a flat <code>WHERE restaurantId = $1</code> (+ RLS) keeps tenant isolation off the model's JOINs.</li>
+        <li><b>Postgres Row-Level Security</b> — every tenant table has an RLS policy keyed on <code>current_setting('app.restaurant_id')</code>; even <code>SELECT *</code> with no WHERE returns only the active tenant. This is what actually makes text-to-SQL safe.</li>
+        <li><b>Transactional rollups</b> — <code>currentStock</code>/<code>balanceAfter</code> and <code>Customer.totalSpend</code>/<code>visitCount</code> update inside a <code>$transaction</code> with <code>SELECT … FOR UPDATE</code>, so concurrent writes can't corrupt the audit trail.</li>
       </ul>
     </div>
   </div>
@@ -735,7 +760,7 @@ model WeeklySummary {
         <li>Visual table grid — each table card shows number, capacity, current status with colour</li>
         <li>Create order for a table — search menu items, set quantities and notes</li>
         <li>Order status pipeline — Pending → Preparing → Ready → Served → Paid (one click per step)</li>
-        <li>On payment: auto-update customer totalSpend + visitCount via Prisma transaction</li>
+        <li>On payment: auto-update customer totalSpend + visitCount in one Prisma <code>$transaction</code> with a row lock (no lost updates under concurrency)</li>
         <li>Order history with filters (date range, status, type, customer)</li>
         <li>AI query example: "What's our average order value this week vs last week?"</li>
       </ul>
@@ -747,7 +772,7 @@ model WeeklySummary {
         <li>Link inventory items to menu items (optional — "Paneer" → "Paneer Tikka")</li>
         <li>Manual stock-in — quantity, cost per unit, supplier, notes</li>
         <li>Low stock alert panel — items below threshold sorted by urgency (days remaining)</li>
-        <li>Full transaction history — every movement logged with balance after</li>
+        <li>Full transaction history — every movement writes <code>currentStock</code> + <code>balanceAfter</code> atomically (<code>$transaction</code> + <code>SELECT … FOR UPDATE</code>) so the audit trail can't drift</li>
         <li>AI query example: "What should I reorder before the weekend based on this week's sales?"</li>
       </ul>
     </div>
@@ -755,7 +780,7 @@ model WeeklySummary {
     <h3>4. Customers &amp; CRM</h3>
     <div class="card">
       <ul class="fl">
-        <li>Customer profile auto-created on first order (phone as unique key per restaurant)</li>
+        <li>Customer profile auto-created on first order <b>only when a phone is given</b> (phone unique per restaurant; no phone → order stays anonymous, avoiding duplicate NULL-keyed profiles)</li>
         <li>Visit history, total spend, last seen — displayed on profile page</li>
         <li>Manual tags — VIP, Regular, Has Allergies, Birthday Month etc.</li>
         <li>Customer list sorted by spend, visit count, or last visit</li>
@@ -797,48 +822,59 @@ model WeeklySummary {
     <p class="lede">Three distinct features — each a separate engineering problem. Together they're what makes this project worth talking about, and the AI engine is the part that's fully vertical-agnostic.</p>
 
     <h3>1. Text-to-SQL Query Assistant</h3>
-    <p>Owner types a business question. Claude generates SQL, you execute it safely, Claude streams back the analysis.</p>
+    <p>Owner types a business question. Gemini generates SQL, you execute it safely, Gemini streams back the analysis.</p>
 
     <div class="ai-flow">
       <div class="ai-step"><div class="ai-n">1</div><div class="ai-t">User types: "Which items sold most yesterday?"</div></div>
-      <div class="ai-step"><div class="ai-n">2</div><div class="ai-t">Send to Claude with schema context + restaurantId + instruction to return a parameterised SELECT only, as JSON</div></div>
-      <div class="ai-step"><div class="ai-n">3</div><div class="ai-t">Claude returns <code>{ sql: "SELECT...", params: ["2024-01-15"] }</code></div></div>
-      <div class="ai-step"><div class="ai-n">4</div><div class="ai-t">Validate: starts with SELECT, tables are whitelisted, restaurantId always injected as a param — never interpolated</div></div>
-      <div class="ai-step"><div class="ai-n">5</div><div class="ai-t">Execute via Prisma $queryRaw with safe parameterised values</div></div>
-      <div class="ai-step"><div class="ai-n">6</div><div class="ai-t">Stream results back through Claude for natural-language analysis — useChat() in the frontend renders tokens live</div></div>
+      <div class="ai-step"><div class="ai-n">2</div><div class="ai-t">Send to Gemini with schema context + restaurantId + instruction to return a parameterised SELECT only, as a typed object</div></div>
+      <div class="ai-step"><div class="ai-n">3</div><div class="ai-t">Gemini returns a validated object <code>{ sql: "SELECT...", params: ["2024-01-15"] }</code> via generateObject</div></div>
+      <div class="ai-step"><div class="ai-n">4</div><div class="ai-t">Validate in code (reject writes, <code>;</code>, comments) and enforce tenant isolation with Postgres Row-Level Security — never trust the model's WHERE clause</div></div>
+      <div class="ai-step"><div class="ai-n">5</div><div class="ai-t">Execute on a read-only DB role inside a read-only transaction with statement_timeout + a forced LIMIT</div></div>
+      <div class="ai-step"><div class="ai-n">6</div><div class="ai-t">Stream results back through Gemini for natural-language analysis — useChat() in the frontend renders tokens live</div></div>
     </div>
 
-<pre>// app/api/restaurants/[id]/ai/query/route.ts
+<pre>// src/app/api/restaurants/[restaurantId]/ai/query/route.ts
+import { google } from '@ai-sdk/google'
+import { generateObject, streamText } from 'ai'
+import { z } from 'zod'
+
 export async function POST(req, { params }) {
+  const { restaurantId } = await params      // always from URL, never body
+  await requireMember(restaurantId)          // EVERY route checks membership
+
   const { query } = await req.json()
-  const restaurantId = params.id  // always from URL, never body
 
-  // Step 1: Generate SQL
-  const sqlRes = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+  // Step 1: Generate SQL — structured output (not JSON.parse of free text)
+  const { object } = await generateObject({
+    model: google('gemini-2.5-flash'),
+    schema: z.object({
+      sql: z.string(),
+      params: z.array(z.union([z.string(), z.number()]))
+    }),
     system: buildSchemaContext(restaurantId) + SAFETY_RULES,
-    messages: [{ role: 'user', content: query }]
+    prompt: query
   })
-  const { sql, sqlParams } = JSON.parse(sqlRes.content[0].text)
 
-  // Step 2: Validate (critical for security)
-  if (!sql.trim().toUpperCase().startsWith('SELECT')) {
-    return Response.json({ error: 'Invalid query' }, { status: 400 })
-  }
+  // Step 2: Execute SAFELY — a SELECT-prefix check is NOT a sandbox.
+  //   runReadonlySql uses a read-only DB role + read-only transaction +
+  //   statement_timeout + forced LIMIT, rejects ; / comments / writes, and
+  //   enforces tenant isolation via Postgres RLS (SET LOCAL app.restaurant_id) —
+  //   so a missing WHERE clause from the model can never cross tenants.
+  const data = await runReadonlySql(restaurantId, object.sql, object.params)
 
-  // Step 3: Execute (restaurantId always as param, never string)
-  const data = await prisma.$queryRaw(
-    Prisma.sql([sql], restaurantId, ...sqlParams)
-  )
-
-  // Step 4: Stream natural language response
+  // Step 3: Stream the analysis (serialize BigInt/Decimal before stringify)
   const stream = streamText({
-    model: 'claude-sonnet-4-6',
-    prompt: `Data: ${JSON.stringify(data)}\nQuestion: ${query}\nAnswer naturally.`
+    model: google('gemini-2.5-flash'),
+    prompt: `Data: ${JSON.stringify(serializeRows(data))}\nQuestion: ${query}\nAnswer naturally.`
   })
 
-  return stream.toAIStreamResponse()
+  return stream.toUIMessageStreamResponse()
 }</pre>
+
+    <div class="callout">
+      <div class="ct">🔒 Why this is actually safe (the part the original plan got wrong)</div>
+      <div class="cs"><b>Five layers, none of them "the prompt":</b> (1) <code>generateObject</code> + Zod returns a typed <code>{ sql, params }</code> — no <code>JSON.parse</code> of free text; (2) a static pre-filter rejects <code>;</code>, comments and any write keyword; (3) execution runs on a dedicated <b>read-only Postgres role</b> inside a <code>transaction_read_only</code> transaction with a <code>statement_timeout</code> and a forced <code>LIMIT</code>; (4) <b>Row-Level Security</b> (<code>SET LOCAL app.restaurant_id</code>) means even a missing WHERE can't cross tenants; (5) results pass through <code>serializeRows()</code> to convert <code>BigInt</code>/<code>Decimal</code> before <code>JSON.stringify</code> — otherwise every revenue/count query throws. A <code>startsWith('SELECT')</code> check is none of these.</div>
+    </div>
 
     <h3>2. Weekly Business Summary (Vercel Cron)</h3>
     <p>Auto-generated every Monday. No setup from the business owner. Stored in DB, shown on the dashboard.</p>
@@ -846,7 +882,10 @@ export async function POST(req, { params }) {
 <pre>// vercel.json
 { "crons": [{ "path": "/api/cron/weekly-summary", "schedule": "0 6 * * 1" }] }
 
-// api/cron/weekly-summary/route.ts
+// src/app/api/cron/weekly-summary/route.ts  (throttle: shared Gemini key ~15 req/min)
+import { google } from '@ai-sdk/google'
+import { generateText } from 'ai'
+
 const restaurants = await prisma.restaurant.findMany()
 
 for (const r of restaurants) {
@@ -860,7 +899,7 @@ for (const r of restaurants) {
   }
 
   const { text } = await generateText({
-    model: 'claude-sonnet-4-6',
+    model: google('gemini-2.5-flash-lite'),  // cron: more free-tier headroom
     prompt: `Write a brief, friendly weekly summary for a restaurant owner.
     Data: ${JSON.stringify(metrics)}`
   })
@@ -875,7 +914,9 @@ for (const r of restaurants) {
     <h3>3. Smart Inventory Alerts</h3>
     <p>Not just "stock is low" — calculates sales velocity and gives a specific reorder recommendation.</p>
 
-<pre>// lib/ai/inventory-alerts.ts
+<pre>// src/lib/ai/inventory-alerts.ts
+import { google } from '@ai-sdk/google'
+import { generateText } from 'ai'
 
 // Calculate how many units sold per day (avg over last 7 days)
 const salesVelocity = await getDailyUsageByItem(restaurantId, 7)
@@ -890,7 +931,7 @@ const urgentItems = inventoryItems
   .sort((a, b) => a.daysLeft - b.daysLeft)
 
 const { text } = await generateText({
-  model: 'claude-sonnet-4-6',
+  model: google('gemini-2.5-flash'),
   prompt: `Based on sales velocity, suggest reorder quantities.
   Items: ${JSON.stringify(urgentItems.map(i => ({
     name: i.name, current: i.currentStock, unit: i.unit,
@@ -911,12 +952,12 @@ const { text } = await generateText({
   <!-- FILE STRUCTURE -->
   <div class="sec" id="s6">
     <h2>File Structure</h2>
-    <p class="lede">Restaurant ships first under this layout; the boundaries (route groups, isolated <code>lib/ai</code>, feature folders) are exactly where future verticals plug in.</p>
+    <p class="lede">Restaurant ships first under this layout. All app folders (<code>app</code>, <code>components</code>, <code>lib</code>, <code>hooks</code>, <code>types</code>) now live under <code>src/</code> — prepend <code>src/</code> to the tree below; <code>prisma</code>, <code>tests</code>, <code>public</code> and config stay at the root (full detail in <code>docs/folder-structure.md</code>). The boundaries (route groups, isolated <code>lib/ai</code>, feature folders) are exactly where future verticals plug in.</p>
 <pre>/
 ├── app/
 │   ├── (auth)/
-│   │   ├── sign-in/[[...sign-in]]/page.tsx
-│   │   └── sign-up/[[...sign-up]]/page.tsx
+│   │   ├── sign-in/page.tsx       # your own Better Auth sign-in
+│   │   └── sign-up/page.tsx
 │   │
 │   ├── (marketing)/
 │   │   ├── page.tsx              # Landing page
@@ -941,9 +982,9 @@ const { text } = await generateText({
 │   │       └── ai/page.tsx       # AI assistant chat UI
 │   │
 │   └── api/
+│       ├── auth/[...all]/route.ts   # Better Auth handler (no user-sync webhook)
 │       ├── webhooks/
-│       │   ├── clerk/route.ts    # Sync user to RestaurantMember
-│       │   └── stripe/route.ts   # Plan changes
+│       │   └── razorpay/route.ts    # Plan changes (verify raw-body HMAC)
 │       ├── cron/
 │       │   └── weekly-summary/route.ts
 │       └── restaurants/
@@ -971,10 +1012,12 @@ const { text } = await generateText({
 │
 ├── lib/
 │   ├── db.ts                      # Prisma singleton
-│   ├── auth.ts                    # Clerk helpers + middleware
+│   ├── auth.ts                    # Better Auth server config + requireMember guard
+│   ├── auth-client.ts             # Better Auth React client
+│   ├── razorpay.ts                # Razorpay SDK singleton
 │   ├── ai/
 │   │   ├── text-to-sql.ts         # SQL generation + validation
-│   │   ├── schema-context.ts      # DB schema description for Claude
+│   │   ├── schema-context.ts      # DB description for Gemini (generated from DMMF)
 │   │   ├── weekly-summary.ts
 │   │   └── inventory-alerts.ts
 │   ├── verticals/                 # ← future: per-industry config packs
@@ -1001,11 +1044,13 @@ const { text } = await generateText({
     <div class="card">
       <ul class="fl">
         <li>Route Groups — (auth) and (marketing) share no layout with dashboard, clean separation</li>
-        <li>All dashboard routes are under [restaurantId] — ownership check happens once in layout.tsx, not repeated per route</li>
-        <li>schema-context.ts builds a natural-language description of your DB for Claude — not the raw Prisma schema (too verbose, wastes tokens). This is the file a new vertical overrides.</li>
+        <li>All dashboard routes are under [restaurantId] — but the ownership check (requireMember) runs in both layout.tsx (pages) AND every API route handler, since layouts don't run for /api routes</li>
+        <li>schema-context.ts builds a natural-language description of your DB for Gemini — generated from the Prisma DMMF so it can't drift, not the raw schema (too verbose, wastes tokens). This is the file a new vertical overrides.</li>
         <li>lib/verticals/ is the seam for the platform play — each industry is a config pack (entities, KPIs, AI examples, terminology), not a forked app</li>
         <li>lib/ai/ is completely separate from components — AI logic is testable independently of React</li>
         <li>seed.ts is critical for portfolio — without real demo data, the AI assistant looks useless</li>
+        <li>The AI query path uses a separate read-only DB connection (its own least-privilege Postgres role) — never the app's read-write Prisma client</li>
+        <li>(marketing) is the public landing site (operato.app) — static, SEO'd, no auth; see the Landing Page tab</li>
       </ul>
     </div>
   </div>
@@ -1016,7 +1061,7 @@ const { text } = await generateText({
     <p class="lede">Target: project live, tested, and interview-ready by the first week of September. Phase 1 (the restaurant vertical) is the entire 3-month scope — verticals come after.</p>
 
     <div class="mh">June — Foundation (2 weeks left)</div>
-    <div class="week"><div class="wn">Week 1</div><div class="wc"><div class="wt">Setup + Auth + Onboarding</div><div class="wd">Init Next.js 15 + Clerk + Prisma + Neon + Shadcn. Business onboarding flow (name, slug, timezone). Clerk webhook to sync user. Deploy skeleton to Vercel.</div></div></div>
+    <div class="week"><div class="wn">Week 1</div><div class="wc"><div class="wt">Setup + Auth + Onboarding</div><div class="wd">Init Next.js 15 (/src) + Better Auth + Prisma + Neon + Shadcn. Business onboarding flow (name, slug, timezone) that creates the Restaurant + owner RestaurantMember in one transaction — no user-sync webhook. Deploy skeleton to Vercel.</div></div></div>
     <div class="week"><div class="wn">Week 2</div><div class="wc"><div class="wt">Dashboard shell + Menu module</div><div class="wd">Sidebar navigation with all routes. Overview page with placeholder cards. Full Menu + Categories CRUD. Image upload via Uploadthing. Menu item toggle availability.</div></div></div>
 
     <div class="mh">July — Core Modules (4 weeks)</div>
@@ -1029,7 +1074,7 @@ const { text } = await generateText({
     <div class="week"><div class="wn">Week 1</div><div class="wc"><div class="wt">Text-to-SQL AI assistant</div><div class="wd">Schema context builder. SQL generation + validation. Streaming API route. Chat UI with useChat(). Test 20+ different business questions.</div></div></div>
     <div class="week"><div class="wn">Week 2</div><div class="wc"><div class="wt">Weekly summary + Inventory alerts</div><div class="wd">Vercel Cron config. Weekly summary generation and storage. Display on dashboard. Smart reorder suggestions with velocity calculation.</div></div></div>
     <div class="week"><div class="wn">Week 3</div><div class="wc"><div class="wt">Testing + Error handling + Polish</div><div class="wd">Playwright E2E for auth, order creation, AI query. Error boundaries. Skeleton loading states. Proper 403/404 handling. Mobile responsive check.</div></div></div>
-    <div class="week"><div class="wn">Week 4</div><div class="wc"><div class="wt">Stripe + Landing page + Demo</div><div class="wd">Stripe subscription flow. Landing page that positions Operato as the AI OS (restaurant first). 3-minute Loom demo. Update resume. GitHub README with architecture diagram.</div></div></div>
+    <div class="week"><div class="wn">Week 4</div><div class="wc"><div class="wt">Razorpay + Landing page + Demo</div><div class="wd">Razorpay subscription flow (webhook signature + idempotency). Landing page that positions Operato as the AI OS (restaurant first). 3-minute Loom demo. Update resume. GitHub README with architecture diagram.</div></div></div>
 
     <div class="mh">September — Job Search Push</div>
     <div class="week"><div class="wn">Goal</div><div class="wc"><div class="wt">2–3 active interview processes by mid-September</div><div class="wd">Resume updated with Operato as lead project. LinkedIn outreach to Bangalore EMs (not just portal applications). Use interview practice from the June–July pipeline to close offers in October.</div></div></div>
@@ -1045,22 +1090,22 @@ const { text } = await generateText({
 
     <div class="ipoint">
       <div class="iq">"Walk me through the project."</div>
-      <div class="ia">Operato is an AI operating system for small businesses, and I shipped restaurant as the first vertical. The core — multi-tenant model, Clerk auth, Stripe billing, dashboard shell, and an AI engine that does text-to-SQL over the tenant's real data — is vertical-agnostic. The restaurant-specific part is a module pack (menu, orders, tables) plus an AI schema context. So I'm not demoing a CRUD app; I'm demoing one industry, deeply built, on a platform designed to add more.</div>
+      <div class="ia">Operato is an AI operating system for small businesses, and I shipped restaurant as the first vertical. The core — multi-tenant model, Better Auth, Razorpay billing, dashboard shell, and an AI engine that does text-to-SQL over the tenant's real data — is vertical-agnostic. The restaurant-specific part is a module pack (menu, orders, tables) plus an AI schema context. So I'm not demoing a CRUD app; I'm demoing one industry, deeply built, on a platform designed to add more.</div>
     </div>
 
     <div class="ipoint">
       <div class="iq">"How does the multi-tenant architecture work?"</div>
-      <div class="ia">Shared database, shared schema — every table has a restaurantId foreign key. On every API route, I extract restaurantId from the URL, verify the authenticated Clerk user belongs to that restaurant via RestaurantMember, then filter all queries by that restaurantId. I considered separate schemas per tenant but chose shared because it's simpler operationally and appropriate for early-stage scale. The same tenant column generalises across verticals, and I'd migrate to schema-per-tenant as a natural next step.</div>
+      <div class="ia">Shared database, shared schema — every table has a restaurantId foreign key. On every API route, I extract restaurantId from the URL, verify the authenticated user (Better Auth session) belongs to that restaurant via RestaurantMember, then filter all queries by that restaurantId — with Postgres Row-Level Security as a backstop. I considered separate schemas per tenant but chose shared because it's simpler operationally and appropriate for early-stage scale. The same tenant column generalises across verticals, and I'd migrate to schema-per-tenant as a natural next step.</div>
     </div>
 
     <div class="ipoint">
       <div class="iq">"How did you make the AI text-to-SQL safe?"</div>
-      <div class="ia">Three layers. First, Claude is instructed to return only SELECT statements as structured JSON — not raw text. Second, before execution I validate: check it starts with SELECT, whitelist allowed table names, reject anything else. Third, restaurantId is always injected as a Prisma parameterised value — never string-interpolated. So even if Claude generated a technically valid query, it can only ever read data for the authenticated restaurant.</div>
+      <div class="ia">Defense in depth, because trusting the model is not a strategy. The SQL step uses generateObject with a Zod schema, so I get a typed { sql, params } object — not free text I have to parse. Before execution I reject writes, stacked statements and comments. Execution runs on a dedicated read-only Postgres role inside a read-only transaction with a statement_timeout and a forced LIMIT. And tenant isolation is enforced by Postgres Row-Level Security keyed off the request's restaurantId — so even if Gemini omitted the WHERE clause entirely, the database returns only the authenticated restaurant's rows. The guarantee lives in the database and my code, not in the prompt.</div>
     </div>
 
     <div class="ipoint">
       <div class="iq">"How does streaming work in the AI responses?"</div>
-      <div class="ia">I use the Vercel AI SDK's streamText on the server, which returns a ReadableStream from the Anthropic API. On the client, useChat() from the AI SDK handles the SSE connection and renders tokens as they arrive. Users see the first words within ~300ms even when Claude is generating a long summary. The key architectural choice was separating the SQL generation step (non-streaming, structured JSON) from the natural-language response step (streaming).</div>
+      <div class="ia">I use the Vercel AI SDK's streamText on the server, which returns a ReadableStream from Gemini via @ai-sdk/google. On the client, useChat() from the AI SDK handles the SSE connection and renders tokens as they arrive. Users see the first words within ~300ms even when Gemini is generating a long summary. The key architectural choice was separating the SQL generation step (non-streaming, structured JSON) from the natural-language response step (streaming).</div>
     </div>
 
     <div class="ipoint">
@@ -1069,8 +1114,8 @@ const { text } = await generateText({
     </div>
 
     <div class="ipoint">
-      <div class="iq">"Why Clerk over NextAuth?"</div>
-      <div class="ia">Clerk has a native Organizations API that maps exactly to my multi-tenant model. With NextAuth I'd have built the organisation/member system from scratch — about a week of work. Clerk also provides webhooks for user lifecycle events, which I use to sync users to my RestaurantMember table on sign-up. The tradeoff is vendor lock-in, which I'd reconsider at scale, but the velocity was worth it here.</div>
+      <div class="iq">"Why Better Auth over Clerk or NextAuth?"</div>
+      <div class="ia">The deciding factor was data ownership in a multi-tenant Postgres app. With Clerk, users live on Clerk's servers, so I'd need an inbound webhook just to mirror new users into my DB before attaching them to a restaurant — a whole sync layer with signing secrets, retries and ordering races. Better Auth writes the user row directly into my Neon Postgres, so onboarding creates the restaurant and the owner membership in one local transaction, and RestaurantMember is just a foreign key to user.id. The honest trade-off is that I own the auth surface and its maintenance — but I get zero vendor lock-in, no per-MAU pricing, and identity in the same transaction boundary as the rest of my data. If team invitations grow into a real feature, Better Auth's organization plugin adds them without switching providers.</div>
     </div>
 
     <div class="ipoint">
@@ -1080,7 +1125,80 @@ const { text } = await generateText({
 
     <div class="ipoint">
       <div class="iq">"How did you handle the database context for AI?"</div>
-      <div class="ia">I built a schema-context.ts that generates a natural-language description of the DB — table names, column names, relationships, what each table represents — rather than sending the raw Prisma schema. The Prisma schema has too many technical details Claude doesn't need and it wastes tokens. I also inject 5–6 example question-to-SQL pairs that show Claude the pattern for common business queries, which significantly improved accuracy on domain-specific questions. This file is also the per-vertical seam.</div>
+      <div class="ia">I built a schema-context.ts that generates a natural-language description of the DB — table names, column names, relationships, what each table represents — rather than sending the raw Prisma schema. The Prisma schema has too many technical details the model doesn't need and it wastes tokens. I also inject 5–6 example question-to-SQL pairs that show the model the pattern for common business queries, which significantly improved accuracy on domain-specific questions. This file is also the per-vertical seam.</div>
+    </div>
+  </div>
+
+  <!-- LANDING PAGE -->
+  <div class="sec" id="s9">
+    <h2>Public Landing Page</h2>
+    <p class="lede">The marketing site at <code>operato.app</code> — the page a restaurant owner hits <em>before</em> signing up. Separate from the dashboard: its own route group <code>(marketing)</code>, no auth, statically rendered for speed and SEO. Its job is one sentence: <em>"an AI that answers questions about your restaurant's real data."</em></p>
+
+    <h3>Where it lives</h3>
+    <div class="card">
+      <ul class="fl">
+        <li><code>src/app/(marketing)/page.tsx</code> — the landing page (RSC, mostly static)</li>
+        <li><code>src/app/(marketing)/pricing/page.tsx</code> — Free vs Pro (Razorpay), with the upgrade CTA</li>
+        <li><code>src/app/(marketing)/layout.tsx</code> — marketing nav + footer, no dashboard chrome</li>
+        <li><code>src/components/marketing/</code> — hero, feature blocks, pricing table, FAQ, CTA</li>
+        <li>No <code>requireMember</code> here — it's public; the only auth touch-points are the "Sign in" / "Start free" buttons that link into <code>(auth)</code></li>
+      </ul>
+    </div>
+
+    <h3>Page wireframe</h3>
+<pre>┌─────────────────────────────────────────────────────────────────┐
+│ [O] Operato     Features   How it works   Pricing   [Sign in] [Start free] │  ← sticky nav
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│           The AI operating system for your restaurant           │  ← HERO
+│      Ask "who were my top 10 customers this month?" and get      │
+│          a real answer from your real data — instantly.         │
+│                                                                 │
+│            [ Start free → ]    [ Watch 90-sec demo ]            │
+│                                                                 │
+│       ▟ live chat: question → streaming SQL answer ▙            │  ← product shot / Loom
+├─────────────────────────────────────────────────────────────────┤
+│      "Talks to your actual database, not a demo dataset."       │  ← differentiator
+├─────────────────────────────────────────────────────────────────┤
+│   🤖 Ask anything       📊 Monday summary      📦 Smart reorder   │  ← the 3 AI features
+│   text-to-SQL chat      auto every week        velocity alerts   │
+├─────────────────────────────────────────────────────────────────┤
+│   How it works:   1 Set up  →   2 Ask  →   3 Act                 │  ← 3 steps
+├─────────────────────────────────────────────────────────────────┤
+│   One core, many industries:   🍽  ☕  🥐  🛵  🍔  🛍             │  ← platform / verticals
+├─────────────────────────────────────────────────────────────────┤
+│   FREE  ₹0  [ Start free ]      |      PRO  ₹999/mo  [ Upgrade ] │  ← pricing (Razorpay)
+├─────────────────────────────────────────────────────────────────┤
+│   FAQ · Is my data safe? · Which POS? · Can I cancel anytime?   │
+├─────────────────────────────────────────────────────────────────┤
+│           Ready?   [ Start free — no card needed → ]            │  ← final CTA
+├─────────────────────────────────────────────────────────────────┤
+│   Footer · product · pricing · docs · privacy · © Operato       │
+└─────────────────────────────────────────────────────────────────┘</pre>
+
+    <h3>Section-by-section copy</h3>
+    <div class="trow"><span class="tn">Hero</span><span class="tw">Headline: "The AI operating system for your restaurant." Sub: "Ask a plain-English question, get an answer from your real sales, inventory and customers — no spreadsheets, no analyst." Primary CTA "Start free", secondary "Watch demo". The hero visual is the streaming text-to-SQL chat in action — the whole pitch in one glance.</span></div>
+    <div class="trow"><span class="tn">Differentiator</span><span class="tw">One line that separates Operato from every generic "AI chatbot": it queries <em>your</em> database, not a canned dataset. This is the sentence both customers and interviewers remember.</span></div>
+    <div class="trow"><span class="tn">The 3 AI features</span><span class="tw">Three cards mirroring the product — ask-anything text-to-SQL, the automatic Monday summary, and velocity-based reorder alerts — each with a one-line example question and a tiny result.</span></div>
+    <div class="trow"><span class="tn">How it works</span><span class="tw">Three steps: (1) set up your menu/orders (or load demo data), (2) ask questions in plain English, (3) act on the answer. Keeps the "is this hard to adopt?" objection small.</span></div>
+    <div class="trow"><span class="tn">Platform strip</span><span class="tw">"Restaurant today, any small business next" — the vertical chips (café, bakery, cloud kitchen, retail). Signals ambition without diluting the restaurant focus.</span></div>
+    <div class="trow"><span class="tn">Pricing</span><span class="tw">Free (₹0 — full app, capped AI queries/day) vs Pro (₹999/mo via Razorpay — unlimited AI, weekly summaries, priority). "No credit card to start." Links to <code>/pricing</code> and the Razorpay checkout.</span></div>
+    <div class="trow"><span class="tn">FAQ + final CTA</span><span class="tw">Answer the obvious objections (data safety / RLS, cancel anytime, which devices) then one last "Start free — no card needed."</span></div>
+
+    <h3>Build notes</h3>
+    <div class="card">
+      <ul class="fl">
+        <li><b>Static + fast.</b> RSC, no client data-fetching, target LCP &lt; 1.5s — a landing page that streams a heavy dashboard is a bad first impression</li>
+        <li><b>SEO.</b> A <code>metadata</code> export per page (title, description, canonical), an OG image, and JSON-LD for the product — this is the page Google indexes</li>
+        <li><b>One demo CTA that matters.</b> The hero's live chat (or a 90-second Loom) is the single most persuasive asset; everything else supports it</li>
+        <li><b>Reuses the design system.</b> Same Tailwind tokens + Shadcn primitives as the dashboard, so the brand is consistent from landing → app</li>
+        <li><b>Timeline:</b> already slotted into <b>August, Week 4</b> ("Razorpay + Landing page + Demo") — built last, once there's a real product to show</li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <div class="ct">🎯 The landing page's one job</div>
+      <div class="cs">Make a restaurant owner believe "this AI actually knows my business" in under 10 seconds — then click <b>Start free</b>. Everything on the page serves that. For the portfolio it's also where you paste the live demo link and the Loom, so a recruiter lands on a polished public page, not a login wall.</div>
     </div>
   </div>
 
