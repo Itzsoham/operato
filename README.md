@@ -1,6 +1,6 @@
 # Operato
 
-The AI operating system for restaurants — a multi-tenant SaaS whose AI assistant talks to the tenant's *real* business database (text-to-SQL), with weekly auto-summaries and smart inventory alerts. Restaurant is vertical #1 of a vertical-extensible platform.
+The AI operating system for restaurants — a multi-tenant SaaS whose AI assistant talks to the tenant's _real_ business database (text-to-SQL), with weekly auto-summaries and smart inventory alerts. Restaurant is vertical #1 of a vertical-extensible platform.
 
 ## Stack
 
@@ -10,14 +10,14 @@ Next.js 15 (App Router, RSC) · TypeScript (strict) · Prisma + Neon Postgres ·
 
 ## Docs
 
-| Doc | What's in it |
-|---|---|
-| [operato_project_plan.html](operato_project_plan.html) | The product/architecture plan (open in a browser) |
-| [docs/folder-structure.md](docs/folder-structure.md) | The `/src` layout and what changed from the plan |
-| [docs/stack-changes.md](docs/stack-changes.md) | Better Auth, Razorpay, and Gemini migration guides |
+| Doc                                                    | What's in it                                              |
+| ------------------------------------------------------ | --------------------------------------------------------- |
+| [operato_project_plan.html](operato_project_plan.html) | The product/architecture plan (open in a browser)         |
+| [docs/folder-structure.md](docs/folder-structure.md)   | The `/src` layout and what changed from the plan          |
+| [docs/stack-changes.md](docs/stack-changes.md)         | Better Auth, Razorpay, and Gemini migration guides        |
 | [docs/agents-and-skills.md](docs/agents-and-skills.md) | How to build this with Claude Code — agents & skills plan |
-| [docs/plan-code-review.md](docs/plan-code-review.md) | Adversarial review of the plan + must-fix list |
-| [CLAUDE.md](CLAUDE.md) | Conventions & non-negotiable rules for AI/dev work |
+| [docs/plan-code-review.md](docs/plan-code-review.md)   | Adversarial review of the plan + must-fix list            |
+| [CLAUDE.md](CLAUDE.md)                                 | Conventions & non-negotiable rules for AI/dev work        |
 
 ## AI tooling
 
