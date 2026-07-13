@@ -4,7 +4,7 @@ A grounded plan for one solo developer building **Operato** (a multi-tenant AI S
 
 This plan is deliberately small. The failure mode for a solo dev is building 20 agents you have to maintain and never use. The win is 5-7 sharp subagents plus 4-6 slash-commands that encode the *non-negotiable* rules of this codebase — multi-tenant isolation, Zod-validated routes, and a provably safe text-to-SQL path — so the AI stops re-deriving them (and re-breaking them) on every file.
 
-> **Stack context this plan assumes.** Next.js 15 App Router (RSC + streaming), TypeScript strict, Prisma + Neon Postgres, Shadcn + Tailwind + TanStack Query + Zod + dnd-kit + Recharts, **Better Auth** (replaces Clerk), **Razorpay** (replaces Stripe), **Google Gemini 2.5 Flash via the Vercel AI SDK `@ai-sdk/google`** (replaces Anthropic Claude), Uploadthing, Playwright, Vercel Cron. All app code under `/src`; `prisma/`, `tests/`, `public/`, and config at the repo root. Every domain table carries `restaurantId`; membership is the `RestaurantMember` table.
+> **Stack context this plan assumes.** Next.js 16 App Router (RSC + streaming — see [nextjs-16-notes.md](nextjs-16-notes.md); it is **not** Next 15), TypeScript strict, Prisma + Neon Postgres, Shadcn + Tailwind + TanStack Query + Zod + dnd-kit + Recharts, **Better Auth** (replaces Clerk), **Razorpay** (replaces Stripe), **Google Gemini 2.5 Flash via the Vercel AI SDK `@ai-sdk/google`** (replaces Anthropic Claude), Uploadthing, Playwright, Vercel Cron. All app code under `/src`; `prisma/`, `tests/`, `public/`, and config at the repo root. Every domain table carries `restaurantId`; membership is the `RestaurantMember` table.
 
 ---
 
@@ -27,9 +27,11 @@ Rules of thumb for this project:
 
 ---
 
-## 2. Recommended Subagents (6)
+## 2. Recommended Subagents (7)
 
-Six agents, mapped to the six recurring *kinds of work* in Operato: **data layer, API layer, UI layer, the AI-safety problem, end-to-end tests, and security review**. A seed-data agent is intentionally demoted to a *skill* (section 3) because it's a run-once recipe, not an ongoing persona.
+Seven agents, mapped to the recurring *kinds of work* in Operato: **data layer, API layer, UI layer, the AI engine, the AI-safety problem, end-to-end tests, and security review**. A seed-data agent is intentionally demoted to a *skill* (section 3) because it's a run-once recipe, not an ongoing persona.
+
+> **Revision (Jul 2026).** This section originally listed six agents and mapped the AI phases to `route-builder` + `sql-safety-reviewer`. That left a hole: `route-builder` owns the *route*, `sql-safety-reviewer` is read-only and can only *audit* — so nobody owned `src/lib/ai/` itself, which is simultaneously the product's core value and its highest-risk code. `ai-engineer` (§2.7) fills it.
 
 ### 2.1 `prisma-modeler` — schema & migration agent
 
@@ -95,10 +97,23 @@ Six agents, mapped to the six recurring *kinds of work* in Operato: **data layer
 | **Phase / module** | Cross-cutting; gate before each merge to `main`. |
 | **Non-negotiables it audits** | Membership check present on every protected route; **Razorpay webhook signature verified** (`validateWebhookSignature` from `razorpay/dist/utils/razorpay-utils`) and payment verified (`validatePaymentVerification`) before trusting any plan change; Better Auth session validated server-side (`auth.api.getSession({ headers: await headers() })`); no secret in client bundles / `NEXT_PUBLIC_`; cron route protected by `CRON_SECRET`; Uploadthing auth callback scoped to the tenant. |
 
-### Why six, and why not more
+### 2.7 `ai-engineer` — the AI engine builder
+
+| | |
+|---|---|
+| **Purpose** | **Builds** `src/lib/ai/` — the text-to-SQL engine, DMMF-generated `schema-context.ts`, the weekly-summary logic, and smart inventory alerts. The counterpart to `sql-safety-reviewer`: this one writes, that one audits. |
+| **When to invoke** | Any change under `src/lib/ai/`. Pair every invocation with `/review-sql-safety`. |
+| **Key tools** | `Read`, `Edit`, `Grep`, `Bash` (typecheck, AI-path unit tests). |
+| **Phase / module** | AI Phase (all three AI features) + `/new-vertical`'s schema-context. |
+| **Non-negotiables it enforces** | The five defenses, all of them: dedicated read-only role + separate `PrismaClient` (`DATABASE_URL_AI`); read-only transaction + `statement_timeout` + forced `LIMIT`; **RLS** as the real tenant guarantee (not the `WHERE` clause); static rejection as a pre-filter only; `generateObject` + Zod (never `JSON.parse` of model text). Plus: `BigInt`/`Decimal` serialized before `JSON.stringify`, model pinned in one constant, cron throttled against the free-tier RPM. |
+
+> Why not fold this into `route-builder`: the route is ~30 lines of guard-and-delegate; the engine is where every actual failure mode lives. And why not into `sql-safety-reviewer`: that agent is deliberately **read-only** — a reviewer that can rewrite the safety layer it just approved is not a reviewer. Keeping build and audit in separate contexts is the whole point.
+
+### Why seven, and why not more
 
 - **Each agent owns one layer/concern with a hard rule set.** That's the unit that earns separate context and a tool sandbox. More agents would mean overlapping responsibilities and you guessing which to invoke.
 - **Two reviewers, deliberately.** `sql-safety-reviewer` is *narrow and adversarial* (the AI path); `security-reviewer` is *broad* (everything else). Merging them dilutes the AI checklist — the highest-risk surface — into a generic pass. Both are **read-only** so they advise rather than quietly "fix" security code.
+- **Build and audit never share a persona.** `ai-engineer` writes the SQL path; `sql-safety-reviewer` verifies it. The separation is the control.
 - **No `frontend-styling` / `docs` / `refactor` agents.** Those are inline work or one-shot skills; a persona buys nothing.
 - **Seed data is a skill, not an agent** (next section) — it's a run-once recipe, executed in-context, not an ongoing reviewer/builder persona.
 
@@ -149,13 +164,13 @@ Recipes you invoke by name. They encode *the same steps every time* and lean on 
 | **Staff & Shifts** | `prisma-modeler`, `route-builder`, `module-ui` | `/scaffold-module` |
 | **Overview dashboard** (Recharts KPIs, latest weekly summary) | `module-ui` | — |
 | **Seed data** (3-month realistic demo) | — | `/generate-seed-data` |
-| **AI #1 — Text-to-SQL assistant** | `sql-safety-reviewer`, `route-builder` | `/review-sql-safety` |
-| **AI #2 — Weekly summary (Vercel Cron)** | `route-builder`, `security-reviewer` | — |
-| **AI #3 — Smart inventory alerts** | `route-builder` | — |
+| **AI #1 — Text-to-SQL assistant** | `ai-engineer` (builds), `sql-safety-reviewer` (audits), `route-builder` (the endpoint) | `/review-sql-safety` |
+| **AI #2 — Weekly summary (Vercel Cron)** | `ai-engineer`, `route-builder`, `security-reviewer` | — |
+| **AI #3 — Smart inventory alerts** | `ai-engineer`, `route-builder` | — |
 | **Auth (Better Auth)** | `route-builder`, `security-reviewer` | `/add-api-route` |
 | **Payments (Razorpay)** | `route-builder`, `security-reviewer` | `/add-api-route` |
 | **Testing / Polish / Launch** | `e2e-playwright`, `security-reviewer` | `/review-sql-safety` |
-| **Platform — vertical #2+** | `prisma-modeler`, `module-ui`, `sql-safety-reviewer` | `/new-vertical` |
+| **Platform — vertical #2+** | `prisma-modeler`, `module-ui`, `ai-engineer`, `sql-safety-reviewer` | `/new-vertical` |
 
 ---
 
@@ -178,6 +193,12 @@ route-builder         API Route Handler generator. URL-only restaurantId, Restau
 module-ui             Shadcn + TanStack Query CRUD screen builder. RSC-first, optimistic
                       mutations + rollback, dnd-kit/Recharts where relevant.
                       Tools: Read, Edit, Grep, Bash. Model: Sonnet-class.
+
+# target: .claude/agents/ai-engineer.md
+ai-engineer           BUILDS src/lib/ai/ — text-to-SQL engine, DMMF-generated schema-context,
+                      weekly summary, inventory alerts. Enforces the five defenses
+                      (read-only role, read-only txn + timeout + LIMIT, RLS, static pre-filter,
+                      generateObject + Zod). Tools: Read, Edit, Grep, Bash. Model: Opus-class.
 
 # target: .claude/agents/sql-safety-reviewer.md
 sql-safety-reviewer   READ-ONLY auditor of the text-to-SQL path. Verifies SELECT-only,

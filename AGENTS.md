@@ -1,7 +1,15 @@
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This repo is on **Next.js 16.2.9**. It has breaking changes — APIs, conventions, and file structure differ from your training data, which is almost certainly Next 14/15.
+
+**Read [docs/nextjs-16-notes.md](docs/nextjs-16-notes.md) before writing any Next.js code.** It is the distilled diff. For anything it doesn't cover, read the source of truth in `node_modules/next/dist/docs/`. Heed deprecation notices.
+
+The four that break Next-15-trained code immediately:
+- `params`, `searchParams`, `cookies()`, `headers()` are **Promises — always `await`**. The sync fallback was removed in 16.
+- `middleware.ts` is renamed to **`proxy.ts`** (`export function proxy`, Node runtime only).
+- `revalidateTag(tag)` requires a **second arg**: `revalidateTag("orders", "max")`.
+- Turbopack is the default build; `next lint` and the `eslint` config key are **removed**.
 <!-- END:nextjs-agent-rules -->
 
 # Operato
@@ -18,7 +26,7 @@ Status: greenfield. The repo currently holds the plan (`operato_project_plan.htm
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Framework | **Next.js 15** App Router, RSC + streaming | All app code under `/src` |
+| Framework | **Next.js 16** App Router, RSC + streaming | All app code under `/src`. See [docs/nextjs-16-notes.md](docs/nextjs-16-notes.md) — it is not Next 15 |
 | Language | **TypeScript (strict)** | End-to-end types from Prisma → routes → UI |
 | DB / ORM | **PostgreSQL (Neon) + Prisma** | Shared DB, `restaurantId` on every domain table |
 | Auth | **Better Auth** (NOT Clerk) | Self-hosted; users live in our Postgres |
@@ -44,14 +52,19 @@ public/, package.json, tsconfig.json, next.config.ts, vercel.json, .env   # root
 
 ## Commands
 
+Prefer the npm scripts — they are the allowlisted, stable entrypoints.
+
 ```bash
-npm run dev                       # Next dev server
-npx prisma migrate dev --name x   # create + apply a migration (never edit a shipped one)
-npx prisma generate               # regen client
-npx prisma db seed                # load demo data
-npx playwright test               # E2E
-npx tsc --noEmit                  # typecheck
+npm run dev                          # Next dev server (Turbopack, the default in 16)
+npm run typecheck                    # tsc --noEmit
+npm run lint                         # eslint (NOT `next lint` — removed in Next 16)
+npm run db:migrate -- --name x       # create + apply a migration (never edit a shipped one)
+npm run db:generate                  # regen Prisma client
+npm run db:seed                      # load demo data
+npm run test:e2e                     # Playwright
 ```
+
+Never run `prisma migrate reset` or `prisma db push` — the first drops the database, the second bypasses migration history (see rule 7).
 
 ## Non-negotiable rules
 

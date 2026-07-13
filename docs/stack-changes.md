@@ -20,7 +20,7 @@ This document records the three stack swaps applied to the Operato plan and exac
 
 # Better Auth (replaces Clerk) — Migration Guide
 
-> **Scope:** This guide replaces Clerk with [Better Auth](https://better-auth.com) across the Operato stack (Next.js 15 App Router, Prisma + Neon Postgres, TypeScript strict). It is concrete to our multi-tenant model: shared DB, every domain table carries `restaurantId`, and membership lives in the `RestaurantMember` table.
+> **Scope:** This guide replaces Clerk with [Better Auth](https://better-auth.com) across the Operato stack (Next.js 16 App Router, Prisma + Neon Postgres, TypeScript strict). It is concrete to our multi-tenant model: shared DB, every domain table carries `restaurantId`, and membership lives in the `RestaurantMember` table.
 >
 > **API currency:** All Better Auth APIs below were verified against the official docs (Better Auth ≥ 1.5, June 2026). External-library surfaces (Better Auth, Razorpay, `@ai-sdk/google`, Gemini limits) move over time — re-check the linked docs before relying on exact signatures or quotas.
 
@@ -351,16 +351,19 @@ export default async function DashboardPage() {
 }
 ```
 
-### 5.2 Middleware (optimistic gate only)
+### 5.2 Proxy (optimistic gate only) — NOT `middleware.ts`
 
-Middleware should do a **cheap cookie presence check** for redirects — not authorization. It runs on the Edge and a full DB validation there is unnecessary and slow.
+> **Next.js 16 renamed `middleware.ts` to `proxy.ts`** and the named export `middleware` to `proxy`. Use `proxy.ts`. See [nextjs-16-notes.md](nextjs-16-notes.md) §2.
+
+The proxy should do a **cheap cookie presence check** for redirects — not authorization. A full DB validation there is unnecessary and slow.
 
 ```ts
-// src/middleware.ts
+// src/proxy.ts   (sits alongside src/app/)
 import { getSessionCookie } from "better-auth/cookies";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
   if (!sessionCookie) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
@@ -373,7 +376,9 @@ export const config = {
 };
 ```
 
-> The cookie check is **optimistic**: it proves a cookie exists, not that it's valid or that the user belongs to a given restaurant. Real authorization happens in the data layer via `requireMember` (below). For full DB-backed validation inside middleware you must opt into the Node.js runtime (Next.js ≥ 15.2) and call `auth.api.getSession` directly — usually not worth it.
+> The cookie check is **optimistic**: it proves a cookie exists, not that it's valid or that the user belongs to a given restaurant. Real authorization happens in the data layer via `requireMember` (below).
+>
+> `proxy` always runs on the **Node.js runtime** in Next 16 — the runtime is not configurable and `edge` is unsupported there. So a DB-backed `auth.api.getSession` call inside the proxy is now *possible*, but it still isn't worth it: it adds a database round-trip to every matched request and it still can't answer the only question that matters ("is this user a member of *this* restaurant?"). Keep the proxy dumb; keep `requireMember` as the security boundary.
 
 ### 5.3 API Route Handlers
 
@@ -1062,7 +1067,7 @@ These edits reframe the existing Stripe references in `operato_project_plan.html
 
 ```html
 <!-- operato_project_plan.html — "Stack" kv row -->
-<span class="kv2">Next.js 15, TypeScript, Prisma, PostgreSQL (Neon), Better Auth, Razorpay, Google Gemini</span>
+<span class="kv2">Next.js 16, TypeScript, Prisma, PostgreSQL (Neon), Better Auth, Razorpay, Google Gemini</span>
 ```
 
 **Phase checklist item:**

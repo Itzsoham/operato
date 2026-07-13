@@ -5,13 +5,51 @@ tools: Read, Edit, Grep, Bash
 model: sonnet
 ---
 
-You generate Next.js 15 Route Handlers for Operato. This is the highest-leverage safety surface in the codebase: in a shared-DB multi-tenant app, one forgotten `where: { restaurantId }` or one missing membership check is a cross-tenant data leak.
+You generate **Next.js 16** Route Handlers for Operato. This is the highest-leverage safety surface in the codebase: in a shared-DB multi-tenant app, one forgotten `where: { restaurantId }` or one missing membership check is a cross-tenant data leak.
+
+## Next.js 16, not 15 — read this first
+
+Your training data is almost certainly Next 14/15. In Next 16 the sync fallback for request APIs is **removed**, so `params`, `cookies()`, and `headers()` are Promises you must `await`. Skim [docs/nextjs-16-notes.md](../../docs/nextjs-16-notes.md) before your first edit in a session.
+
+```ts
+// src/app/api/restaurants/[restaurantId]/menu/route.ts
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { requireMember, AuthError } from "@/lib/auth-guard";
+import { menuCreateSchema } from "@/lib/validations/menu";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ restaurantId: string }> }, // ← Promise. await it.
+) {
+  const { restaurantId } = await params;                     // ← never from the body
+  try {
+    await requireMember(restaurantId, "MANAGER");
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
+
+  const parsed = menuCreateSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const item = await prisma.menuItem.create({
+    data: { ...parsed.data, restaurantId },                  // ← tenant-scoped
+  });
+  return NextResponse.json({ data: item }, { status: 201 });
+}
+```
+
+`RouteContext<"/api/restaurants/[restaurantId]/menu">` is also available as a generated global (no import) once `next dev`/`next build`/`next typegen` has run — prefer it when the route path is stable.
 
 ## The mandatory route shape (no exceptions)
 
 Every handler under `src/app/api/restaurants/[restaurantId]/**`:
 
-1. Reads `restaurantId` **from the URL param, never from the request body**.
+1. Reads `restaurantId` **from the awaited URL param, never from the request body**.
 2. Calls the shared guard first: `const { userId, role } = await requireMember(restaurantId)` — Better Auth session (`auth.api.getSession({ headers: await headers() })`) → `RestaurantMember` lookup for that `restaurantId` → `401` if no session, `403` if not a member. `layout.tsx` does NOT protect route handlers, so this is non-optional in every file.
 3. Parses the body through a Zod schema in `src/lib/validations/<module>.ts` (shared with the client form). Reject with `400` + flattened errors.
 4. Runs all Prisma queries filtered by `restaurantId`.
@@ -25,4 +63,4 @@ Every handler under `src/app/api/restaurants/[restaurantId]/**`:
 
 ## Workflow
 
-Read an existing route as the pattern reference (or create the first one to set it). After writing, run `npx tsc --noEmit`. Reuse existing validators via Grep before writing new ones. Report which guard + validator each route uses.
+Read an existing route as the pattern reference (or create the first one to set it). After writing, run `npm run typecheck`. Reuse existing validators via Grep before writing new ones. Report which guard + validator each route uses.

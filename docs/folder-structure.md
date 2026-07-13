@@ -1,6 +1,6 @@
 # Folder Structure
 
-This document is the canonical project layout for **Operato**, a multi-tenant AI SaaS for restaurants built on Next.js 15 (App Router, RSC, streaming) with TypeScript strict mode.
+This document is the canonical project layout for **Operato**, a multi-tenant AI SaaS for restaurants built on Next.js 16 (App Router, RSC, streaming) with TypeScript strict mode.
 
 All application code lives under **`/src`** (`src/app`, `src/components`, `src/lib`, `src/hooks`, `src/types`). Everything else — `prisma/`, `tests/`, `public/`, and the root config files — stays at the repository root.
 
@@ -253,7 +253,7 @@ export function streamSqlAnswer(prompt: string, system: string) {
 
 | Path before | Path after | Why |
 |---|---|---|
-| `app/` | `src/app/` | App Router moved under `src/`; Next.js 15 resolves `src/app` as the app directory. |
+| `app/` | `src/app/` | App Router moved under `src/`; Next.js resolves `src/app` as the app directory. |
 | `components/` | `src/components/` | Application code consolidated under `src/`. |
 | `lib/` | `src/lib/` | Same. |
 | `hooks/` | `src/hooks/` | Same. |
@@ -297,7 +297,7 @@ Because application code now lives under `src/`, the TypeScript path alias must 
 
 This keeps every `@/lib/...`, `@/components/...`, `@/hooks/...`, `@/types/...` import working unchanged after the move. `components.json` (Shadcn) and the Tailwind `content` globs must likewise resolve into `src/` (e.g. `./src/**/*.{ts,tsx}`).
 
-### Next.js 15 supports `/src` and resolves `app/` from it
+### Next.js supports `/src` and resolves `app/` from it
 
 Next.js officially supports placing application code under `src/`: you move the App Router folder to `src/app` and it is detected automatically. The documented rules:
 
@@ -306,7 +306,9 @@ Next.js officially supports placing application code under `src/`: you move the 
 - **`src/app` is ignored if an `app` directory exists at the root** — so do not keep a root-level `app/` once you adopt `src/app`, or the root one wins.
 - If you use TypeScript `@/*` paths, update `tsconfig.json` to include `src/` (see above).
 
-(This is current as of Next.js 15/16; the `src` resolution rules have been stable, but verify against your pinned Next.js version.)
+(Verified against the pinned **Next.js 16.2.9**; the `src` resolution rules have been stable across 15/16.)
+
+> **Next 16:** the root-level gate file is **`proxy.ts`**, not `middleware.ts` — under `src/` that means `src/proxy.ts`, alongside `src/app/`. See [nextjs-16-notes.md](nextjs-16-notes.md).
 
 ### Where Better Auth's tables and migration live
 
