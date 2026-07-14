@@ -1,0 +1,477 @@
+// Operato — the shared, multi-tenant schema.
+//
+// Prisma 7: the `datasource` block carries NO `url`. The CLI reads the connection
+// string from prisma.config.ts (DIRECT_URL, unpooled — Migrate needs a real session),
+// and the runtime connection comes from a driver adapter constructed in src/lib/db.ts
+// (DATABASE_URL, pooled).
+//
+// TENANCY: every domain table carries `restaurantId` with an FK to Restaurant and
+// onDelete: Cascade — INCLUDING the leaf tables (OrderItem, InventoryTransaction,
+// Shift), which are denormalized on purpose. The AI writes SQL against these tables,
+// and isolation must never depend on it getting a JOIN right. Row-Level Security
+// (see the RLS migration) is the backstop.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Tenant ──────────────────────────────────────────────────────────────────
+
+model Restaurant {
+  id                     String    @id @default(cuid())
+  name                   String
+  slug                   String    @unique
+  logo                   String?
+  timezone               String    @default("Asia/Kolkata")
+  currency               String    @default("INR")
+  plan                   Plan      @default(FREE)
+  planExpiresAt          DateTime?
+  razorpayCustomerId     String?   @unique
+  razorpaySubscriptionId String?   @unique
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  members         RestaurantMember[]
+  categories      MenuCategory[]
+  menuItems       MenuItem[]
+  tables          RestaurantTable[]
+  orders          Order[]
+  orderItems      OrderItem[]
+  inventoryItems  InventoryItem[]
+  inventoryTxns   InventoryTransaction[]
+  customers       Customer[]
+  staff           Staff[]
+  shifts          Shift[]
+  aiQueries       AiQuery[]
+  weeklySummaries WeeklySummary[]
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+model RestaurantMember {
+  id           String     @id @default(cuid())
+  restaurantId String
+  userId       String // FK to the Better Auth user table
+  role         MemberRole @default(STAFF)
+  createdAt    DateTime   @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, userId])
+  @@index([userId])
+}
+
+enum MemberRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+// ─── Menu ────────────────────────────────────────────────────────────────────
+
+model MenuCategory {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems  MenuItem[]
+
+  // Referenced by MenuItem's composite FK (tenant pinning).
+  @@unique([id, restaurantId])
+  @@index([restaurantId])
+}
+
+model MenuItem {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  categoryId      String?
+  name            String
+  description     String?
+  price           Decimal  @db.Decimal(10, 2)
+  image           String?
+  isAvailable     Boolean  @default(true)
+  isVeg           Boolean  @default(false)
+  preparationTime Int? // minutes
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  // Composite FK — a MenuItem cannot be filed under ANOTHER tenant's category.
+  // categoryId is nullable; Postgres MATCH SIMPLE skips the check when it is NULL,
+  // which is exactly the "uncategorised item" case we want to allow.
+  category      MenuCategory?  @relation(fields: [categoryId, restaurantId], references: [id, restaurantId])
+  orderItems    OrderItem[]
+  inventoryItem InventoryItem?
+
+  // Referenced by OrderItem's and InventoryItem's composite FKs (tenant pinning).
+  @@unique([id, restaurantId])
+  @@index([restaurantId, isAvailable])
+}
+
+// ─── Orders & tables ─────────────────────────────────────────────────────────
+
+model RestaurantTable {
+  id           String      @id @default(cuid())
+  restaurantId String
+  number       Int
+  label        String? // "Window Table", "VIP"
+  capacity     Int         @default(4)
+  status       TableStatus @default(AVAILABLE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  @@unique([restaurantId, number])
+  // Referenced by Order's composite FK (tenant pinning).
+  @@unique([id, restaurantId])
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  INACTIVE
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  restaurantId String
+  orderNumber  String // human-readable "ORD-0042"; `id` is for joins
+  tableId      String?
+  customerId   String?
+  status       OrderStatus @default(PENDING)
+  type         OrderType   @default(DINE_IN)
+  subtotal     Decimal     @db.Decimal(10, 2)
+  tax          Decimal     @default(0) @db.Decimal(10, 2)
+  discount     Decimal     @default(0) @db.Decimal(10, 2)
+  totalAmount  Decimal     @db.Decimal(10, 2)
+  notes        String?
+  servedAt     DateTime?
+  paidAt       DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  // Composite FKs — an Order cannot reference ANOTHER tenant's table or customer.
+  // Without these, `POST /api/restaurants/A/orders` with a tableId belonging to B
+  // satisfies the FK and passes requireMember("A"), and a later `include: {customer}`
+  // hands B's customer name/email/phone/spend to A. The URL-param restaurantId does
+  // not protect these: the hostile id is a DIFFERENT field.
+  table      RestaurantTable? @relation(fields: [tableId, restaurantId], references: [id, restaurantId])
+  customer   Customer?        @relation(fields: [customerId, restaurantId], references: [id, restaurantId])
+  orderItems OrderItem[]
+
+  // the AI filters by date heavily
+  @@unique([restaurantId, orderNumber])
+  // Referenced by OrderItem's composite FK — see the note on OrderItem.restaurantId.
+  @@unique([id, restaurantId])
+  @@index([restaurantId, status])
+  @@index([restaurantId, createdAt])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  SERVED
+  PAID
+  CANCELLED
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+  DELIVERY
+}
+
+model OrderItem {
+  id           String     @id @default(cuid())
+  orderId      String
+  // Denormalized so the AI never needs a JOIN to be isolated. This column is
+  // LOAD-BEARING for tenant isolation — the RLS policy filters on it — so it is not
+  // allowed to merely "usually" agree with the parent Order. The composite FK below
+  // makes a row whose restaurantId disagrees with its Order's IMPOSSIBLE to insert,
+  // rather than just unlikely. Without it, one bad write hands tenant A's line item
+  // to tenant B's AI, which is the exact leak the denormalization exists to prevent.
+  restaurantId String
+  menuItemId   String
+  quantity     Int
+  unitPrice    Decimal    @db.Decimal(10, 2)
+  totalPrice   Decimal    @db.Decimal(10, 2)
+  notes        String?
+  status       ItemStatus @default(PENDING)
+  createdAt    DateTime   @default(now())
+
+  // Composite FK: links to the parent Order AND pins restaurantId to the Order's own,
+  // in a single constraint the database enforces.
+  order      Order      @relation(fields: [orderId, restaurantId], references: [id, restaurantId], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItem   MenuItem   @relation(fields: [menuItemId, restaurantId], references: [id, restaurantId])
+
+  @@index([restaurantId])
+  @@index([orderId])
+}
+
+enum ItemStatus {
+  PENDING
+  PREPARING
+  READY
+  SERVED
+}
+
+// ─── Inventory ───────────────────────────────────────────────────────────────
+
+model InventoryItem {
+  id                String   @id @default(cuid())
+  restaurantId      String
+  menuItemId        String?  @unique // optional link to a menu item
+  name              String
+  unit              String // kg, litres, pieces
+  currentStock      Decimal  @default(0) @db.Decimal(10, 3)
+  lowStockThreshold Decimal  @default(10) @db.Decimal(10, 3)
+  costPerUnit       Decimal? @db.Decimal(10, 2)
+  supplier          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  // Composite FK — cannot link stock to ANOTHER tenant's menu item.
+  menuItem     MenuItem?              @relation(fields: [menuItemId, restaurantId], references: [id, restaurantId])
+  transactions InventoryTransaction[]
+
+  // Keeps the MenuItem <-> InventoryItem link 1:1 now that the FK is composite.
+  @@unique([menuItemId, restaurantId])
+  // Referenced by InventoryTransaction's composite FK (tenant pinning).
+  @@unique([id, restaurantId])
+  @@index([restaurantId])
+}
+
+model InventoryTransaction {
+  id              String          @id @default(cuid())
+  inventoryItemId String
+  restaurantId    String // denormalized for direct tenant filtering / RLS
+  type            TransactionType
+  quantity        Decimal         @db.Decimal(10, 3)
+  balanceAfter    Decimal         @db.Decimal(10, 3) // audit trail; written under a row lock
+  notes           String?
+  createdAt       DateTime        @default(now())
+
+  // Composite FK — pins restaurantId to the parent InventoryItem's. See OrderItem.
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId, restaurantId], references: [id, restaurantId], onDelete: Cascade)
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, createdAt])
+  @@index([inventoryItemId])
+}
+
+enum TransactionType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
+  WASTE
+}
+
+// ─── Customers ───────────────────────────────────────────────────────────────
+
+model Customer {
+  id           String    @id @default(cuid())
+  restaurantId String
+  name         String
+  email        String?
+  phone        String?
+  totalSpend   Decimal   @default(0) @db.Decimal(10, 2) // denormalized; rolled up under a lock on pay
+  visitCount   Int       @default(0) // denormalized
+  lastVisitAt  DateTime?
+  tags         String[]  @default([])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  // NOTE: `phone` is nullable and NULLs are DISTINCT in Postgres, so this constraint
+  // does NOT stop many NULL-phone rows. That is deliberate — the rule is enforced in
+  // code: never auto-create a Customer without a phone; an anonymous order just gets
+  // customerId = null. See plan-code-review.md Finding 9.
+  @@unique([restaurantId, phone])
+  // Referenced by Order's composite FK (tenant pinning).
+  @@unique([id, restaurantId])
+  @@index([restaurantId, totalSpend])
+}
+
+// ─── Staff ───────────────────────────────────────────────────────────────────
+
+model Staff {
+  id           String    @id @default(cuid())
+  restaurantId String
+  name         String
+  role         StaffRole
+  email        String?
+  phone        String?
+  salary       Decimal?  @db.Decimal(10, 2)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  shifts     Shift[]
+
+  // Referenced by Shift's composite FK (tenant pinning).
+  @@unique([id, restaurantId])
+  @@index([restaurantId, isActive])
+}
+
+enum StaffRole {
+  CHEF
+  SOUS_CHEF
+  WAITER
+  MANAGER
+  CASHIER
+  DELIVERY
+  HELPER
+}
+
+model Shift {
+  id           String    @id @default(cuid())
+  staffId      String
+  restaurantId String // denormalized tenant key
+  startTime    DateTime
+  endTime      DateTime?
+  hoursWorked  Decimal?  @db.Decimal(5, 2)
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  // Composite FK — pins restaurantId to the parent Staff's. See OrderItem.
+  staff      Staff      @relation(fields: [staffId, restaurantId], references: [id, restaurantId], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, startTime])
+  @@index([staffId])
+}
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+
+model AiQuery {
+  id           String   @id @default(cuid())
+  restaurantId String
+  userId       String
+  query        String
+  generatedSQL String?
+  response     String
+  createdAt    DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // also the per-tenant daily rate-limit lookup
+  @@index([restaurantId, createdAt])
+}
+
+model WeeklySummary {
+  id           String   @id @default(cuid())
+  restaurantId String
+  weekStart    DateTime
+  weekEnd      DateTime
+  summary      String
+  metrics      Json // the raw numbers the summary was generated from
+  createdAt    DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, weekStart])
+}
+
+// ─── Billing ─────────────────────────────────────────────────────────────────
+
+// Razorpay redelivers events and may deliver them out of order. The unique eventId
+// is what makes webhook handling idempotent: insert first, and a duplicate insert
+// means "already processed" — ack 200 and skip. Not tenant-scoped (it is keyed by
+// the provider's event id, and arrives before we know the tenant).
+
+model ProcessedWebhook {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  provider    String   @default("razorpay")
+  processedAt DateTime @default(now())
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  memberships RestaurantMember[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
