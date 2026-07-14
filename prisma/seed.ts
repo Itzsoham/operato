@@ -584,6 +584,14 @@ async function main() {
       await prisma.order.createMany({ data: orders.slice(i, i + 500) });
     }
     bump("order", orders.length);
+
+    // Hand the order-number counter forward past everything the seed just wrote.
+    // Leave it at 0 and the first REAL order minted by the app is ORD-0001 all over
+    // again — straight into the @@unique([restaurantId, orderNumber]) and a failed sale.
+    await prisma.restaurant.update({
+      where: { id: rid },
+      data: { orderSeq: seq },
+    });
     for (let i = 0; i < orderItems.length; i += 1000) {
       await prisma.orderItem.createMany({ data: orderItems.slice(i, i + 1000) });
     }

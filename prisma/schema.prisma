@@ -33,8 +33,20 @@ model Restaurant {
   planExpiresAt          DateTime?
   razorpayCustomerId     String?   @unique
   razorpaySubscriptionId String?   @unique
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+
+  /**
+   * The counter behind human-readable order numbers ("ORD-0042").
+   *
+   * Deriving the next number from `SELECT max(orderNumber) + 1` races: two tills reading
+   * at once both see 41, both write ORD-0042, and the @@unique([restaurantId,
+   * orderNumber]) rejects one of them — a failed sale at the counter. A single
+   * `UPDATE ... SET orderSeq = orderSeq + 1 RETURNING orderSeq` takes a row lock and
+   * hands out each number exactly once.
+   */
+  orderSeq Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   members         RestaurantMember[]
   categories      MenuCategory[]

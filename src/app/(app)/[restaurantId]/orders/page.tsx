@@ -1,6 +1,4 @@
-import { Receipt } from "lucide-react";
-
-import { ModulePlaceholder } from "@/components/shell/module-placeholder";
+import { OrdersClient } from "@/components/orders/orders-client";
 import { PageHeader } from "@/components/shell/page-header";
 import { requirePageMember } from "@/lib/session";
 
@@ -16,12 +14,8 @@ export default async function OrdersPage({
 
   return (
     <>
-      <PageHeader title="Orders" />
-      <ModulePlaceholder
-        icon={Receipt}
-        title="Orders isn't built yet"
-        description="Take an order, send it to the kitchen, take payment."
-      />
+      <PageHeader title="Orders" description="Take an order, cook it, take payment." />
+      <OrdersClient restaurantId={restaurantId} />
     </>
   );
 }
