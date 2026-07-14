@@ -70,11 +70,27 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Chart palette — LIGHT (surface #ffffff, the card background).
+   *
+   * shadcn's neutral preset ships these ACHROMATIC (oklch(… 0 0), zero chroma), which
+   * fails the chroma floor outright: grey series are indistinguishable to everyone, not
+   * just under CVD. These are the validated slots, in fixed order — the ORDER is the
+   * CVD-safety mechanism, not a cosmetic choice.
+   *
+   * Validated against #ffffff: lightness band PASS, chroma floor PASS, worst adjacent
+   * CVD ΔE 47.2 (target ≥12). Contrast WARN on aqua (2.82:1) and yellow (2.17:1) — so
+   * wherever those two carry meaning they ship with DIRECT LABELS, which is the relief
+   * rule, not an optional nicety. */
+  --chart-1: #2a78d6; /* blue   — the default single hue */
+  --chart-2: #1baf7a; /* aqua   */
+  --chart-3: #eda100; /* yellow */
+  --chart-grid: #e1e0d9;
+  --chart-axis: #898781;
+  /* Status. Reserved — never reused as "series 4". Always with an icon + label, so a
+   * status never speaks by colour alone. */
+  --delta-up: #006300;
+  --delta-down: #d03b3b;
+
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -105,11 +121,20 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Chart palette — DARK (surface #171717, the dark card background).
+   *
+   * SELECTED for the dark surface, not an automatic flip of the light values: the same
+   * three hues, stepped for the dark band and validated against #171717. All three clear
+   * 3:1 here (no relief needed in dark), lightness band PASS, chroma floor PASS, worst
+   * adjacent CVD ΔE 41.3. */
+  --chart-1: #3987e5; /* blue   */
+  --chart-2: #199e70; /* aqua   */
+  --chart-3: #c98500; /* yellow */
+  --chart-grid: #2c2c2a;
+  --chart-axis: #898781;
+  --delta-up: #0ca30c;
+  --delta-down: #d03b3b;
+
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
