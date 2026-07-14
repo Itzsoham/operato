@@ -1,6 +1,4 @@
-import { ChefHat } from "lucide-react";
-
-import { ModulePlaceholder } from "@/components/shell/module-placeholder";
+import { MenuClient } from "@/components/menu/menu-client";
 import { PageHeader } from "@/components/shell/page-header";
 import { requirePageMember } from "@/lib/session";
 
@@ -16,12 +14,8 @@ export default async function MenuPage({
 
   return (
     <>
-      <PageHeader title="Menu" />
-      <ModulePlaceholder
-        icon={ChefHat}
-        title="Menu isn't built yet"
-        description="Categories, dishes, prices and availability."
-      />
+      <PageHeader title="Menu" description="Dishes, prices and availability." />
+      <MenuClient restaurantId={restaurantId} />
     </>
   );
 }

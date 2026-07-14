@@ -80,24 +80,39 @@ export async function requireRole(
  *     return Response.json(items);
  *   });
  */
-export function withTenant<T>(
+/**
+ * `P` is the route's OTHER dynamic segments — `{ itemId }` for
+ * /menu/items/[itemId], and nothing at all for a collection route.
+ *
+ * The default must be an empty object type, NOT Record<string, never>: intersecting
+ * that with { restaurantId: string } demands `restaurantId: never`, and Next 16
+ * type-checks each handler against a generated signature, so the build fails with a
+ * genuinely baffling error.
+ */
+export function withTenant<P extends object = Record<never, never>>(
   handler: (
     req: Request,
-    ctx: { restaurantId: string; userId: string; role: MemberRole },
+    ctx: {
+      restaurantId: string;
+      userId: string;
+      role: MemberRole;
+      params: P & { restaurantId: string };
+    },
   ) => Promise<Response>,
   options?: { roles?: readonly MemberRole[] },
 ) {
   return async (
     req: Request,
     // Next 16: route params are a Promise and must be awaited.
-    segment: { params: Promise<{ restaurantId: string }> & T },
+    segment: { params: Promise<P & { restaurantId: string }> },
   ): Promise<Response> => {
-    const { restaurantId } = await segment.params;
+    const params = await segment.params;
+    const { restaurantId } = params;
     try {
       const membership = options?.roles
         ? await requireRole(restaurantId, options.roles)
         : await requireMember(restaurantId);
-      return await handler(req, { restaurantId, ...membership });
+      return await handler(req, { restaurantId, ...membership, params });
     } catch (error) {
       if (error instanceof AuthError) {
         return new Response(error.message, { status: error.status });

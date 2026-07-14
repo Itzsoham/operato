@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 
-import { PrismaClientKnownRequestError } from "@/generated/prisma/internal/prismaNamespace";
 import { MemberRole } from "@/generated/prisma/enums";
+import { isUniqueViolation } from "@/lib/db-errors";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 import { createRestaurantSchema } from "@/lib/validations/auth";
@@ -94,14 +94,16 @@ export async function createRestaurant(
     }
 
     // Don't pre-check the slug and then insert — that read-then-write race lets two
-    // simultaneous signups both see "free" and one blow up. Let the unique index be
-    // the arbiter and translate its complaint. Check WHICH constraint tripped: today
-    // slug is the only one reachable here, but adding a unique column later would
-    // silently start blaming the slug for an unrelated collision.
-    if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
-      const target = error.meta?.target;
-      const hitSlug = Array.isArray(target) && target.includes("slug");
-      if (hitSlug) return { errors: { slug: "That address is taken. Try another." } };
+    // simultaneous signups both see "free" and one blow up. Let the unique index be the
+    // arbiter and translate its complaint, checking WHICH constraint tripped so that
+    // adding a unique column later cannot start blaming the slug for an unrelated one.
+    //
+    // isUniqueViolation matches BOTH Prisma's P2002 and the raw SQLSTATE 23505: on
+    // Prisma 7's driver adapter a constraint violation often arrives as a
+    // DriverAdapterError with no P-code at all (see src/lib/db-errors.ts), so matching
+    // P2002 alone would 500 on a duplicate slug instead of saying "that one's taken".
+    if (isUniqueViolation(error, "slug")) {
+      return { errors: { slug: "That address is taken. Try another." } };
     }
     throw error;
   }

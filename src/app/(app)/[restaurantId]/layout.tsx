@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 
+import { Providers } from "@/components/providers";
 import { AppSidebar } from "@/components/shell/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requirePageMember, requireSession } from "@/lib/session";
@@ -45,17 +46,22 @@ export default async function TenantLayout({
           image: session.user.image,
         }}
       />
-      {/* key={restaurantId} forces the whole tenant subtree to REMOUNT when you switch
-          restaurants, rather than re-rendering in place.
+      {/* key={restaurantId} REMOUNTS the whole tenant subtree when you switch
+          restaurants, rather than re-rendering it in place — which is exactly what
+          React would otherwise do, since it preserves client components by tree
+          POSITION across a soft navigation.
 
-          Today nothing under here holds client state, so this is free. It stops being
-          free the moment a TanStack QueryClientProvider or a client-side data table
-          appears: React preserves client components by tree POSITION across a soft
-          navigation, so restaurant A's cached rows would survive the switch and render
-          under restaurant B's name. Paying for it now, while it costs one line.
-          (Query keys must still be prefixed with restaurantId — this is the backstop,
-          not the excuse.) */}
-      <SidebarInset key={restaurantId}>{children}</SidebarInset>
+          That now matters: the QueryClientProvider below lives inside the keyed subtree,
+          so switching tenants throws away the entire TanStack cache along with it.
+          Without the key, restaurant A's cached dishes would survive the switch and
+          render under restaurant B's name.
+
+          Belt AND braces: every query key is also prefixed with restaurantId (see
+          src/hooks/use-menu.ts), so the caches cannot collide in the first place. The
+          remount is the backstop, not the excuse. */}
+      <SidebarInset key={restaurantId}>
+        <Providers>{children}</Providers>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
