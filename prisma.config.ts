@@ -25,6 +25,11 @@ export default defineConfig({
 
   migrations: {
     path: "prisma/migrations",
-    seed: "tsx prisma/seed.ts",
+    // --conditions=react-server: the seed imports src/lib/auth.ts (to create demo users
+    // through Better Auth, so their logins actually work), which pulls in src/lib/db.ts.
+    // Both are marked `import "server-only"`, and that package THROWS unless resolved
+    // under the react-server condition — a condition Next supplies inside its own graph
+    // but plain Node does not. Without this flag the seed dies on import.
+    seed: "tsx --conditions=react-server prisma/seed.ts",
   },
 });

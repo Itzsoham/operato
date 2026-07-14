@@ -1,3 +1,9 @@
+// Build ERROR, not a runtime one, if this is ever pulled into a client bundle. The
+// shell's client components import `Membership` from session.ts with `import type`, so
+// the whole server graph is erased at compile — one dropped `type` keyword away from
+// dragging Prisma into the browser. Make that a compile failure, not a mystery.
+import "server-only";
+
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "@/generated/prisma/client";

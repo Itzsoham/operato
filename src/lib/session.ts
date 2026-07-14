@@ -1,3 +1,5 @@
+import "server-only";
+
 import { cache } from "react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -18,6 +20,15 @@ import type { MemberRole } from "@/generated/prisma/enums";
  * review called out (plan-code-review.md Finding 6).
  */
 
+/**
+ * PUBLIC TO THE MEMBER. This crosses the server->client boundary — it is serialized
+ * into the RSC payload and readable in the browser by anyone holding the session.
+ *
+ * Everything here is already a fact the user knows about their own memberships. Do NOT
+ * widen it casually: adding `plan` for a billing badge, or reaching into
+ * `restaurant: { select: { razorpaySubscriptionId } }`, ships that to every browser with
+ * no signal at the boundary that anything changed.
+ */
 export type Membership = {
   restaurantId: string;
   role: MemberRole;
@@ -41,8 +52,14 @@ export async function requireSession() {
   return session;
 }
 
-/** Every restaurant this user belongs to — the source for the restaurant switcher. */
-export async function getMemberships(userId: string): Promise<Membership[]> {
+/**
+ * Every restaurant this user belongs to — the source for the restaurant switcher.
+ *
+ * cache()d per request: the tenant layout and the page it wraps BOTH guard themselves
+ * (deliberately — see the layout), so without this the same findMany runs twice on
+ * every dashboard render.
+ */
+export const getMemberships = cache(async (userId: string): Promise<Membership[]> => {
   const members = await prisma.restaurantMember.findMany({
     where: { userId },
     select: {
@@ -59,7 +76,7 @@ export async function getMemberships(userId: string): Promise<Membership[]> {
     name: m.restaurant.name,
     slug: m.restaurant.slug,
   }));
-}
+});
 
 /**
  * Page guard for a tenant-scoped route: signed in AND a member of THIS restaurant.

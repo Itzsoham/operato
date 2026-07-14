@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -63,10 +64,14 @@ export function UserMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex flex-col gap-0.5">
-          <span className="truncate font-medium">{name}</span>
-          <span className="text-muted-foreground truncate text-xs font-normal">{email}</span>
-        </DropdownMenuLabel>
+        {/* Base UI throws "MenuGroupContext is missing" if a Label sits outside a Group
+            — at RUNTIME, on open, which a build will never catch. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col gap-0.5">
+            <span className="truncate font-medium">{name}</span>
+            <span className="text-muted-foreground truncate text-xs font-normal">{email}</span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSignOut} disabled={pending}>
           {pending ? "Signing out…" : "Sign out"}

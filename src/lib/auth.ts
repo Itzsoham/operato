@@ -1,3 +1,5 @@
+import "server-only"; // never let the auth instance (and its secret) into a client bundle
+
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
