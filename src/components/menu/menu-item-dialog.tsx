@@ -155,13 +155,27 @@ function MenuItemForm({
 
       <div className="grid gap-2">
         <Label htmlFor="category">Category</Label>
-        {/* Base UI's Select hands back `string | null` (null = cleared). */}
+        {/* Base UI's Select hands back `string | null` (null = cleared), and its
+            SelectValue renders the RAW VALUE unless given a render function — which here
+            would print the category's cuid at the user. */}
         <Select
           value={categoryId}
           onValueChange={(value) => setCategoryId(value ?? NO_CATEGORY)}
         >
           <SelectTrigger id="category">
-            <SelectValue placeholder="Uncategorised" />
+            <SelectValue placeholder="Uncategorised">
+              {(value) => {
+                if (value === NO_CATEGORY) return "Uncategorised";
+                // While the categories query is in flight, `find` misses — and falling
+                // back to "Uncategorised" would confidently mislabel an item that IS in a
+                // category. The item already knows its own category name; use it.
+                return (
+                  categories?.find((c) => c.id === value)?.name ??
+                  item?.category?.name ??
+                  "…"
+                );
+              }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={NO_CATEGORY}>Uncategorised</SelectItem>

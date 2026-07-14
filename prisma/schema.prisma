@@ -344,25 +344,41 @@ enum TransactionType {
 // ─── Customers ───────────────────────────────────────────────────────────────
 
 model Customer {
-  id           String    @id @default(cuid())
+  id           String  @id @default(cuid())
   restaurantId String
   name         String
   email        String?
-  phone        String?
-  totalSpend   Decimal   @default(0) @db.Decimal(10, 2) // denormalized; rolled up under a lock on pay
-  visitCount   Int       @default(0) // denormalized
-  lastVisitAt  DateTime?
-  tags         String[]  @default([])
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+
+  /**
+   * REQUIRED, and stored in canonical E.164 form (+919876543210) — see normalisePhone().
+   *
+   * It used to be nullable, with the rule "never auto-create a Customer without a phone"
+   * living only in application code. That is not enforcement: NULLs are DISTINCT in
+   * Postgres, so `@@unique([restaurantId, phone])` would happily allow a hundred
+   * phone-less "customers" — one per anonymous takeaway — inflating the customer count and
+   * wrecking the very "top customers" and "new customers" figures the CRM exists to report.
+   *
+   * NOT NULL makes the invariant the database's problem, so one careless
+   * `prisma.customer.create` in a future module cannot silently reopen it. An order with
+   * no phone carries `customerId = null` — still counted in revenue, just not attributed
+   * to a person. See plan-code-review.md Finding 9.
+   *
+   * And because it is canonical, the unique index finally means one row per human: a
+   * number typed "+91 98765 43210" and "9876543210" is the SAME customer, not two rows
+   * with their lifetime spend split between them.
+   */
+  phone String
+
+  totalSpend  Decimal   @default(0) @db.Decimal(10, 2) // denormalized; rolled up under a lock on pay
+  visitCount  Int       @default(0) // denormalized
+  lastVisitAt DateTime?
+  tags        String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orders     Order[]
 
-  // NOTE: `phone` is nullable and NULLs are DISTINCT in Postgres, so this constraint
-  // does NOT stop many NULL-phone rows. That is deliberate — the rule is enforced in
-  // code: never auto-create a Customer without a phone; an anonymous order just gets
-  // customerId = null. See plan-code-review.md Finding 9.
   @@unique([restaurantId, phone])
   // Referenced by Order's composite FK (tenant pinning).
   @@unique([id, restaurantId])

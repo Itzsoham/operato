@@ -46,6 +46,17 @@ export function invalid(error: z.ZodError): Response {
 }
 
 /**
+ * Escapes a user's search term for a Prisma `contains` (which compiles to LIKE).
+ *
+ * `%` and `_` are LIKE wildcards. Left as-is, a search for "50%" matches everything after
+ * "50", and a lone "%" matches the entire table. Not an injection — Prisma parameterises —
+ * just a search box that quietly lies about what it found.
+ */
+export function escapeLike(term: string): string {
+  return term.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+/**
  * Parses a JSON body against a schema.
  *
  * Returns a discriminated result rather than throwing, so a handler cannot accidentally

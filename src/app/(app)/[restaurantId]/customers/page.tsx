@@ -1,6 +1,4 @@
-import { Users } from "lucide-react";
-
-import { ModulePlaceholder } from "@/components/shell/module-placeholder";
+import { CustomersClient } from "@/components/customers/customers-client";
 import { PageHeader } from "@/components/shell/page-header";
 import { requirePageMember } from "@/lib/session";
 
@@ -16,12 +14,11 @@ export default async function CustomersPage({
 
   return (
     <>
-      <PageHeader title="Customers" />
-      <ModulePlaceholder
-        icon={Users}
-        title="Customers isn't built yet"
+      <PageHeader
+        title="Customers"
         description="Who comes back, what they spend, when they last visited."
       />
+      <CustomersClient restaurantId={restaurantId} />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { OrderStatus } from "@/generated/prisma/enums";
-import { created, invalid, ok, parseJson } from "@/lib/api";
+import { created, escapeLike, invalid, ok, parseJson } from "@/lib/api";
 import { withTenant } from "@/lib/auth-guard";
-import { isUniqueViolation } from "@/lib/db-errors";
+import { isForeignKeyViolation, isUniqueViolation } from "@/lib/db-errors";
 import { prisma } from "@/lib/db";
 import { OrderError, createOrder } from "@/lib/orders/service";
 import { createOrderSchema, listOrdersSchema } from "@/lib/validations/orders";
@@ -36,7 +36,11 @@ export const GET = withTenant(async (req, { restaurantId }) => {
       ...(status ? { status } : {}),
       ...(open === "true" ? { status: { notIn: CLOSED } } : {}),
       ...(open === "false" ? { status: { in: CLOSED } } : {}),
-      ...(search ? { orderNumber: { contains: search, mode: "insensitive" } } : {}),
+      // escapeLike — `%` and `_` are LIKE wildcards; unescaped, a search for "%" returns
+      // every order and the box lies about what it found. See src/lib/api.ts.
+      ...(search
+        ? { orderNumber: { contains: escapeLike(search), mode: "insensitive" } }
+        : {}),
     },
     orderBy: { createdAt: "desc" },
     take: limit,
@@ -74,6 +78,17 @@ export const POST = withTenant(async (req, { restaurantId }) => {
     if (isUniqueViolation(error, "orderNumber")) {
       return Response.json(
         { error: "Couldn't allocate an order number. Try again." },
+        { status: 409 },
+      );
+    }
+
+    // The service CHECKS that the table/customer/menu items belong to this tenant, but a
+    // check is not a lock: a customer or table deleted between the check and the INSERT
+    // lands here as a raw FK violation. The composite FKs mean nothing WRONG is ever
+    // stored — this just turns an ugly 500 into an answer.
+    if (isForeignKeyViolation(error)) {
+      return Response.json(
+        { error: "Something on that order no longer exists. Refresh and try again." },
         { status: 409 },
       );
     }

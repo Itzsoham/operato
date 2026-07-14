@@ -44,6 +44,12 @@ const TAX_RATE = 0.05;
 
 const NO_TABLE = "__none__";
 
+const TYPE_LABEL: Record<OrderType, string> = {
+  DINE_IN: "Dine in",
+  TAKEAWAY: "Takeaway",
+  DELIVERY: "Delivery",
+};
+
 export function NewOrderDialog({
   restaurantId,
   open,
@@ -149,12 +155,14 @@ function NewOrderForm({
           <Label htmlFor="type">Type</Label>
           <Select value={type} onValueChange={(v) => setType((v ?? "TAKEAWAY") as OrderType)}>
             <SelectTrigger id="type">
-              <SelectValue />
+              {/* Base UI's SelectValue renders the RAW VALUE without a render function —
+                  it would show "DINE_IN" at the person taking the order. */}
+              <SelectValue>{(value) => TYPE_LABEL[value as OrderType]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DINE_IN">Dine in</SelectItem>
-              <SelectItem value="TAKEAWAY">Takeaway</SelectItem>
-              <SelectItem value="DELIVERY">Delivery</SelectItem>
+              <SelectItem value="DINE_IN">{TYPE_LABEL.DINE_IN}</SelectItem>
+              <SelectItem value="TAKEAWAY">{TYPE_LABEL.TAKEAWAY}</SelectItem>
+              <SelectItem value="DELIVERY">{TYPE_LABEL.DELIVERY}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -167,7 +175,13 @@ function NewOrderForm({
             disabled={type !== "DINE_IN"}
           >
             <SelectTrigger id="table">
-              <SelectValue placeholder="No table" />
+              <SelectValue placeholder="No table">
+                {(value) => {
+                  if (value === NO_TABLE) return "No table";
+                  const table = tables?.find((t) => t.id === value);
+                  return table ? `Table ${table.number}` : "No table";
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NO_TABLE}>No table</SelectItem>

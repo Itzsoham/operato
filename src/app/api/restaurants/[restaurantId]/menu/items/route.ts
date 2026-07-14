@@ -1,20 +1,11 @@
 import { MemberRole } from "@/generated/prisma/enums";
-import { created, invalid, ok, parseJson } from "@/lib/api";
+import { created, escapeLike, invalid, ok, parseJson } from "@/lib/api";
 import { withTenant } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import { createMenuItemSchema, listMenuItemsSchema } from "@/lib/validations/menu";
 
 // Reading the menu is every member's business. CHANGING it is not.
 const MANAGES_MENU = [MemberRole.OWNER, MemberRole.MANAGER] as const;
-
-/**
- * `%` and `_` are LIKE wildcards. Left unescaped, a search for "50%" matches everything
- * after "50", and a lone "%" matches the whole menu. Not injection — Prisma parameterises
- * — just a search box that lies about what it found.
- */
-function escapeLike(term: string): string {
-  return term.replace(/[\\%_]/g, (char) => `\\${char}`);
-}
 
 export const GET = withTenant(async (req, { restaurantId }) => {
   const url = new URL(req.url);

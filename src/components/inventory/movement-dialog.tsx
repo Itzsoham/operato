@@ -38,6 +38,14 @@ const MOVEMENT_LABEL: Record<TransactionType, string> = {
   ADJUSTMENT: "Stock take",
 };
 
+/** What the person recording it would call each movement. */
+const MOVEMENT_OPTION: Record<TransactionType, string> = {
+  STOCK_IN: "Delivery arrived",
+  STOCK_OUT: "Used in service",
+  WASTE: "Wasted / spoiled",
+  ADJUSTMENT: "Stock take",
+};
+
 /** Waste and stock-takes must say why — see src/lib/validations/inventory.ts. */
 const NEEDS_NOTE: TransactionType[] = ["WASTE", "ADJUSTMENT"];
 
@@ -136,14 +144,19 @@ function MovementForm({
               onValueChange={(v) => setType((v ?? "STOCK_IN") as TransactionType)}
             >
               <SelectTrigger id="type">
-                <SelectValue />
+                {/* Base UI renders the RAW VALUE without a render function — "STOCK_IN". */}
+                <SelectValue>
+                  {(value) => MOVEMENT_OPTION[value as TransactionType]}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="STOCK_IN">Delivery arrived</SelectItem>
-                <SelectItem value="STOCK_OUT">Used in service</SelectItem>
-                <SelectItem value="WASTE">Wasted / spoiled</SelectItem>
+                <SelectItem value="STOCK_IN">{MOVEMENT_OPTION.STOCK_IN}</SelectItem>
+                <SelectItem value="STOCK_OUT">{MOVEMENT_OPTION.STOCK_OUT}</SelectItem>
+                <SelectItem value="WASTE">{MOVEMENT_OPTION.WASTE}</SelectItem>
                 {/* A stock-take is the only unbounded write to the balance — manager only. */}
-                {canAdjust ? <SelectItem value="ADJUSTMENT">Stock take</SelectItem> : null}
+                {canAdjust ? (
+                  <SelectItem value="ADJUSTMENT">{MOVEMENT_OPTION.ADJUSTMENT}</SelectItem>
+                ) : null}
               </SelectContent>
             </Select>
           </div>
