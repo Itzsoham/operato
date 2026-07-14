@@ -45,8 +45,6 @@
       "Read(./.env)",
       "Read(./.env.local)",
       "Read(./.env.production)",
-      "Edit(./prisma/migrations/**)",
-      "Write(./prisma/migrations/**)",
       "Bash(npx prisma migrate reset:*)",
       "Bash(npx prisma db push:*)",
       "Bash(git push --force:*)",

@@ -272,6 +272,9 @@ model InventoryItem {
   @@unique([menuItemId, restaurantId])
   // Referenced by InventoryTransaction's composite FK (tenant pinning).
   @@unique([id, restaurantId])
+  // Two "Chicken" rows would split the ledger in half and make "how much chicken do we
+  // have" ambiguous — to the reorder list, and to the AI answering it.
+  @@unique([restaurantId, name])
   @@index([restaurantId])
 }
 
@@ -280,17 +283,55 @@ model InventoryTransaction {
   inventoryItemId String
   restaurantId    String // denormalized for direct tenant filtering / RLS
   type            TransactionType
-  quantity        Decimal         @db.Decimal(10, 3)
-  balanceAfter    Decimal         @db.Decimal(10, 3) // audit trail; written under a row lock
-  notes           String?
-  createdAt       DateTime        @default(now())
+
+  /// The positive MAGNITUDE, for display ("12 kg arrived").
+  quantity Decimal @db.Decimal(10, 3)
+
+  /// The SIGNED contribution to the balance. This is the one that reconciles.
+  ///
+  /// `quantity` alone cannot: an ADJUSTMENT of +3kg (a recount found more) and one of
+  /// -3kg (a shrinkage write-off) both store `quantity = 3, type = ADJUSTMENT` and are
+  /// byte-identical. The only signed sum anyone could then write —
+  ///   CASE WHEN type IN ('STOCK_OUT','WASTE') THEN -quantity ELSE quantity END
+  /// — reads a 3kg LOSS as a 3kg GAIN. The AI writing SUM() over this table would report
+  /// the opposite of the truth, and a reconciliation job would silently agree with it.
+  ///
+  /// With `delta`, the invariant is one query and no CASE:
+  ///   SUM(delta) = InventoryItem.currentStock
+  delta Decimal @db.Decimal(10, 3)
+
+  /// The balance immediately after this movement. Written under the item's row lock, from
+  /// the same number set on the item — so `balanceAfter[n] = balanceAfter[n-1] + delta[n]`.
+  balanceAfter Decimal @db.Decimal(10, 3)
+
+  /// WHO moved the stock. An audit trail that records what and when but not who answers
+  /// the one question it exists for. Nullable + SetNull: a staff member leaving must not
+  /// erase the history of what they did.
+  userId String?
+
+  /// Apply order, allocated by the sequence at INSERT — which, under the item's row lock,
+  /// IS the order the movements were applied in.
+  ///
+  /// `createdAt` cannot do this job: it is TIMESTAMP(3), so two movements in the same
+  /// millisecond tie and the ledger renders its balances out of order (and looks broken
+  /// even though the data is right). Worse, the column default is CURRENT_TIMESTAMP,
+  /// which in Postgres is TRANSACTION START time — under a FOR UPDATE queue that is not
+  /// apply order at all.
+  seq BigInt @default(autoincrement())
+
+  notes     String?
+  createdAt DateTime @default(now())
 
   // Composite FK — pins restaurantId to the parent InventoryItem's. See OrderItem.
   inventoryItem InventoryItem @relation(fields: [inventoryItemId, restaurantId], references: [id, restaurantId], onDelete: Cascade)
   restaurant    Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([restaurantId, createdAt])
   @@index([inventoryItemId])
+  // The ledger read and the velocity subquery both walk one item's movements over a
+  // window. Without this they heap-fetch every transaction the item ever had.
+  @@index([inventoryItemId, seq])
 }
 
 enum TransactionType {
@@ -434,7 +475,10 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  memberships RestaurantMember[]
+  memberships       RestaurantMember[]
+  /// Stock movements this user recorded. SetNull on delete — a departing staff member
+  /// must not erase the history of what they moved.
+  inventoryMovements InventoryTransaction[]
 
   @@unique([email])
   @@map("user")

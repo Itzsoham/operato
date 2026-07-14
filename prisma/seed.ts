@@ -657,7 +657,7 @@ async function main() {
 
       const txns: {
         id: string; inventoryItemId: string; restaurantId: string; type: TransactionType;
-        quantity: number; balanceAfter: number; notes: string | null; createdAt: Date;
+        quantity: number; delta: number; balanceAfter: number; notes: string | null; createdAt: Date;
       }[] = [];
 
       /**
@@ -673,13 +673,15 @@ async function main() {
         const inbound = type === TransactionType.STOCK_IN;
         const applied = stock(inbound ? qty : Math.min(qty, balance));
         if (applied <= 0) return;
-        balance = stock(balance + (inbound ? applied : -applied));
+        const delta = stock(inbound ? applied : -applied);
+        balance = stock(balance + delta);
         txns.push({
           id: randomUUID(),
           inventoryItemId: item.id,
           restaurantId: rid, // composite FK pins this to the parent item's tenant
           type,
-          quantity: applied,
+          quantity: applied, // positive magnitude, for display
+          delta, // SIGNED — the column that reconciles. See schema.prisma.
           balanceAfter: balance,
           notes,
           createdAt: at,
