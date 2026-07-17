@@ -95,7 +95,10 @@ export function RestaurantSwitcher({
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
+            {/* nativeButton={false} — this navigates, so it renders an anchor; Base UI
+                warns otherwise because its default assumes a real <button>. */}
             <DropdownMenuItem
+              nativeButton={false}
               render={
                 <Link href="/onboarding" className="gap-2 p-2">
                   <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">

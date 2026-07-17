@@ -195,6 +195,10 @@ model Order {
   @@unique([id, restaurantId])
   @@index([restaurantId, status])
   @@index([restaurantId, createdAt])
+  // Every Overview aggregate filters exactly this: one tenant's PAID orders over a date
+  // range. Without it they seq-scan the tenant's whole order history on every dashboard
+  // load — fine at 6k rows, not at 100k.
+  @@index([restaurantId, status, paidAt])
 }
 
 enum OrderStatus {

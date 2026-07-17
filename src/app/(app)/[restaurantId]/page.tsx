@@ -7,6 +7,7 @@ import { StatTile } from "@/components/overview/stat-tile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOverview } from "@/lib/analytics/overview";
+import { prisma } from "@/lib/db";
 import { getStockLines } from "@/lib/inventory/service";
 import { requirePageMember } from "@/lib/session";
 
@@ -26,8 +27,16 @@ export default async function OverviewPage({
   // is the guarantee the whole product rests on.
   const { membership } = await requirePageMember(restaurantId);
 
+  // The tenant's own timezone decides where a "day" starts. On a UTC server,
+  // date_trunc('day', NOW()) is 05:30 IST — see the note in the analytics module: it
+  // misfiles late-night trade and hides the whole previous business day during close-out.
+  const { timezone } = await prisma.restaurant.findUniqueOrThrow({
+    where: { id: restaurantId },
+    select: { timezone: true },
+  });
+
   const [overview, stock] = await Promise.all([
-    getOverview(restaurantId),
+    getOverview(restaurantId, timezone),
     getStockLines(restaurantId),
   ]);
 
@@ -73,12 +82,21 @@ export default async function OverviewPage({
                   )
                   .join(", ")}
               </span>
-              <Button size="sm" variant="outline" className="bg-background ml-auto" render={
-                <Link href={`/${restaurantId}/inventory`}>
-                  <Package className="size-4" />
-                  Inventory
-                </Link>
-              } />
+              {/* nativeButton={false}: Base UI's Button assumes a real <button> and warns
+                  when `render` hands it an anchor. This IS a link — it navigates — so the
+                  anchor is right and the flag is how you say so. */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="bg-background ml-auto"
+                nativeButton={false}
+                render={
+                  <Link href={`/${restaurantId}/inventory`}>
+                    <Package className="size-4" />
+                    Inventory
+                  </Link>
+                }
+              />
             </CardContent>
           </Card>
         ) : null}
@@ -87,7 +105,7 @@ export default async function OverviewPage({
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">Revenue</CardTitle>
-              <CardDescription>Paid orders, last 30 days</CardDescription>
+              <CardDescription>Paid orders · 30 complete days to yesterday</CardDescription>
             </CardHeader>
             <CardContent>
               {/* One series -> no legend. The title says what is plotted. */}
@@ -98,7 +116,7 @@ export default async function OverviewPage({
           <Card>
             <CardHeader>
               <CardTitle className="text-base">How people order</CardTitle>
-              <CardDescription>Share of paid orders, last 30 days</CardDescription>
+              <CardDescription>Share of paid orders · 30 complete days to yesterday</CardDescription>
             </CardHeader>
             <CardContent>
               <OrderTypeMix data={overview.typeMix} />
@@ -110,7 +128,7 @@ export default async function OverviewPage({
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">Top sellers</CardTitle>
-              <CardDescription>Units sold, last 30 days</CardDescription>
+              <CardDescription>Units sold · 30 complete days to yesterday</CardDescription>
             </CardHeader>
             <CardContent>
               <TopItems data={overview.topItems} />
@@ -120,7 +138,7 @@ export default async function OverviewPage({
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Known customers</CardTitle>
-              <CardDescription>How much revenue you can put a name to</CardDescription>
+              <CardDescription>Share of revenue · 30 complete days to yesterday</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               <span className="text-2xl font-semibold">

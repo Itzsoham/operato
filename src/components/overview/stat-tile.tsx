@@ -52,12 +52,17 @@ export function StatTile({ kpi }: { kpi: Kpi }) {
           <Icon className="size-3.5 shrink-0" aria-hidden />
           <span className="tabular-nums">
             {change === null
-              ? "no prior week"
+              ? "no prior data"
               : flat
                 ? "flat"
                 : `${up ? "+" : ""}${(change * 100).toFixed(1)}%`}
           </span>
-          <span className="text-muted-foreground">vs last week</span>
+          {/* "the 7 days before that", not "last week" — the window is a rolling 7
+              complete days, not a calendar week, and saying otherwise invites someone to
+              reconcile this against a Mon–Sun report and find it doesn't match. */}
+          {change !== null ? (
+            <span className="text-muted-foreground">vs previous 7 days</span>
+          ) : null}
         </span>
       </CardContent>
     </Card>

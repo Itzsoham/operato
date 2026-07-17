@@ -28,8 +28,20 @@ const inrCompact = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 1,
 });
 
+/**
+ * The server already resolved these to the RESTAURANT's local days ('YYYY-MM-DD').
+ *
+ * `new Date("2026-07-16")` parses as UTC midnight, and toLocaleDateString renders in the
+ * BROWSER's zone — so an owner checking the dashboard from London would see every tick and
+ * tooltip labelled a day early. timeZone: "UTC" pins the label to the string we were given
+ * rather than re-interpreting it.
+ */
 const dayLabel = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
 
 /** The three validated categorical slots, in FIXED ORDER. Never cycled, never by rank. */
 const SERIES = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)"];

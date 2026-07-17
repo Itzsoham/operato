@@ -52,6 +52,10 @@
 }
 
 :root {
+  /* Tells the browser to draw NATIVE chrome — scrollbars, form controls, <select>
+     popups — to match. Without it those stay light in dark mode, which was invisible
+     until the .dark class was actually mounted. */
+  color-scheme: light;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -103,6 +107,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
