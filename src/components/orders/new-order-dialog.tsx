@@ -1,7 +1,7 @@
 "use client";
 
-import { Minus, Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Minus, Plus, Search, X } from "lucide-react";
+import { useDeferredValue, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCustomers, type Customer } from "@/hooks/use-customers";
 import { useMenuItems } from "@/hooks/use-menu";
 import { useCreateOrder, useTables } from "@/hooks/use-orders";
 import type { OrderType } from "@/generated/prisma/enums";
@@ -100,6 +101,15 @@ function NewOrderForm({
   const [discount, setDiscount] = useState("0");
   const [qty, setQty] = useState<Record<string, number>>({});
 
+  // Walk-in by default (customer = null). Storing the whole record, not just an id, so the
+  // chip still reads correctly after the search box that found it is cleared.
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const deferredCustomerSearch = useDeferredValue(customerSearch.trim());
+  const { data: customerMatches } = useCustomers(restaurantId, {
+    search: deferredCustomerSearch || undefined,
+  });
+
   // Only what the kitchen can actually make. The server checks this again — a menu
   // fetched two minutes ago can be stale — but there's no reason to offer it here.
   const sellable = useMemo(
@@ -139,6 +149,7 @@ function NewOrderForm({
       {
         type,
         tableId: type === "DINE_IN" && tableId !== NO_TABLE ? tableId : null,
+        customerId: customer?.id ?? null,
         discount: discountValue,
         // Only WHAT and HOW MANY. The price is the server's business — see
         // src/lib/orders/service.ts.
@@ -195,6 +206,61 @@ function NewOrderForm({
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="customer-search">Customer</Label>
+        {customer ? (
+          <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+            <span className="font-medium">{customer.name}</span>
+            <span className="text-muted-foreground">{customer.phone}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="ml-auto size-6"
+              aria-label="Remove customer"
+              onClick={() => setCustomer(null)}
+            >
+              <X className="size-3.5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="relative">
+            <Search className="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
+            <Input
+              id="customer-search"
+              value={customerSearch}
+              onChange={(e) => setCustomerSearch(e.target.value)}
+              placeholder="Search by name or phone — leave blank for a walk-in…"
+              className="pl-8"
+            />
+            {customerSearch.trim() ? (
+              <div className="bg-popover absolute z-10 mt-1 max-h-40 w-full overflow-y-auto rounded-md border shadow-md">
+                {customerMatches?.length ? (
+                  customerMatches.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                      onClick={() => {
+                        setCustomer(c);
+                        setCustomerSearch("");
+                      }}
+                    >
+                      <span className="font-medium">{c.name}</span>
+                      <span className="text-muted-foreground">{c.phone}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground p-3 text-center text-sm">
+                    No customer matches that.
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-2">
