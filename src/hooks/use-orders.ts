@@ -1,6 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryKey,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import type { OrderStatus, TableStatus } from "@/generated/prisma/enums";
@@ -48,8 +54,17 @@ export const orderKeys = {
     filters && Object.keys(filters).length > 0
       ? [restaurantId, "orders", filters]
       : [restaurantId, "orders"],
+  history: (restaurantId: string, filters?: { from?: string; to?: string }): QueryKey => [
+    restaurantId,
+    "orders",
+    "history",
+    filters ?? {},
+  ],
   tables: (restaurantId: string): QueryKey => [restaurantId, "tables"],
 };
+
+/** The GET /orders envelope — see the route for why it's not a bare array. */
+type OrdersPage = { orders: Order[]; nextCursor: string | null };
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -74,6 +89,11 @@ const base = (restaurantId: string) => `/api/restaurants/${restaurantId}`;
 
 // ── queries ──────────────────────────────────────────────────────────────────
 
+/**
+ * The kitchen/floor working set — small, live, never paginated. Unwraps the route's
+ * `{ orders, nextCursor }` envelope so every existing caller keeps seeing a plain array;
+ * `useOrderHistory` below is the paginated one.
+ */
 export function useOrders(restaurantId: string, filters?: { open?: boolean }) {
   const params = new URLSearchParams();
   if (filters?.open !== undefined) params.set("open", String(filters.open));
@@ -82,8 +102,30 @@ export function useOrders(restaurantId: string, filters?: { open?: boolean }) {
   return useQuery({
     queryKey: orderKeys.orders(restaurantId, filters as Record<string, unknown>),
     queryFn: () =>
-      request<Order[]>(`${base(restaurantId)}/orders${query ? `?${query}` : ""}`),
+      request<OrdersPage>(`${base(restaurantId)}/orders${query ? `?${query}` : ""}`).then(
+        (page) => page.orders,
+      ),
     placeholderData: (previous) => previous,
+  });
+}
+
+/**
+ * Order history — closed (PAID/CANCELLED) orders, optionally date-filtered, "Load more"
+ * paginated via keyset cursor (see the route: it's the last row's id, not an offset, so
+ * a page never skips or repeats a row when new orders land between fetches).
+ */
+export function useOrderHistory(restaurantId: string, filters?: { from?: string; to?: string }) {
+  return useInfiniteQuery({
+    queryKey: orderKeys.history(restaurantId, filters),
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => {
+      const params = new URLSearchParams({ open: "false" });
+      if (filters?.from) params.set("from", filters.from);
+      if (filters?.to) params.set("to", filters.to);
+      if (pageParam) params.set("cursor", pageParam);
+      return request<OrdersPage>(`${base(restaurantId)}/orders?${params.toString()}`);
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
 

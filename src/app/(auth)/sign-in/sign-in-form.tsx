@@ -58,7 +58,7 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate data-testid="sign-in-form">
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -68,6 +68,7 @@ export function SignInForm() {
           autoComplete="email"
           placeholder="you@restaurant.com"
           aria-invalid={Boolean(errors.email)}
+          data-testid="sign-in-email"
           required
         />
         {errors.email ? <p className="text-destructive text-sm">{errors.email}</p> : null}
@@ -81,18 +82,19 @@ export function SignInForm() {
           type="password"
           autoComplete="current-password"
           aria-invalid={Boolean(errors.password)}
+          data-testid="sign-in-password"
           required
         />
         {errors.password ? <p className="text-destructive text-sm">{errors.password}</p> : null}
       </div>
 
       {errors.form ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-destructive text-sm" data-testid="sign-in-error">
           {errors.form}
         </p>
       ) : null}
 
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="w-full" disabled={pending} data-testid="sign-in-submit">
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

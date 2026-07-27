@@ -27,12 +27,22 @@ export class AuthError extends Error {
  *
  * `restaurantId` must come from the URL param, never the request body — a body-supplied
  * id is attacker-controlled and would let a member of restaurant A act on restaurant B.
+ *
+ * `requestHeaders` is an escape hatch for callers that are NOT a plain Next.js route
+ * handler — e.g. the Uploadthing file router's `.middleware()`, which runs inside an
+ * Effect-based runtime that does not reliably preserve the AsyncLocalStorage context
+ * `next/headers`'s `headers()` depends on. Those callers already have a `NextRequest`
+ * in hand and should pass `req.headers` explicitly rather than risk `headers()` throwing
+ * "called outside a request scope" or silently reading the wrong request.
  */
-export async function requireMember(restaurantId: string): Promise<{
+export async function requireMember(
+  restaurantId: string,
+  requestHeaders?: Headers,
+): Promise<{
   userId: string;
   role: MemberRole;
 }> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: requestHeaders ?? (await headers()) });
   if (!session) {
     throw new AuthError(401);
   }
@@ -60,8 +70,9 @@ export async function requireMember(restaurantId: string): Promise<{
 export async function requireRole(
   restaurantId: string,
   allowed: readonly MemberRole[],
+  requestHeaders?: Headers,
 ): Promise<{ userId: string; role: MemberRole }> {
-  const membership = await requireMember(restaurantId);
+  const membership = await requireMember(restaurantId, requestHeaders);
   if (!allowed.includes(membership.role)) {
     throw new AuthError(403);
   }

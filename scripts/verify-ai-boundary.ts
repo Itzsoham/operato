@@ -17,6 +17,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../src/generated/prisma/client";
+import { assertLooksLikeSafeSelect } from "../src/lib/ai/sql-guard";
 
 process.loadEnvFile(".env");
 
@@ -53,9 +54,18 @@ async function main() {
 
   // 3. Nothing is readable-but-unprotected. Asked as the OWNER, since the AI role
   //    cannot see the privileges of tables it has been denied.
+  //
+  //    relkind IN ('r','v','m','p','f'): ordinary/partitioned/foreign TABLES, VIEWS and
+  //    MATERIALIZED VIEWS. An sql-safety-reviewer audit pointed out that the original
+  //    'r'-only filter would miss a future migration that grants operato_ai_ro a VIEW —
+  //    a view owned by neondb_owner has no RLS of its own (relrowsecurity is a property of
+  //    the view, not of the tables it selects from) and, without `security_invoker`, runs
+  //    with the OWNER's privileges and bypasses the base tables' RLS entirely. Zero views
+  //    exist today, so this is defence against a future mistake, not a fix for a present
+  //    one — which is exactly when a check like this earns its keep.
   const exposed = await owner.$queryRaw<{ relname: string }[]>`
     SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-     WHERE n.nspname = 'public' AND c.relkind = 'r'
+     WHERE n.nspname = 'public' AND c.relkind IN ('r', 'v', 'm', 'p', 'f')
        AND has_table_privilege('operato_ai_ro', c.oid, 'SELECT')
        AND NOT c.relrowsecurity`;
   check(
@@ -80,6 +90,41 @@ async function main() {
   const [{ count }] = await ai.$queryRaw<{ count: bigint }[]>`
     SELECT count(*) AS count FROM "Order"`;
   check(Number(count) === 0, "RLS is fail-closed with no tenant GUC set", `saw ${count} rows`);
+
+  // 6. sql-guard.ts's identifier ALLOWLIST rejects the two verified live cross-tenant
+  //    payloads (a `set_config` call spelled as a double-quoted identifier, and as a
+  //    Unicode-escaped one). This is a regression test for a real, once-live breach — see
+  //    the comment above the SET LOCAL call in run-readonly-sql.ts for the full story,
+  //    including why the database-level revoke attempted alongside this does NOT work on
+  //    this Neon project (pg_catalog.set_config is owned by cloud_admin, not neondb_owner,
+  //    and Postgres no-ops a REVOKE from a non-owner instead of erroring). The guard is not
+  //    a stopgap for this vector — it is the only control that actually holds.
+  const pivotPayloads = [
+    `WITH p AS (SELECT "set_config"('app.restaurant_id','victim',true) AS v) SELECT o."restaurantId" FROM "Order" o, p`,
+    `WITH p AS (SELECT U&"\\0073et_config"('app.restaurant_id','victim',true) AS v) SELECT o."restaurantId" FROM "Order" o, p`,
+  ];
+  for (const payload of pivotPayloads) {
+    let blocked = false;
+    try {
+      assertLooksLikeSafeSelect(payload);
+    } catch {
+      blocked = true;
+    }
+    check(blocked, "sql-guard rejects a quoted/escaped set_config pivot", payload.slice(0, 60));
+  }
+
+  // 7. Documents, rather than assumes, the known limitation from #6: operato_ai_ro CAN
+  //    execute set_config at the database level. This is expected to be TRUE on this
+  //    Neon project — if it ever flips to false (e.g. after a database migration off
+  //    Neon, or a Neon platform change), the comments referencing this limitation in
+  //    run-readonly-sql.ts are stale and should be revisited, not silently trusted either
+  //    way.
+  const [gucPriv] = await ai.$queryRaw<{ can: boolean }[]>`
+    SELECT has_function_privilege('operato_ai_ro', 'pg_catalog.set_config(text,text,boolean)', 'EXECUTE') AS can`;
+  console.log(
+    `  info  operato_ai_ro can EXECUTE set_config at the DB level: ${gucPriv.can} ` +
+      "(expected true on Neon — the code-level guard is the actual control for this)",
+  );
 
   console.log(failures === 0 ? "\nAI boundary intact.\n" : `\n${failures} CHECK(S) FAILED.\n`);
   process.exit(failures === 0 ? 0 : 1);

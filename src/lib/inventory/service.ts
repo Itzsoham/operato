@@ -50,11 +50,12 @@ export async function applyMovement(
   const txnId = await prisma.$transaction(async (tx) => {
     // Lock the item row and read its balance.
     //
-    // NOTE the type: `currentStock` is declared STRING, not Decimal. A raw query goes
-    // through the pg driver, which returns `numeric` as a JS string — Prisma's mapping
-    // does not apply. Typing it Decimal compiles, and then `.sub()` is a runtime
-    // TypeError on the stock ledger. Normalise at the boundary, every time.
-    const rows = await tx.$queryRaw<{ id: string; currentStock: string; name: string }[]>`
+    // NOTE the type: `currentStock` is NUMERIC in Postgres, and with the `@prisma/adapter-pg`
+    // driver this comes back as a `Prisma.Decimal` OBJECT, not a string — typing it `string`
+    // compiles and then silently relies on `D()` accepting anything, which happens to work
+    // but documents the wrong contract. `D()` still normalises at the boundary; the type
+    // should say what actually arrives. See src/lib/analytics/overview.ts for the same note.
+    const rows = await tx.$queryRaw<{ id: string; currentStock: Prisma.Decimal; name: string }[]>`
       SELECT id, "currentStock", name
         FROM "InventoryItem"
        WHERE id = ${itemId} AND "restaurantId" = ${restaurantId}
@@ -236,11 +237,12 @@ export async function getStockLines(restaurantId: string): Promise<StockLine[]> 
       id: string;
       name: string;
       unit: string;
-      currentStock: string;
-      lowStockThreshold: string;
-      costPerUnit: string | null;
+      currentStock: Prisma.Decimal;
+      lowStockThreshold: Prisma.Decimal;
+      costPerUnit: Prisma.Decimal | null;
       supplier: string | null;
-      consumed: string | null;
+      consumed: Prisma.Decimal | null;
+      // Explicit ::text cast in the query below — this one really is a string.
       windowDays: string;
     }[]
   >`
@@ -281,7 +283,8 @@ export async function getStockLines(restaurantId: string): Promise<StockLine[]> 
      ORDER BY i.name ASC`;
 
   return rows.map((row) => {
-    // Every numeric column arrives as a STRING from the raw driver — see applyMovement.
+    // Every numeric column arrives as a Prisma.Decimal OBJECT — see applyMovement.
+    // Number() still works: Decimal.valueOf() returns its string form.
     const currentStock = Number(row.currentStock);
     const lowStockThreshold = Number(row.lowStockThreshold);
     const consumed = Number(row.consumed ?? 0);

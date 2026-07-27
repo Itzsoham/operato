@@ -20,9 +20,13 @@ export function PageHeader({
       <Separator orientation="vertical" className="mr-2 h-4" />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <h1 className="truncate text-sm font-semibold">{title}</h1>
+        <h1 className="truncate text-sm font-semibold" data-testid="page-title">
+          {title}
+        </h1>
         {description ? (
-          <p className="text-muted-foreground truncate text-xs">{description}</p>
+          <p className="text-muted-foreground truncate text-xs" data-testid="page-description">
+            {description}
+          </p>
         ) : null}
       </div>
 

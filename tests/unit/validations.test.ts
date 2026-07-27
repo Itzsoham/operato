@@ -4,6 +4,8 @@ import {
   createMenuItemSchema,
   updateMenuItemSchema,
 } from "../../src/lib/validations/menu";
+import { createStaffSchema, updateStaffSchema } from "../../src/lib/validations/staff";
+import { createTableSchema, updateTableSchema } from "../../src/lib/validations/orders";
 
 /**
  * These tests exist because of a bug that shipped and was caught in review, not because
@@ -97,5 +99,42 @@ describe("createMenuItemSchema — defaults belong here, and only here", () => {
       restaurantId: "some-other-tenant", // attacker-supplied
     } as never);
     expect(parsed).not.toHaveProperty("restaurantId");
+  });
+});
+
+/**
+ * Every module built after Menu was told, in a comment right above its own schema, to
+ * derive `.partial()` from a default-free base for exactly the reason above. These two
+ * pin that the discipline actually held — a regression here is the same silent-corruption
+ * shape (PATCH one field, another one resets), just on a different table.
+ */
+describe("updateStaffSchema — the same partial-plus-default trap, on Staff.isActive", () => {
+  it("does not resurrect isActive for a PATCH that never mentioned it", () => {
+    expect(updateStaffSchema.parse({ name: "Priya" })).toEqual({ name: "Priya" });
+    expect(updateStaffSchema.parse({ name: "Priya" })).not.toHaveProperty("isActive");
+    expect(updateStaffSchema.parse({})).toEqual({});
+  });
+
+  it("still lets a caller set isActive explicitly", () => {
+    expect(updateStaffSchema.parse({ isActive: false })).toEqual({ isActive: false });
+  });
+
+  it("applies the isActive default on create, and only on create", () => {
+    const parsed = createStaffSchema.parse({ name: "Priya", role: "WAITER" });
+    expect(parsed.isActive).toBe(true);
+  });
+});
+
+describe("updateTableSchema — the same trap, on RestaurantTable.capacity", () => {
+  it("does not resurrect capacity for a PATCH that only renames the table", () => {
+    expect(updateTableSchema.parse({ label: "Window Table" })).toEqual({
+      label: "Window Table",
+    });
+    expect(updateTableSchema.parse({ label: "Window Table" })).not.toHaveProperty("capacity");
+  });
+
+  it("applies the capacity default on create, and only on create", () => {
+    const parsed = createTableSchema.parse({ number: 5 });
+    expect(parsed.capacity).toBe(4);
   });
 });

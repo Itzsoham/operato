@@ -1,8 +1,9 @@
 "use client";
 
-import { ChefHat, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChefHat, ListTree, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 
+import { ManageCategoriesDialog } from "@/components/menu/manage-categories-dialog";
 import { MenuItemDialog } from "@/components/menu/menu-item-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export function MenuClient({ restaurantId }: { restaurantId: string }) {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<MenuItem | undefined>();
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
 
   // The SERVER does the filtering, and the filter is part of the query key. Filtering
   // client-side would have meant the whole menu is always fetched — fine for 17 dishes,
@@ -83,7 +85,11 @@ export function MenuClient({ restaurantId }: { restaurantId: string }) {
           placeholder="Search dishes…"
           className="max-w-xs"
         />
-        <Button className="ml-auto" onClick={openCreate}>
+        <Button variant="outline" className="ml-auto" onClick={() => setCategoriesOpen(true)}>
+          <ListTree className="size-4" />
+          Manage categories
+        </Button>
+        <Button onClick={openCreate}>
           <Plus className="size-4" />
           Add item
         </Button>
@@ -216,6 +222,12 @@ export function MenuClient({ restaurantId }: { restaurantId: string }) {
         item={editing}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+      />
+
+      <ManageCategoriesDialog
+        restaurantId={restaurantId}
+        open={categoriesOpen}
+        onOpenChange={setCategoriesOpen}
       />
     </div>
   );

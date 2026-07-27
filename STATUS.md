@@ -1,32 +1,41 @@
 # Operato — build status
 
 Where the project actually is, what is left, and what is deliberately deferred.
-Last updated after `bb4262d` (Overview dashboard).
+Last updated after the AI layer, Staff & Shifts, marketing site, Uploadthing, and E2E suite
+all landed in one session (commit not yet made — see **Not yet committed** below).
 
-The restaurant app **works end to end today**: you can sign up, create a restaurant, build
-a menu, take an order through the kitchen to payment, move stock, keep a CRM, and read a
-dashboard. What is missing is the AI layer, billing, uploads, the public site, and tests.
+The app **works end to end today**: sign up, create a restaurant, build a menu, take an
+order through the kitchen to payment, move stock, keep a CRM, run payroll shifts, read a
+dashboard, and ask an AI assistant a real question about the business. What's left is
+Razorpay billing (explicitly deferred by choice, not by time pressure) and deploying it.
 
 ---
 
 ## Done
 
-Eight modules, each built → reviewed → fixed → verified in a browser → pushed.
+Fourteen modules/features, each built → reviewed → fixed → verified.
 
-| # | Module | Commit | What it does |
-|---|--------|--------|--------------|
-| 0 | Foundation | `6f690b8` | Prisma 7 schema (19 models), Better Auth, dual DB clients, RLS-backed AI boundary |
-| 1 | Seed data | `8b0e1c1` | 2 restaurants, ~6k orders, ~15k line items, 320 customers, 3 months, correlated |
-| 2 | Auth + onboarding | `327a570` | Sign up/in/out, Google button, Restaurant+OWNER in one transaction, page guards |
-| 3 | Dashboard shell | `30b0616` | Sidebar, restaurant switcher, nav, user menu |
-| 4 | Menu | `bdbe8fb` | Categories + dishes, availability, the vertical-slice template |
-| 5 | Orders + Tables | `01c3de5` | Floor grid, order → kitchen → payment, row-locked customer rollup |
-| 6 | Inventory | `65edcfc` | Signed-delta ledger, row-locked movements, velocity + reorder list |
-| 7 | Customers | `7e05f36` | CRM list, order history, phone rule enforced by the database |
-| 8 | Overview | `bb4262d` | Revenue trend, top sellers, order mix, KPI tiles, tenant-timezone windows |
+| # | Module | What it does |
+|---|--------|--------------|
+| 0 | Foundation | Prisma 7 schema (19 models), Better Auth, dual DB clients, RLS-backed AI boundary |
+| 1 | Seed data | 2 restaurants, ~6k orders, ~15k line items, 320 customers, 3 months, correlated |
+| 2 | Auth + onboarding | Sign up/in/out, Google button, Restaurant+OWNER in one transaction, page guards |
+| 3 | Dashboard shell | Sidebar, restaurant switcher, nav, user menu, theme toggle (light/dark/system) |
+| 4 | Menu | Categories + dishes, availability, drag-reorder, category management UI, Uploadthing images |
+| 5 | Orders + Tables | Floor grid, order → kitchen → payment, row-locked customer rollup, date-filtered/paginated history |
+| 6 | Inventory | Signed-delta ledger, row-locked movements, velocity + reorder list, full item CRUD UI |
+| 7 | Customers | CRM list, order history, phone rule enforced by the database |
+| 8 | Overview | Revenue trend, top sellers, order mix, KPI tiles, tenant-timezone windows |
+| 9 | **Staff & Shifts** | Roster CRUD, clock in/out with live elapsed time, shift history, soft-delete (never hard-deletes attendance history) |
+| 10 | **AI — text-to-SQL** | `/assistant` page: ask a question in English, get an answer, with the generated SQL shown for transparency. Sandboxed via a dedicated read-only Postgres role, RLS, a read-only transaction, a hard `LIMIT`, and an identifier-allowlist SQL guard. Per-tenant daily rate limit. |
+| 11 | **AI — weekly summary** | `/api/cron/weekly-summary`, `CRON_SECRET`-protected, timezone-correct week boundaries, throttled + time-budgeted, idempotent (upsert), includes a CRM-rollup drift-detection sweep |
+| 12 | **AI — inventory alerts** | LLM prose over the existing (non-AI) reorder math, user-triggered by a button (never on page load — protects the shared quota), degrades to a plain list on any failure |
+| 13 | **Public marketing site** | `(marketing)` route group: landing page + `/pricing` (FREE vs PRO, no live checkout — see Left to build), replaces the old root `page.tsx` traffic-controller cleanly |
+| 14 | **Uploadthing** | Real image upload for menu items, tenant-scoped upload middleware, CDN-host-pinned validation |
+| 15 | **Playwright E2E** | `playwright.config.ts` + 10 specs across 4 files: auth, the tenant-isolation negative test (extended to cover Staff, `/ai/query`, and the inventory-alert route, not just the original modules), the order pipeline, and the AI assistant (mocked, no live Gemini calls) |
 
-**Size:** ~7,700 lines of hand-written TypeScript (excluding generated Prisma client and
-shadcn primitives), 25 route files, 8 migrations, 7 unit tests.
+**Size:** ~11,000+ lines of hand-written TypeScript, 30+ route files, 15 migrations, 73 unit
+tests, 10 E2E specs.
 
 ### The guarantees, and how they are enforced
 
@@ -34,19 +43,54 @@ Not aspirations — each was verified against the live database, not asserted.
 
 | Guarantee | Mechanism | Proof |
 |---|---|---|
-| One tenant cannot read another's data | `requireMember` on every route + `restaurantId` from the URL, never the body | Cross-tenant GET/POST both return 403 |
+| One tenant cannot read another's data | `requireMember` on every route + `restaurantId` from the URL, never the body | Cross-tenant GET/POST both return 403; E2E-tested |
 | A cross-tenant *reference* is impossible | Composite FKs pin every child's `restaurantId` to its parent's | An order in A referencing B's table is rejected by Postgres |
-| The AI cannot write, or escape its tenant | Read-only role + `default_transaction_read_only` + RLS, fail-closed | `npm run verify:ai-boundary` — 6 checks |
-| The AI cannot read PII or credentials | Column-level grants; `account`/`session` revoked | `SELECT *` on `Customer` is denied; "top customers" still answers |
+| The AI cannot write, or escape its tenant | Read-only role + `default_transaction_read_only` + RLS, fail-closed | `npm run verify:ai-boundary` — 9 checks incl. 2 live regression probes |
+| **The AI cannot pivot RLS via a quoted/escaped function call** | An identifier-ALLOWLIST in `sql-guard.ts` (every double-quoted token must be a real table/column name), plus explicit rejection of Unicode-escaped identifiers and backslashes | **Found live via adversarial audit, fixed, and re-verified against the real database across two more audit rounds — see below** |
+| The AI cannot read PII, salaries, or its own log | Column-level grants on `Customer`, `Staff`, and now every AI-readable table; `AiQuery`/`WeeklySummary` fully revoked | `SELECT *` on any of them is denied; verified column-by-column against `schema-context.ts` |
 | A bill cannot be settled twice | `SELECT … FOR UPDATE` on the order, then the customer | 8 concurrent pays → 1 settles, spend counted once |
 | The client cannot set a price | Server reads price from the menu inside the transaction, snapshots it | Sent `unitPrice: 1` for a ₹320 dish → ₹320 stored |
 | Order numbers never collide | Atomic counter (`UPDATE … RETURNING`), not `max()+1` | 20 concurrent orders → 20 unique numbers, 0 failures |
 | The stock ledger reconciles | Row-locked movements, signed `delta` column | `SUM(delta) = currentStock` for every item; 30 concurrent moves, 0 breaks |
 | A customer is never anonymous-duplicated | `phone` is `NOT NULL` + canonical E.164 | 4 spellings of one number collapse to 1 row |
+| A staff member's attendance history survives deactivation | `DELETE` on `/staff/[id]` soft-deletes (`isActive: false`); `Shift` cascade-delete never fires | Verified against the actual route behavior of Menu/Inventory's real hard-delete-with-FK-guard, deliberately diverged from it here |
+| The cron can't be triggered by anyone but Vercel | Constant-time `Authorization: Bearer $CRON_SECRET` check, fails closed if unset | Both `GET` (Vercel's real trigger) and `POST` share the identical check |
+| Uploads can't be attributed to a tenant you're not in | Uploadthing's `.middleware()` calls the same `requireRole` guard every other write route uses | Non-member upload attempt rejected with a clear error, not a silent pass |
 
-### Notable bugs caught in review (all fixed)
+### The critical finding this session — read this before trusting the AI path elsewhere
 
-The ones worth remembering, because they all passed typecheck, lint, and build:
+An adversarial `sql-safety-reviewer` audit found and **live-verified** a cross-tenant data
+leak in the first version of the text-to-SQL guard: a model-authored query that called
+`set_config()` — the function that drives the RLS tenant filter — spelled as a **double-quoted
+identifier** (`"set_config"(...)`) or a **Unicode-escaped identifier** (`U&"\0073et_config"(...)`)
+walked straight through the keyword-blacklist regex meant to block it, re-pointed Row-Level
+Security at another tenant mid-query, and returned that tenant's real order data through the
+unmodified production code path. Confirmed live: tenant A's session reading 1,000+ rows of
+tenant B's orders, no error.
+
+**Fixed** by turning the identifier check from a blacklist into an **allowlist** — every
+double-quoted token in model-authored SQL must now be a real table/column name from the
+curated schema, or the query is rejected outright, however the forbidden name is spelled.
+Also closed: Unicode-escaped identifiers rejected outright, backslashes rejected outright,
+column-level grants extended to every AI-readable table (not just Customer/Staff) so the
+guard is no longer the *only* thing standing between the model and columns like
+`Restaurant.razorpaySubscriptionId`.
+
+A database-level backstop (`REVOKE EXECUTE ... FROM PUBLIC` on `set_config`) was **attempted
+and does not work on Neon** — `set_config` is owned by Neon's internal `cloud_admin`
+superuser role, and Postgres silently no-ops a `REVOKE` from a non-owner instead of erroring.
+This is documented in `run-readonly-sql.ts` and regression-tested in
+`scripts/verify-ai-boundary.ts` so nobody "fixes" it the same way twice. The code-level
+allowlist is not a stopgap for this vector — after two further rounds of adversarial
+re-audit (including an exhaustive check of Postgres's complete identifier grammar), it is
+confirmed to be the actual, sufficient control.
+
+**The lesson, if this pattern gets reused for a vertical #2's AI path:** a keyword blacklist
+against SQL text can always be re-derived by an attacker one obfuscation at a time. An
+allowlist against a small, known-good set (here: real table/column names) doesn't have that
+failure mode.
+
+### Other notable bugs caught in review (all fixed)
 
 - **The AI could read password hashes.** `GRANT SELECT ON ALL TABLES` swept in Better
   Auth's tables, which have no `restaurantId` for RLS to filter on.
@@ -61,43 +105,19 @@ The ones worth remembering, because they all passed typecheck, lint, and build:
   the whole previous business day vanished during 00:00–05:30 IST close-out.
 - **`serialize()` looked right and did nothing.** `JSON.stringify` calls `toJSON()` before
   the replacer, so every price reached the browser as `"480"` instead of `480`.
+- **Two `$queryRaw` files typed `numeric` columns as `string`.** With this codebase's driver
+  adapter they actually arrive as `Prisma.Decimal` objects; the code worked by accident
+  (`Number()` coerces either way) but documented the wrong contract.
 
 ---
 
 ## Left to build
 
-Ordered by what unblocks the most. The first three are the product's actual thesis.
+### 1. Razorpay billing — the one deliberate deferral
 
-### 1. Playwright E2E — deferred mid-step, resume here
-
-`playwright.config.ts` **does not exist**, so `npm run test:e2e` fails today. Chromium is
-already installed and the browser-driving pattern is proven (every module was verified this
-way). Needs:
-
-- `playwright.config.ts` + a `tests/e2e/` directory
-- **The tenant-isolation negative test** — a member of A gets 403/404 on B. This is the
-  single most valuable spec in the project; it guards the guarantee everything rests on.
-- Order create → kitchen → pay happy path.
-- Auth: sign up → onboarding → dashboard.
-
-### 2. The AI layer (`src/lib/ai/` — does not exist yet)
-
-The reason the project exists. The **security boundary is already built and verified**;
-what is missing is the engine on top of it.
-
-| Feature | State | Notes |
-|---|---|---|
-| Text-to-SQL assistant | Not started | `AiQuery` model exists. Needs `generateObject` + Zod for the SQL step (never `JSON.parse` model text), the read-only transaction wrapper, forced `LIMIT`, static rejection pre-filter. `getAiPrisma()` and `assertAiRoleIsSafe()` are ready. |
-| `schema-context.ts` | Not started | Must be **generated from the Prisma DMMF**, not hand-written, or it drifts from the schema silently. Must list only the columns the AI role can actually read (the `Customer` grant is column-level). |
-| Weekly summary cron | Not started | `WeeklySummary` model exists. `vercel.json` **does not** — no cron wiring at all. Needs throttling: the free-tier Gemini key has a tight RPM and the naive loop over all tenants will rate-limit. |
-| Smart inventory alerts | **Half done, deliberately** | The velocity math (`daysLeft`, `dailyUsage`, reorder list) is built and is *arithmetic, not an AI call* — "how many days of chicken" has an exact answer. Only the LLM prose layer is missing, and it is the least valuable part. |
-
-Gate every change here behind `/review-sql-safety` — the repo has a `sql-safety-reviewer`
-agent for exactly this.
-
-### 3. Razorpay billing
-
-`ProcessedWebhook` (with the unique `eventId` for idempotency) exists. Nothing else does.
+`ProcessedWebhook` (with the unique `eventId` for idempotency) exists. The pricing page
+describes FREE vs PRO with both CTAs linking to sign-up — upgrading is not yet a real
+purchase. Nothing else billing-related exists.
 
 - Checkout flow + `/api/webhooks/razorpay`
 - **Verify the HMAC signature over the raw body** (`await req.text()` — do not let it be
@@ -107,31 +127,32 @@ agent for exactly this.
 - A reconciliation job for missed webhooks
 - Env: `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_PRO_PLAN_ID` are unset
 
-### 4. Uploadthing (menu images)
+### 2. Deploy
 
-`MenuItem.image` exists and the Zod schema **already pins it to https + the uploader's
-host** (a bare `z.url()` accepts `javascript:` and the cloud metadata IP). Needs the
-provider wired and an upload control in the menu dialog. `UPLOADTHING_TOKEN` unset.
+Never deployed. `vercel.json` now exists (weekly cron wired, Monday 03:00 UTC). Still
+needed:
 
-The plan's own review suggests this is the first thing to cut if time is short — a text URL
-input ships in minutes.
+- A Vercel project connected to this repo
+- Every env var below actually set in the Vercel dashboard
+- `BETTER_AUTH_URL` / `NEXT_PUBLIC_BETTER_AUTH_URL` pointed at the real production origin
+- The Google OAuth redirect URI registered for the prod origin (currently only
+  `http://localhost:3000/api/auth/callback/google` is registered)
+- Rotate the Neon password and the Google client secret — both were pasted in chat during
+  earlier sessions
 
-### 5. Public marketing site — `src/app/(marketing)/`
+#### Env var checklist for deploy
 
-Landing + pricing, static, SEO'd, no auth. Fully specced in the plan (wireframe and
-section-by-section copy). Nothing built.
-
-### 6. Staff & Shifts — schema only, deliberately deferred
-
-`Staff` and `Shift` models exist and are correct (including the denormalized
-`restaurantId`). No routes, no UI, not in the nav. The plan's own code review names this as
-the first module to cut: lowest value, and the AI only loses the "who worked the most
-hours" example. **Resume only if the rest is done.**
-
-### 7. Deploy
-
-Never deployed. Needs a Vercel project, the env vars set, `vercel.json` for the cron, and
-`BETTER_AUTH_URL` pointed at the real origin.
+| Var | State | Notes |
+|---|---|---|
+| `DATABASE_URL`, `DIRECT_URL`, `DATABASE_URL_AI` | ✅ set | Point at the same Neon project; rotate the password before going live (see above) |
+| `BETTER_AUTH_SECRET` | ✅ set | Rotating invalidates every session — don't rotate casually post-launch |
+| `BETTER_AUTH_URL`, `NEXT_PUBLIC_BETTER_AUTH_URL` | ⚠️ needs updating | Currently `localhost:3000` — must match the real deployed origin |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | ✅ set | Register the prod redirect URI in Google Cloud Console before this works there |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | ❌ unset | Required for the AI features to actually respond — everything is built and tested up to this key |
+| `AI_DAILY_QUERY_LIMIT` | optional | Defaults to 25/tenant/day; raise once the Gemini key is on a paid tier |
+| `UPLOADTHING_TOKEN` | ❌ unset | Menu image upload is fully wired, just needs an Uploadthing account |
+| `CRON_SECRET` | ❌ unset | **Set this before deploying** — the cron route fails closed without it, but an unset secret in prod just means the weekly summary silently never runs, not a security hole |
+| `RAZORPAY_*` | ❌ unset | Not needed until billing (see above) is built |
 
 ---
 
@@ -143,40 +164,66 @@ Real, understood, and not yet fixed. None of these block local development.
 
 | Issue | Impact | Fix |
 |---|---|---|
-| **Better Auth rate limiter is in-memory** | On serverless this is per-lambda and resets on cold start, so sign-in is effectively open to credential stuffing | Give it `secondaryStorage` (Redis/Upstash) before real traffic |
-| **Email verification not required** | Anyone can register any address. Becomes an account-takeover primitive the day team-invite-by-email ships | `requireEmailVerification: true` + a send hook |
-| **`Restaurant.timezone` is only read by the analytics module** | Inventory velocity and any future cron/AI date filter still compute UTC days — the same bug that misfiled 78 orders | Thread `timezone` through anywhere a "day" is computed |
-| **The `Decimal`-not-`string` annotation is still wrong in two files** | `src/lib/inventory/service.ts` and `src/lib/orders/service.ts` type `$queryRaw` numerics as `string`; they are Decimal objects. Works only because `Number()` coerces | Fix the type; `overview.ts` has the correct version |
-| **No reconciliation job for the CRM rollup** | Nothing stops a future `customer.update({ totalSpend })` from corrupting it | Add a check to the weekly cron |
-| **`npm audit`: 6 moderate** | `postcss` XSS via `next`'s transitive dep — build-time only, not in the request path | Wait for the upstream bump. **Do not** `audit fix --force` (it downgrades to `next@9`) |
+| **Better Auth rate limiter is in-memory** | On serverless this is per-lambda and resets on cold start, so sign-in is effectively open to credential stuffing | Give it `secondaryStorage` (Redis/Upstash) before real traffic. **Deliberately deferred this session** — needs a new external service (Upstash), scoped out by choice |
+| **Email verification not required** | Anyone can register any address. Becomes an account-takeover primitive the day team-invite-by-email ships | `requireEmailVerification: true` + a send hook. **Deliberately deferred this session** — needs a new external service (an email provider), scoped out by choice |
+| **`npm audit`: postcss/sharp HIGH, transitive via `next`** | Build-time only, not in the request path | Pre-existing, unchanged this session. Wait for the upstream bump. **Do not** `npm audit fix --force` — it resolves to `next@9` |
+
+Fixed this session, found by a cross-cutting `security-reviewer` pass after everything else landed:
+- **`next` was pinned to 16.2.9**, carrying an unauthenticated Server Function disclosure advisory (GHSA-955p-x3mx-jcvp) — bumped to **16.2.12** (and `eslint-config-next` to match). Confirmed via `npm audit --json` that this specific advisory is gone; the pre-existing postcss/sharp one above is unrelated and untouched.
+- **`effect@3.17.7`** (nested inside `uploadthing`/`@uploadthing/shared`, HIGH advisory) — pinned via a `package.json` `overrides` entry to `^3.20.0` rather than `npm audit fix --force`, which would have downgraded `uploadthing` to its v6 API (a different env-var scheme than the v7 this app is built against). Independently confirmed the advisory's actual mechanism (an `AsyncLocalStorage` context-bleed under `@effect/rpc`) doesn't apply to how this codebase uses Uploadthing's middleware — pinning the version was precautionary, not a live-hole fix.
+- **Order-history `cursor` param wasn't tenant-validated** — a member of A could pass a real order id from B as a pagination cursor; the returned *rows* were always still tenant-filtered (no cross-tenant data leak), but B's order's `createdAt` became the page's range bound, a weak timing/existence oracle. Now verified against `restaurantId` before use.
+- **The weekly-summary cron response carried customer names** from the platform-wide CRM-drift sweep into the HTTP body (and from there, Vercel's logs) — only reachable by a `CRON_SECRET` holder, but PII-minimization matters even for logs. Trimmed to ids + amounts.
+
+### Test coverage debt — found by a final code-review pass, not yet fixed
+
+A three-dimension review (correctness, quality, test coverage) with adversarial
+verification on every finding turned up 10 confirmed issues. The two real bugs, the dead
+code, the schema duplication, and two of the five coverage gaps (the pure inventory-alert
+rules and the Staff/Table Zod partial-default regression tests) are fixed — see the Done
+table and the bug list above. Two coverage gaps remain, deliberately, because closing them
+properly needs more than a quick addition:
+
+- **`src/lib/staff/service.ts`'s `clockIn`/`clockOut`** — the `FOR UPDATE` row-lock
+  serialisation (double-clock-in prevention, the future-startTime guard, the Decimal
+  `hoursWorked` computation) has zero test coverage. Needs a real Postgres connection to
+  exercise the lock, the same way `tests/e2e/order-pipeline.spec.ts` exercises `payOrder`'s
+  own `FOR UPDATE` — either a Playwright spec that clocks a seeded staff member in twice
+  and asserts the second attempt 409s, or a DB-backed integration test.
+- **`src/lib/ai/weekly-summary.ts`'s `runWeeklySummaries`/`generateWeeklySummary`** — the
+  time-budget cutoff, the 8-day skip pre-filter, the idempotent-upsert short-circuit (the
+  whole reason the function exists — it's what stops a retried cron run from re-spending a
+  Gemini call on a tenant that already has this week's summary), and per-tenant
+  error-isolation are all untested. `generateWeeklySummary` is called as a same-module
+  direct reference, so mocking it from a test needs a small refactor first (splitting it
+  into its own module, or making it an injectable option) — not just a test file.
 
 ### Product / UX
 
-- **No theme toggle.** `next-themes` is mounted with `defaultTheme="system"`, so OS-dark
-  users get the dark UI with no way to opt out. Needs a switcher in the user menu.
-- **No item-management UI in Inventory.** The API supports create/edit/delete; the client
-  only records movements. `useCreateInventoryItem` is written but never mounted.
-- **No category-management UI in Menu.** Same shape — the API is complete, the UI isn't.
-- **Order history has no date filter or pagination.** Capped at 50, newest first.
+- **No item-management UI in Menu image field beyond the Uploadthing button + a raw-URL
+  fallback input.** Intentional — kept the manual-paste option for re-attaching an existing
+  upload without re-uploading.
+- Everything else in the previous version of this list (item-management UI, category
+  UI, theme toggle, order-history filter/pagination) is now **done** — see the Done table.
 
 ### Setup
 
 - **Rotate the Neon password and the Google client secret** — both were pasted in chat.
-- **Register the Google OAuth redirect URI**: `http://localhost:3000/api/auth/callback/google`
-  (and the prod origin later), or the Google button 400s.
-- **Unset env vars**: `GOOGLE_GENERATIVE_AI_API_KEY`, `RAZORPAY_*`, `UPLOADTHING_TOKEN`,
-  `CRON_SECRET`. Everything else is set and working.
+- **Register the Google OAuth redirect URI** for the production origin once deployed.
+- **Not yet committed to git.** Every file in this session's work — the entire AI safety
+  layer included — is sitting uncommitted/untracked in the working tree. `git status`
+  shows the full list. Commit before doing anything that could discard uncommitted work.
 
 ---
 
 ## Suggested order
 
-1. **Playwright E2E** — the isolation spec, while the tenancy design is fresh.
-2. **Text-to-SQL** — the thesis. The dangerous half is already built and verified.
-3. **Weekly summary cron** — needs `vercel.json` and throttling.
-4. **Marketing site** — cheap, fully specced, and the first thing anyone sees.
-5. **Razorpay** — the riskiest integration; the app is fully usable on FREE without it.
-6. **Uploadthing**, then **Staff & Shifts** — both genuinely optional.
+1. **Commit everything** — the AI safety layer especially should not be one `git clean -fd`
+   away from not existing.
+2. **Get a Gemini key** and smoke-test the AI features live (everything is built and
+   tested up to the missing key).
+3. **Deploy** — Vercel project, env vars, OAuth redirect, cron.
+4. **Razorpay**, whenever billing is actually needed — the app is fully usable on FREE
+   without it.
 
 ## Commands
 
@@ -184,9 +231,11 @@ Real, understood, and not yet fixed. None of these block local development.
 npm run dev                  # dev server (Turbopack)
 npm run typecheck            # tsc --noEmit
 npm run lint                 # eslint (NOT `next lint` — removed in Next 16)
-npm test                     # vitest — the validation guards
+npm test                     # vitest — 73 unit tests, incl. the SQL-guard adversarial fixtures
+npm run test:e2e             # playwright — 10 specs
+npm run test:e2e:ui          # playwright, interactive UI mode
 npm run db:seed              # rebuild demo data (idempotent; SEED_NOW pins the clock)
-npm run verify:ai-boundary   # prove the AI role still can't write/escape/read PII
+npm run verify:ai-boundary   # prove the AI role still can't write/escape/read PII/pivot RLS
 npm run build                # production build
 ```
 
@@ -195,3 +244,9 @@ npm run build                # production build
 
 > Re-run `npm run db:seed` if the dashboard looks quiet — the seed generates data relative
 > to *when it ran*, so a stale seed shows a revenue cliff at the right edge of the trend.
+
+> The `order-pipeline` E2E spec can flake under `next dev` when the full suite runs with
+> multiple workers hitting cold Turbopack compiles at once (times out waiting on a PATCH
+> response that's just slow, not missing) — confirmed not a regression by re-running in
+> isolation. If this ever moves to CI, switch the Playwright `webServer` to
+> `next build && next start` for a flatter timing profile.

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import type {
   CreateCategoryInput,
   CreateMenuItemInput,
+  UpdateCategoryInput,
   UpdateMenuItemInput,
 } from "@/lib/validations/menu";
 
@@ -31,6 +32,7 @@ export type MenuItem = {
   isAvailable: boolean;
   isVeg: boolean;
   preparationTime: number | null;
+  image: string | null;
   sortOrder: number;
 };
 
@@ -126,6 +128,41 @@ export function useCreateCategory(restaurantId: string) {
       toast.success("Category added");
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+/** Renames a category (or reorders it). Optimistic, same pattern as useUpdateMenuItem —
+ *  the server has no real reason to refuse a rename beyond validation. */
+export function useUpdateCategory(restaurantId: string) {
+  const qc = useQueryClient();
+  const key = menuKeys.categories(restaurantId);
+
+  return useMutation({
+    mutationFn: ({ id, ...input }: UpdateCategoryInput & { id: string }) =>
+      request<Category>(`${base(restaurantId)}/categories/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }),
+
+    onMutate: async ({ id, ...patch }) => {
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<Category[]>(key);
+
+      qc.setQueryData<Category[]>(key, (old) =>
+        old?.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+      );
+
+      return { previous };
+    },
+
+    onError: (error: Error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(key, context.previous);
+      toast.error(error.message);
+    },
+
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: key });
+    },
   });
 }
 

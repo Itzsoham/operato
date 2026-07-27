@@ -65,7 +65,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate data-testid="sign-up-form">
       <div className="grid gap-2">
         <Label htmlFor="name">Your name</Label>
         <Input
@@ -74,6 +74,7 @@ export function SignUpForm() {
           autoComplete="name"
           placeholder="Ravi Menon"
           aria-invalid={Boolean(errors.name)}
+          data-testid="sign-up-name"
           required
         />
         {errors.name ? <p className="text-destructive text-sm">{errors.name}</p> : null}
@@ -88,6 +89,7 @@ export function SignUpForm() {
           autoComplete="email"
           placeholder="you@restaurant.com"
           aria-invalid={Boolean(errors.email)}
+          data-testid="sign-up-email"
           required
         />
         {errors.email ? <p className="text-destructive text-sm">{errors.email}</p> : null}
@@ -101,6 +103,7 @@ export function SignUpForm() {
           type="password"
           autoComplete="new-password"
           aria-invalid={Boolean(errors.password)}
+          data-testid="sign-up-password"
           required
         />
         <p className="text-muted-foreground text-xs">At least 8 characters.</p>
@@ -108,12 +111,12 @@ export function SignUpForm() {
       </div>
 
       {errors.form ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-destructive text-sm" data-testid="sign-up-error">
           {errors.form}
         </p>
       ) : null}
 
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="w-full" disabled={pending} data-testid="sign-up-submit">
         {pending ? "Creating account…" : "Create account"}
       </Button>
     </form>

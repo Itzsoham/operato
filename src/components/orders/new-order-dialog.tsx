@@ -64,7 +64,7 @@ export function NewOrderDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl" data-testid="new-order-dialog">
         <DialogHeader>
           <DialogTitle>New order</DialogTitle>
           <DialogDescription>Pick the dishes, then send it to the kitchen.</DialogDescription>
@@ -234,6 +234,7 @@ function NewOrderForm({
               onChange={(e) => setCustomerSearch(e.target.value)}
               placeholder="Search by name or phone — leave blank for a walk-in…"
               className="pl-8"
+              data-testid="customer-search-input"
             />
             {customerSearch.trim() ? (
               <div className="bg-popover absolute z-10 mt-1 max-h-40 w-full overflow-y-auto rounded-md border shadow-md">
@@ -243,6 +244,7 @@ function NewOrderForm({
                       key={c.id}
                       type="button"
                       className="hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                      data-testid="customer-search-result"
                       onClick={() => {
                         setCustomer(c);
                         setCustomerSearch("");
@@ -273,6 +275,7 @@ function NewOrderForm({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search the menu…"
             className="pl-8"
+            data-testid="dish-search-input"
           />
         </div>
 
@@ -370,7 +373,11 @@ function NewOrderForm({
         <Button type="button" variant="outline" onClick={onDone} disabled={create.isPending}>
           Cancel
         </Button>
-        <Button type="submit" disabled={lines.length === 0 || create.isPending}>
+        <Button
+          type="submit"
+          disabled={lines.length === 0 || create.isPending}
+          data-testid="place-order-submit"
+        >
           {create.isPending ? "Placing…" : "Place order"}
         </Button>
       </DialogFooter>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ import {
   useUpdateMenuItem,
   type MenuItem,
 } from "@/hooks/use-menu";
+import { useUploadThing } from "@/lib/uploadthing";
 import { createMenuItemSchema } from "@/lib/validations/menu";
 
 const NO_CATEGORY = "__none__";
@@ -60,8 +62,40 @@ function MenuItemForm({
   const [categoryId, setCategoryId] = useState(item?.categoryId ?? NO_CATEGORY);
   const [isVeg, setIsVeg] = useState(item?.isVeg ?? false);
   const [isAvailable, setIsAvailable] = useState(item?.isAvailable ?? true);
+  const [image, setImage] = useState<string | null>(item?.image ?? null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const pending = create.isPending || update.isPending;
+  // Menu-item photos, wired to the tenant-scoped `menuItemImage` route in
+  // src/app/api/uploadthing/core.ts. The `restaurantId` in `input` is what that route's
+  // `.middleware()` verifies against real membership — a plain "signed in" check would
+  // let anyone upload "for" a restaurant they don't belong to.
+  const { startUpload, isUploading } = useUploadThing("menuItemImage", {
+    onClientUploadComplete: (res) => {
+      const uploaded = res?.[0]?.ufsUrl;
+      if (uploaded) {
+        setImage(uploaded);
+        toast.success("Photo uploaded");
+      }
+    },
+    onUploadError: (error) => {
+      toast.error(error.message || "Photo upload failed");
+    },
+  });
+
+  function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    // Reset so choosing the SAME file again still fires a change event.
+    event.target.value = "";
+    if (!file) return;
+    void startUpload([file], { restaurantId });
+  }
+
+  // isUploading is part of "pending" deliberately: submitting while a photo upload is still
+  // in flight would save the item with whatever `image` happens to be right now (null, or
+  // the previous photo) and the upload's own onClientUploadComplete would then call
+  // setImage() on a form that's already been unmounted by the dialog closing — the photo
+  // the user just picked silently never attaches, with no error to explain why.
+  const pending = create.isPending || update.isPending || isUploading;
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,6 +114,7 @@ function MenuItemForm({
       isVeg,
       isAvailable,
       preparationTime: prep === "" ? null : Number(prep),
+      image,
     });
 
     if (!parsed.success) {
@@ -118,6 +153,61 @@ function MenuItemForm({
           defaultValue={item?.description ?? ""}
           placeholder="Optional."
         />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="image">Photo</Label>
+        <div className="flex items-center gap-3">
+          {image ? (
+            // Uploadthing's CDN, not next/image — no remotePatterns are configured for
+            // it yet, and a plain <img> is fine for a dialog-sized thumbnail.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={image} alt="" className="bg-muted size-16 rounded-md border object-cover" />
+          ) : (
+            <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-md border text-[10px]">
+              No photo
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onFileChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {isUploading ? "Uploading…" : image ? "Change photo" : "Upload photo"}
+            </Button>
+            {image ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setImage(null)}
+                disabled={isUploading}
+              >
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        </div>
+        {/* Still accepted alongside the upload button — pastes are only useful for
+            re-attaching a URL from a PREVIOUS upload, since the schema pins `image` to
+            Uploadthing's own hosts (see imageUrl in validations/menu.ts), not any URL. */}
+        <Input
+          value={image ?? ""}
+          onChange={(event) => setImage(event.target.value.trim() || null)}
+          placeholder="Or paste an existing photo URL"
+          aria-invalid={Boolean(errors.image)}
+        />
+        {errors.image ? <p className="text-destructive text-sm">{errors.image}</p> : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

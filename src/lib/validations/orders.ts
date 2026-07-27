@@ -74,11 +74,20 @@ export const updateOrderStatusSchema = z.object({
   status: z.enum(OrderStatus),
 });
 
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
+
 export const listOrdersSchema = z.object({
   status: z.enum(OrderStatus).nullish(),
   /** "open" = anything not yet PAID or CANCELLED — the kitchen's working set. */
   open: z.enum(["true", "false"]).nullish(),
   search: z.string().trim().max(80).nullish(),
+  /** Calendar-day bounds, inclusive, in the RESTAURANT'S timezone — see the route. */
+  from: isoDate.nullish(),
+  to: isoDate.nullish(),
+  /** Keyset pagination: the last order id of the previous page. */
+  cursor: z.cuid().nullish(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 

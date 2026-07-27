@@ -255,17 +255,15 @@ export async function payOrder(restaurantId: string, orderId: string) {
   await prisma.$transaction(async (tx) => {
     // FOR UPDATE: serialises concurrent settlements of THIS order.
     //
-    // NOTE the type: `totalAmount` is declared STRING, not Decimal. A raw query goes
-    // through the pg driver, which returns `numeric` as a JS string — Prisma's mapping
-    // does not apply. Typing it as Decimal compiles and is a lie: it happens to work here
-    // only because `{ increment }` accepts a string. Do arithmetic on it (`.sub()`,
-    // `.plus()`) and you get a runtime TypeError. Inventory is about to read a locked
-    // balance and subtract from it, so normalise at the boundary, every time.
+    // NOTE the type: `totalAmount` is NUMERIC in Postgres, and with the `@prisma/adapter-pg`
+    // driver this comes back as a `Prisma.Decimal` OBJECT, not a string — see the same note
+    // in src/lib/inventory/service.ts and src/lib/analytics/overview.ts. `D()` below still
+    // normalises whatever arrives at the boundary.
     const locked = await tx.$queryRaw<
       {
         id: string;
         status: OrderStatus;
-        totalAmount: string;
+        totalAmount: Prisma.Decimal;
         customerId: string | null;
         tableId: string | null;
       }[]

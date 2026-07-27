@@ -20,7 +20,7 @@ export function OnboardingForm() {
   const [slugTouched, setSlugTouched] = useState(false);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-4" data-testid="onboarding-form">
       <div className="grid gap-2">
         <Label htmlFor="name">Restaurant name</Label>
         <Input
@@ -29,6 +29,7 @@ export function OnboardingForm() {
           placeholder="Spice Garden"
           autoComplete="organization"
           aria-invalid={Boolean(state.errors?.name)}
+          data-testid="onboarding-name"
           onChange={(e) => {
             if (!slugTouched) setSlug(slugify(e.target.value));
           }}
@@ -49,6 +50,7 @@ export function OnboardingForm() {
             value={slug}
             placeholder="spice-garden"
             aria-invalid={Boolean(state.errors?.slug)}
+            data-testid="onboarding-slug"
             onChange={(e) => {
               setSlugTouched(true);
               setSlug(e.target.value);
@@ -66,12 +68,12 @@ export function OnboardingForm() {
       </div>
 
       {state.errors?.form ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-destructive text-sm" data-testid="onboarding-error">
           {state.errors.form}
         </p>
       ) : null}
 
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="w-full" disabled={pending} data-testid="onboarding-submit">
         {pending ? "Creating…" : "Create restaurant"}
       </Button>
     </form>

@@ -3,7 +3,9 @@ import {
   LayoutDashboard,
   Package,
   Receipt,
+  Sparkles,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,8 +27,12 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "", label: "Overview", icon: LayoutDashboard },
+  // The flagship feature — a text-to-SQL assistant over the tenant's real data — sits
+  // right under Overview, not buried after the operational modules.
+  { href: "/assistant", label: "Ask AI", icon: Sparkles },
   { href: "/menu", label: "Menu", icon: ChefHat },
   { href: "/orders", label: "Orders", icon: Receipt },
   { href: "/inventory", label: "Inventory", icon: Package },
+  { href: "/staff", label: "Staff", icon: UsersRound },
   { href: "/customers", label: "Customers", icon: Users },
 ];

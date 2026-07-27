@@ -7,6 +7,7 @@ import type { TransactionType } from "@/generated/prisma/enums";
 import type {
   CreateInventoryItemInput,
   CreateMovementInput,
+  UpdateInventoryItemInput,
 } from "@/lib/validations/inventory";
 
 export type StockLine = {
@@ -95,6 +96,85 @@ export function useCreateInventoryItem(restaurantId: string) {
       qc.invalidateQueries({ queryKey: inventoryKeys.stock(restaurantId) });
       toast.success("Item added");
     },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+/**
+ * Edits the item's DETAILS only — name, unit, reorder line, cost, supplier. Never the
+ * stock level; see updateInventoryItemSchema. Optimistic, like useUpdateMenuItem: these
+ * are ordinary field edits the server has no real reason to refuse.
+ */
+export function useUpdateInventoryItem(restaurantId: string) {
+  const qc = useQueryClient();
+  const key = inventoryKeys.stock(restaurantId);
+
+  return useMutation({
+    mutationFn: ({ id, ...input }: UpdateInventoryItemInput & { id: string }) =>
+      request<StockLine>(`${base(restaurantId)}/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }),
+
+    onMutate: async ({ id, ...patch }) => {
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<StockLine[]>(key);
+
+      qc.setQueryData<StockLine[]>(key, (old) =>
+        old?.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+      );
+
+      return { previous };
+    },
+
+    onError: (error: Error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(key, context.previous);
+      toast.error(error.message);
+    },
+
+    // Reconcile either way — the optimistic row is a guess, and a rename that collides
+    // with an existing item's name is refused server-side (see the route).
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: key });
+    },
+  });
+}
+
+export function useDeleteInventoryItem(restaurantId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      request<void>(`${base(restaurantId)}/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: inventoryKeys.stock(restaurantId) });
+      toast.success("Item deleted");
+    },
+    // NOT optimistic: the server refuses while any stock remains on hand (see the route)
+    // — removing the row first and putting it back would flash a deletion that never
+    // happened.
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export type InventoryAlert = {
+  /** Items that need attention, worst first — the same StockLine shape as useStock. */
+  items: StockLine[];
+  /** Short, owner-facing prose. Always present, even on the canned fallback. */
+  message: string;
+  /** False when `message` is canned rather than model-generated — not an error state. */
+  generated: boolean;
+};
+
+/**
+ * POST /inventory/alert — a MUTATION, not a query, on purpose. This spends shared Gemini
+ * quota, so it must only ever run from an explicit button click, never from a `useQuery`
+ * that could fire on mount or refetch in the background. Nothing to invalidate on
+ * settle: the stock list itself did not change, only the prose sitting next to it.
+ */
+export function useInventoryAlert(restaurantId: string) {
+  return useMutation({
+    mutationFn: () =>
+      request<InventoryAlert>(`${base(restaurantId)}/alert`, { method: "POST" }),
     onError: (e: Error) => toast.error(e.message),
   });
 }

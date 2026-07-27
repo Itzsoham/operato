@@ -7,10 +7,13 @@ import { NewOrderDialog } from "@/components/orders/new-order-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { OrderStatus } from "@/generated/prisma/enums";
 import {
+  useOrderHistory,
   useOrders,
   usePayOrder,
   useTables,
@@ -47,7 +50,6 @@ export function OrdersClient({ restaurantId }: { restaurantId: string }) {
   const [presetTable, setPresetTable] = useState<string | undefined>();
 
   const open = useOrders(restaurantId, { open: true });
-  const history = useOrders(restaurantId, { open: false });
   const tables = useTables(restaurantId);
 
   function newOrder(tableId?: string) {
@@ -60,11 +62,11 @@ export function OrdersClient({ restaurantId }: { restaurantId: string }) {
       <Tabs defaultValue="floor">
         <div className="flex items-center gap-2">
           <TabsList>
-            <TabsTrigger value="floor">
+            <TabsTrigger value="floor" data-testid="tab-floor">
               <Armchair className="size-4" />
               Floor
             </TabsTrigger>
-            <TabsTrigger value="open">
+            <TabsTrigger value="open" data-testid="tab-open">
               <Receipt className="size-4" />
               Open
               {open.data?.length ? (
@@ -73,10 +75,12 @@ export function OrdersClient({ restaurantId }: { restaurantId: string }) {
                 </Badge>
               ) : null}
             </TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="history" data-testid="tab-history">
+              History
+            </TabsTrigger>
           </TabsList>
 
-          <Button className="ml-auto" onClick={() => newOrder()}>
+          <Button className="ml-auto" onClick={() => newOrder()} data-testid="new-order-button">
             <Plus className="size-4" />
             New order
           </Button>
@@ -138,12 +142,7 @@ export function OrdersClient({ restaurantId }: { restaurantId: string }) {
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">
-          <OrderList
-            restaurantId={restaurantId}
-            orders={history.data}
-            isPending={history.isPending}
-            emptyLabel="No completed orders yet."
-          />
+          <OrderHistoryPanel restaurantId={restaurantId} />
         </TabsContent>
       </Tabs>
 
@@ -153,6 +152,84 @@ export function OrdersClient({ restaurantId }: { restaurantId: string }) {
         onOpenChange={setDialogOpen}
         presetTableId={presetTable}
       />
+    </div>
+  );
+}
+
+/**
+ * Closed orders, date-filterable and "Load more" paginated — see useOrderHistory. Its own
+ * component because it owns date-range state the live Open/Floor tabs have no use for.
+ */
+function OrderHistoryPanel({ restaurantId }: { restaurantId: string }) {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const history = useOrderHistory(restaurantId, {
+    from: from || undefined,
+    to: to || undefined,
+  });
+  const orders = history.data?.pages.flatMap((page) => page.orders);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="history-from" className="text-muted-foreground text-xs">
+            From
+          </Label>
+          <Input
+            id="history-from"
+            type="date"
+            value={from}
+            max={to || undefined}
+            onChange={(e) => setFrom(e.target.value)}
+            className="w-40"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="history-to" className="text-muted-foreground text-xs">
+            To
+          </Label>
+          <Input
+            id="history-to"
+            type="date"
+            value={to}
+            min={from || undefined}
+            onChange={(e) => setTo(e.target.value)}
+            className="w-40"
+          />
+        </div>
+        {from || to ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFrom("");
+              setTo("");
+            }}
+          >
+            Clear
+          </Button>
+        ) : null}
+      </div>
+
+      <OrderList
+        restaurantId={restaurantId}
+        orders={orders}
+        isPending={history.isPending}
+        emptyLabel="No completed orders yet."
+      />
+
+      {history.hasNextPage ? (
+        <Button
+          variant="outline"
+          className="mx-auto"
+          disabled={history.isFetchingNextPage}
+          onClick={() => history.fetchNextPage()}
+        >
+          {history.isFetchingNextPage ? "Loading…" : "Load more"}
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -197,7 +274,12 @@ function OrderList({
         const canPay = order.status === "READY" || order.status === "SERVED";
 
         return (
-          <Card key={order.id}>
+          <Card
+            key={order.id}
+            data-testid="order-card"
+            data-order-id={order.id}
+            data-status={order.status}
+          >
             <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4">
               <div className="flex min-w-40 flex-col">
                 <div className="flex items-center gap-2">
@@ -227,6 +309,7 @@ function OrderList({
                     variant="outline"
                     disabled={advance.isPending}
                     onClick={() => advance.mutate({ id: order.id, status: next })}
+                    data-testid="advance-order-button"
                   >
                     {next.toLowerCase()}
                   </Button>
@@ -237,6 +320,7 @@ function OrderList({
                     size="sm"
                     disabled={pay.isPending}
                     onClick={() => pay.mutate(order.id)}
+                    data-testid="pay-order-button"
                   >
                     Pay
                   </Button>
