@@ -29,10 +29,30 @@ model Restaurant {
   logo                   String?
   timezone               String    @default("Asia/Kolkata")
   currency               String    @default("INR")
-  plan                   Plan      @default(FREE)
-  planExpiresAt          DateTime?
-  razorpayCustomerId     String?   @unique
-  razorpaySubscriptionId String?   @unique
+  plan          Plan      @default(FREE)
+  planExpiresAt DateTime?
+
+  /**
+   * When `plan` was last changed by a billing event, stamped with the PROVIDER's event
+   * time (not ours). Razorpay redelivers webhooks for up to 24h and does not guarantee
+   * order, so a retried `subscription.charged` can land after a `subscription.cancelled`
+   * and re-grant PRO to someone who cancelled. Comparing against this lets the webhook
+   * handler drop an event older than the one already applied.
+   */
+  planUpdatedAt DateTime?
+
+  /**
+   * NOT unique, deliberately. Razorpay's customers are keyed by email, and `fail_existing:
+   * 0` (billing/checkout/route.ts) intentionally returns the EXISTING customer when one
+   * already has that email. One person may own several restaurants here
+   * (OWNED_RESTAURANT_LIMIT in onboarding/actions.ts), so the same `cust_xxx` legitimately
+   * maps to N restaurants — a unique index encodes a 1:1 that is not true, and made the
+   * owner's second checkout 500 on a constraint violation it could never get past.
+   */
+  razorpayCustomerId String?
+
+  /** Unique, and it must stay that way: the webhook resolves tenant BY this id. */
+  razorpaySubscriptionId String? @unique
 
   /**
    * The counter behind human-readable order numbers ("ORD-0042").
@@ -472,14 +492,28 @@ model WeeklySummary {
 
 // ─── Billing ─────────────────────────────────────────────────────────────────
 
-// Razorpay redelivers events and may deliver them out of order. The unique eventId
+// Razorpay redelivers events and may deliver them out of order. The unique dedupeKey
 // is what makes webhook handling idempotent: insert first, and a duplicate insert
 // means "already processed" — ack 200 and skip. Not tenant-scoped (it is keyed by
-// the provider's event id, and arrives before we know the tenant).
+// the provider's event, and arrives before we know the tenant).
 
 model ProcessedWebhook {
-  id          String   @id @default(cuid())
-  eventId     String   @unique
+  id String @id @default(cuid())
+
+  /**
+   * A SHA-256 of the RAW request body — NOT the `x-razorpay-event-id` header.
+   *
+   * The header sits OUTSIDE the HMAC (Razorpay signs the body only), so anyone holding
+   * one validly-signed body could replay it forever by varying that header, and every
+   * replay would look like a fresh event. Hashing the signed bytes makes the dedupe key
+   * something the signature actually covers: a genuine redelivery is byte-identical and
+   * collides, while two distinct events always differ (`created_at`, entity ids).
+   */
+  dedupeKey String @unique
+
+  /** The provider's own event id, kept for tracing/support. Never the dedupe key. */
+  providerEventId String?
+
   provider    String   @default("razorpay")
   processedAt DateTime @default(now())
 }

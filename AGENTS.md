@@ -82,7 +82,7 @@ These are load-bearing. Breaking any of them is a security or correctness bug, n
 
 4. **Payments = Razorpay.** Verify the webhook signature (HMAC-SHA256 over the **raw** body, `x-razorpay-signature`) before trusting any plan change. Make webhooks idempotent (dedupe on event id) and add a reconciliation job. Never grant `PRO` from the client checkout handler — only from `subscription.activated`/`charged`.
 
-5. **AI = Gemini via the AI SDK.** Use `google(MODEL)` with `MODEL` in one constant — `gemini-2.5-flash` interactive, `gemini-2.5-flash-lite` for the cron — so swaps are one line. Throttle the weekly-summary cron (it loops over all tenants on a shared free-tier key with a tight RPM) and add per-tenant daily rate limits on `/ai/query`.
+5. **AI = Gemini via the AI SDK.** Use `google(MODEL)` with `MODEL` imported from `src/lib/ai/models.ts` — never a literal at the call site. Defaults are `gemini-flash-latest` (interactive) and `gemini-flash-lite-latest` (cron), overridable per environment with `GEMINI_MODEL` / `GEMINI_MODEL_CRON`. **`models.list` returning a model does not mean your key may call it** — retirement is per-account, and `gemini-2.5-flash` (what this repo pinned until Aug 2026) now 404s with *"no longer available to new users"* on a fresh key while still appearing in the listing. Probe with a real `:generateContent` call. Throttle the weekly-summary cron (it loops over all tenants on a shared free-tier key with a tight RPM) and add per-tenant daily rate limits on `/ai/query`.
 
 6. **Money & stock are `Decimal`, never `Float`.** Wrap inventory `currentStock` + `balanceAfter` writes (and the order-pay → `Customer.totalSpend`/`visitCount` rollup) in a `$transaction` with a `SELECT ... FOR UPDATE` row lock.
 

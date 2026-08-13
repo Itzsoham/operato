@@ -1,5 +1,6 @@
 import {
   ChefHat,
+  CreditCard,
   LayoutDashboard,
   Package,
   Receipt,
@@ -35,4 +36,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/inventory", label: "Inventory", icon: Package },
   { href: "/staff", label: "Staff", icon: UsersRound },
   { href: "/customers", label: "Customers", icon: Users },
+  // Billing is a once-in-a-while stop (checking the plan, upgrading), not a daily
+  // operational module — kept last, after the modules staff touch every shift.
+  { href: "/billing", label: "Billing", icon: CreditCard },
 ];

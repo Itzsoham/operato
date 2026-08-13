@@ -52,10 +52,12 @@ Derive it from the **Prisma DMMF** so it cannot drift from the real schema, and 
 
 ## Model selection and quota
 
-Pin the model in **one constant** so a swap is a one-line change:
+Model ids live in **one module**, `src/lib/ai/models.ts` — never a literal at the call site:
 
-- `gemini-2.5-flash` — interactive `/ai/query`.
-- `gemini-2.5-flash-lite` — the weekly-summary cron.
+- `MODEL_INTERACTIVE` — interactive `/ai/query`. Defaults to `gemini-flash-latest`, override with `GEMINI_MODEL`.
+- `MODEL_CRON` — the weekly-summary cron. Defaults to `gemini-flash-lite-latest`, override with `GEMINI_MODEL_CRON`.
+
+**Verify a model by calling it, not by listing it.** `models.list` still returns `gemini-2.5-flash` and `gemini-2.5-flash-lite` (what this repo pinned until Aug 2026), but a newly-issued key gets `404 "no longer available to new users"` on `:generateContent`. Retirement is per-account, so an old key keeps working while a fresh one silently 503s the whole assistant. Probe with a real generateContent request before changing a default.
 
 The free tier is tight (~10 RPM / ~250 RPD, **per Google Cloud project, not per key**). The weekly cron loops over *every* tenant on that shared key, so it must **throttle and batch** — it cannot assume headroom. Add per-tenant daily rate limits on `/ai/query`. Re-check current quotas rather than trusting a number in a doc.
 
