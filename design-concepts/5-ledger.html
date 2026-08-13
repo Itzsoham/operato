@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operato — Concept 5: Ledger (Plan-inspired)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#F4F4F5; --surface:#FFFFFF; --border:#EAEAEC; --text:#151517; --muted:#8A8A92;
+    --amber-bg:#FDF3E1; --amber-border:#F3E1B8; --amber:#8A5C10;
+    --blue:#2E6FE0; --green:#1AA35C; --violet:#7C5CFC;
+    --radius:12px; font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--text); font-size:13.5px; -webkit-font-smoothing:antialiased; }
+  .shell{ display:flex; min-height:100vh; }
+
+  .sidebar{ width:212px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); padding:20px 14px; display:flex; flex-direction:column; }
+  .logo{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; padding:0 6px 22px; }
+  .logo .mark{ width:22px; height:22px; border-radius:6px; background:var(--text); color:#fff; display:flex; align-items:center;justify-content:center; font-size:12px; }
+  nav{ display:flex; flex-direction:column; gap:1px; flex:1; }
+  .navitem{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; color:#4B4B52; font-weight:500; }
+  .navitem .dot{ width:16px; text-align:center; font-size:13px; opacity:.75; }
+  .navitem.active{ background:#F0F0F2; color:var(--text); font-weight:700; }
+  .navitem .chev{ margin-left:auto; font-size:10px; color:var(--muted); }
+  .navitem:not(.active):hover{ background:#FAFAFA; }
+  .subnav{ margin:2px 0 6px 32px; display:flex; flex-direction:column; gap:2px; }
+  .subnav a{ font-size:12.5px; color:var(--muted); padding:5px 8px; border-radius:6px; text-decoration:none; }
+  .subnav a.on{ color:var(--text); font-weight:600; background:#F0F0F2; }
+  .sidebar .bottom{ margin-top:auto; display:flex; flex-direction:column; gap:1px; padding-top:10px; border-top:1px solid var(--border); }
+
+  .middle{ width:296px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); padding:26px 22px; display:flex; flex-direction:column; }
+  .m-avatar{ width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#2E6FE0,#7C5CFC); color:#fff; display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 12px; }
+  .m-name{ text-align:center; font-weight:800; font-size:15.5px; }
+  .m-sub{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .m-actions{ display:flex; justify-content:center; gap:10px; margin:18px 0; }
+  .m-actions .btn{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .m-actions .circ{ width:36px; height:36px; border-radius:50%; background:var(--text); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .m-actions .circ.alt{ background:#F0F0F2; color:var(--text); }
+  .m-actions span{ font-size:10px; color:var(--muted); font-weight:600; }
+  .m-lastact{ text-align:center; font-size:11px; color:var(--muted); }
+  .m-tabs{ display:flex; gap:18px; margin-top:20px; border-bottom:1px solid var(--border); }
+  .m-tabs .t{ font-size:12.5px; font-weight:600; color:var(--muted); padding-bottom:9px; }
+  .m-tabs .t.on{ color:var(--text); border-bottom:2px solid var(--text); }
+  .timeline{ margin-top:16px; display:flex; flex-direction:column; gap:16px; }
+  .tl-item{ display:flex; gap:10px; }
+  .tl-ic{ width:26px; height:26px; border-radius:50%; background:#F0F0F2; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+  .tl-body p{ font-size:12px; line-height:1.5; }
+  .tl-body .time{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .pill{ display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:100px; margin-top:5px; }
+  .pill.new{ background:#FDF0D2; color:#8A5C10; }
+  .pill.prog{ background:#E4F3E8; color:var(--green); }
+  .pill.done{ background:#EAEAF7; color:var(--violet); }
+  .snapshot-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin:22px 0 12px; }
+  .snap-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:12.5px; }
+  .snap-row .ic{ width:24px; height:24px; border-radius:6px; background:#F0F0F2; display:flex; align-items:center; justify-content:center; font-size:12px; }
+  .snap-row .lbl{ color:var(--muted); flex:1; }
+  .snap-row .val{ font-weight:700; }
+
+  .main{ flex:1; min-width:0; padding:26px 32px 60px; }
+  .crumb{ font-size:12px; color:var(--muted); }
+  .crumb b{ color:var(--text); }
+  h1{ font-size:26px; font-weight:800; margin-top:6px; letter-spacing:-.02em; }
+  .meta-row{ display:flex; align-items:center; gap:16px; margin-top:14px; }
+  .meta-row .date{ font-size:12px; color:var(--muted); }
+  .avatars{ display:flex; }
+  .avatars span{ width:26px; height:26px; border-radius:50%; border:2px solid #fff; margin-left:-8px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+  .avatars span:first-child{ margin-left:0; }
+  .actions-round{ margin-left:auto; display:flex; gap:8px; }
+  .actions-round button{ width:32px; height:32px; border-radius:50%; background:var(--text); color:#fff; border:none; font-size:13px; }
+  .actions-round button.txt{ width:auto; padding:0 14px; font-size:12px; font-weight:700; }
+
+  .tabbar{ display:flex; gap:24px; margin-top:22px; border-bottom:1px solid var(--border); }
+  .tabbar .t{ font-size:13px; font-weight:600; color:var(--muted); padding-bottom:11px; }
+  .tabbar .t.on{ color:var(--text); border-bottom:2px solid var(--text); }
+
+  .stat3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px; }
+  .stat3 .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+  .stat3 .lbl{ font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .stat3 .val{ font-size:24px; font-weight:800; margin-top:8px; }
+  .stat3 .val .of{ font-size:14px; color:var(--muted); font-weight:600; }
+  .golink{ font-size:12.5px; font-weight:700; margin-top:16px; display:inline-block; }
+
+  .sec-head{ display:flex; align-items:center; margin-top:26px; gap:14px; }
+  .sec-head h3{ font-size:15px; font-weight:800; }
+  .seg{ display:flex; background:#F0F0F2; border-radius:8px; padding:3px; margin-left:8px; }
+  .seg span{ font-size:11.5px; font-weight:600; padding:5px 10px; border-radius:6px; color:var(--muted); }
+  .seg span.on{ background:#fff; color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+  .sec-head .spacer{ flex:1; }
+  .btn-ghost2{ background:#fff; border:1px solid var(--border); padding:7px 12px; border-radius:8px; font-size:12px; font-weight:600; }
+  .btn-dark{ background:var(--text); color:#fff; border:none; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:700; }
+
+  .rows{ margin-top:16px; border-top:1px solid var(--border); }
+  .row{ display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .row .fic{ width:34px; height:34px; border-radius:9px; background:#F0F0F2; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .row .ri{ flex:1; }
+  .row .rn{ font-weight:700; font-size:13px; }
+  .row .rm{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .row .racts{ display:flex; gap:8px; }
+  .row .racts button{ width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:#fff; font-size:11px; }
+  .row .racts button.ok{ background:var(--text); color:#fff; border:none; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo"><span class="mark">🍽</span> Operato</div>
+    <nav>
+      <div class="navitem active"><span class="dot">◧</span> Overview</div>
+      <div class="navitem"><span class="dot">✦</span> Ask AI</div>
+      <div class="navitem"><span class="dot">🍲</span> Menu</div>
+      <div class="navitem"><span class="dot">🧾</span> Orders <span class="chev">⌄</span></div>
+      <div class="subnav">
+        <a class="on">Floor & Open</a>
+        <a>History</a>
+      </div>
+      <div class="navitem"><span class="dot">📦</span> Inventory</div>
+      <div class="navitem"><span class="dot">🤝</span> Customers</div>
+      <div class="navitem"><span class="dot">👥</span> Staff</div>
+    </nav>
+    <div class="bottom">
+      <div class="navitem"><span class="dot">⚙</span> Settings</div>
+      <div class="navitem"><span class="dot">?</span> Help & Support</div>
+    </div>
+  </aside>
+
+  <div class="middle">
+    <div class="m-avatar">🍽</div>
+    <div class="m-name">Spice Route Kitchen</div>
+    <div class="m-sub">Casual Dining · #SR2481</div>
+    <div class="m-actions">
+      <div class="btn"><div class="circ">✉</div><span>Message</span></div>
+      <div class="btn"><div class="circ">📞</div><span>Call Supplier</span></div>
+      <div class="btn"><div class="circ alt">⋯</div><span>More</span></div>
+    </div>
+    <div class="m-lastact">Last Activity: Today at 11:42 AM</div>
+    <div class="m-tabs"><div class="t">Info</div><div class="t on">Activities</div></div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-ic">🧾</div><div class="tl-body"><p><b>Rohan Mehta</b> placed order #1043</p><div class="time">Today 12:40 PM</div><span class="pill new">New</span></div></div>
+      <div class="tl-item"><div class="tl-ic">📦</div><div class="tl-body"><p><b>Paneer</b> marked low stock</p><div class="time">Today 10:15 AM</div><span class="pill new">Reorder</span></div></div>
+      <div class="tl-item"><div class="tl-ic">👤</div><div class="tl-body"><p><b>Priya Nair</b> clocked in</p><div class="time">Today 09:58 AM</div><span class="pill prog">Active</span></div></div>
+      <div class="tl-item"><div class="tl-ic">✓</div><div class="tl-body"><p>Order #1040 marked Served</p><div class="time">Today 09:20 AM</div><span class="pill done">Served</span></div></div>
+    </div>
+    <div class="snapshot-label">Today's Snapshot</div>
+    <div class="snap-row"><div class="ic">₹</div><div class="lbl">Revenue</div><div class="val">₹1,84,320</div></div>
+    <div class="snap-row"><div class="ic">🧾</div><div class="lbl">Orders</div><div class="val">342</div></div>
+  </div>
+
+  <main class="main">
+    <div class="crumb">Spice Route Kitchen &nbsp;›&nbsp; <b>Overview</b></div>
+    <h1>Overview</h1>
+    <div class="meta-row">
+      <div class="date">Today · 27 Jul 2026</div>
+      <div class="avatars">
+        <span style="background:#2E6FE0;">PN</span>
+        <span style="background:#1AA35C;">RS</span>
+        <span style="background:#7C5CFC;">+4</span>
+      </div>
+      <div class="actions-round">
+        <button>⤓</button>
+        <button>⇪</button>
+        <button class="txt">⋯ More</button>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="t on">Overview</div>
+      <div class="t">Orders</div>
+      <div class="t">Inventory</div>
+      <div class="t">Customers</div>
+      <div class="t">Staff</div>
+    </div>
+
+    <div class="stat3">
+      <div class="card"><div class="lbl">🧾 Open Orders</div><div class="val">12</div></div>
+      <div class="card"><div class="lbl">📦 Low Stock Items</div><div class="val">3</div></div>
+      <div class="card"><div class="lbl">✦ AI Answers Today</div><div class="val">7 <span class="of">/ 50</span></div></div>
+    </div>
+    <a class="golink">Go to Orders →</a>
+
+    <div class="sec-head">
+      <h3>All Orders</h3>
+      <div class="seg"><span class="on">All Orders</span><span>Needs Attention</span></div>
+      <div class="spacer"></div>
+      <button class="btn-ghost2">Export CSV</button>
+      <button class="btn-ghost2">Print</button>
+      <button class="btn-dark">+ New Order</button>
+    </div>
+
+    <div class="rows">
+      <div class="row"><div class="fic">🧾</div><div class="ri"><div class="rn">Order #1042 · Table 4</div><div class="rm">3 items · 12:04 PM</div></div><div class="racts"><button class="ok">✓</button><button>✕</button><button>⋯</button></div></div>
+      <div class="row"><div class="fic">🧾</div><div class="ri"><div class="rn">Order #1041 · Takeaway</div><div class="rm">1 item · 11:52 AM</div></div><div class="racts"><button class="ok">✓</button><button>✕</button><button>⋯</button></div></div>
+      <div class="row"><div class="fic">🧾</div><div class="ri"><div class="rn">Order #1040 · Table 7</div><div class="rm">5 items · 11:30 AM</div></div><div class="racts"><button class="ok">✓</button><button>✕</button><button>⋯</button></div></div>
+      <div class="row"><div class="fic">🧾</div><div class="ri"><div class="rn">Order #1039 · Delivery</div><div class="rm">2 items · 11:10 AM</div></div><div class="racts"><button class="ok">✓</button><button>✕</button><button>⋯</button></div></div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operato — Design Concepts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Inter', ui-sans-serif, system-ui, sans-serif; background:#0D0E13; color:#E9E9EF; padding:48px 40px 80px; }
+  header{ max-width:1160px; margin:0 auto 36px; }
+  header h1{ font-size:28px; font-weight:800; letter-spacing:-.02em; }
+  header p{ color:#9A9CAB; margin-top:8px; font-size:14.5px; max-width:700px; line-height:1.55; }
+  h2.sectitle{ max-width:1160px; margin:44px auto 18px; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:#6C6E7E; font-weight:700; border-top:1px solid rgba(255,255,255,0.08); padding-top:32px; }
+  h2.sectitle:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
+  .grid{ max-width:1160px; margin:0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:28px; }
+  @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:#14151D; border:1px solid rgba(255,255,255,0.08); border-radius:18px; overflow:hidden; text-decoration:none; color:inherit; display:block; transition: transform .15s ease, border-color .15s ease; }
+  .card:hover{ transform: translateY(-3px); border-color: rgba(255,255,255,0.18); }
+  .preview{ height:280px; overflow:hidden; position:relative; background:#0A0B10; }
+  .preview iframe{ width:1440px; height:900px; border:0; transform: scale(0.333); transform-origin: top left; pointer-events:none; }
+  .meta{ padding:18px 20px 20px; }
+  .tag{ display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:100px; margin-bottom:10px; }
+  .meta h2{ font-size:16.5px; font-weight:700; margin-bottom:6px; }
+  .meta p{ font-size:12.5px; color:#9A9CAB; line-height:1.55; }
+  .swatches{ display:flex; gap:6px; margin-top:14px; }
+  .swatches span{ width:18px; height:18px; border-radius:5px; }
+  .tag.hearth{ background: rgba(193,80,46,0.18); color:#E58B62; }
+  .tag.signal{ background: rgba(109,93,252,0.18); color:#A79BFF; }
+  .tag.ops{ background: rgba(14,159,113,0.18); color:#5FD4A6; }
+  .tag.citrus{ background: linear-gradient(90deg, rgba(255,122,69,0.2), rgba(255,79,147,0.2)); color:#FF9EC0; }
+  .tag.ledger{ background: rgba(255,255,255,0.12); color:#D8D8DE; }
+  .tag.companion{ background: rgba(61,107,240,0.18); color:#8FADFF; }
+  .tag.pulse{ background: rgba(14,169,104,0.18); color:#5FE0A6; }
+  .tag.thread{ background: linear-gradient(90deg, rgba(108,92,231,0.2), rgba(234,95,160,0.2)); color:#C9B8FF; }
+  .tag.meridian{ background: linear-gradient(90deg, rgba(15,110,99,0.25), rgba(232,115,74,0.2)); color:#7FD9C9; }
+  .badge-rec{ display:inline-block; margin-left:8px; font-size:10px; font-weight:800; background:#FFD24D; color:#332600; padding:2px 8px; border-radius:100px; vertical-align:middle; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Operato — design concepts</h1>
+    <p>Nine visual directions across the app's Overview and Ask Operato screens, built from the real information architecture (sidebar nav, KPI tiles, alerts, charts, Ask Operato). Same dummy data throughout so styles are directly comparable. Click a card to open it full-size.</p>
+  </header>
+
+  <h2 class="sectitle">Round 1 — original directions</h2>
+  <div class="grid">
+    <a class="card" href="1-hearth.html" target="_blank">
+      <div class="preview"><iframe src="1-hearth.html"></iframe></div>
+      <div class="meta">
+        <span class="tag hearth">Concept 1</span>
+        <h2>Hearth — warm hospitality</h2>
+        <p>Cream & terracotta, serif display headings, soft rounded cards. Boutique, human, food-forward.</p>
+        <div class="swatches"><span style="background:#C1502E;"></span><span style="background:#74805F;"></span><span style="background:#C48A1E;"></span><span style="background:#FBF5EC; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="2-signal.html" target="_blank">
+      <div class="preview"><iframe src="2-signal.html"></iframe></div>
+      <div class="meta">
+        <span class="tag signal">Concept 2</span>
+        <h2>Signal — dark, AI-native</h2>
+        <p>Near-black with indigo/violet + cyan glow, glassmorphic cards, monospace data accents.</p>
+        <div class="swatches"><span style="background:#6D5DFC;"></span><span style="background:#34E7C4;"></span><span style="background:#0A0B10; border:1px solid #333;"></span><span style="background:#B48BFA;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="3-clean-ops.html" target="_blank">
+      <div class="preview"><iframe src="3-clean-ops.html"></iframe></div>
+      <div class="meta">
+        <span class="tag ops">Concept 3</span>
+        <h2>Clean Ops — minimal SaaS</h2>
+        <p>Tight neutral-gray base with one confident emerald accent, dense tables, thin borders.</p>
+        <div class="swatches"><span style="background:#0E9F71;"></span><span style="background:#2563EB;"></span><span style="background:#7C3AED;"></span><span style="background:#F6F7F9; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="4-citrus.html" target="_blank">
+      <div class="preview"><iframe src="4-citrus.html"></iframe></div>
+      <div class="meta">
+        <span class="tag citrus">Concept 4</span>
+        <h2>Citrus — vibrant startup</h2>
+        <p>White base with orange→pink→purple gradient mesh, glassmorphic KPI tiles, bold rounded cards.</p>
+        <div class="swatches"><span style="background:#FF7A45;"></span><span style="background:#FF4F93;"></span><span style="background:#7C5CFC;"></span><span style="background:#FAFAFC; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+  </div>
+
+  <h2 class="sectitle">Round 2 — inspired by your Dribbble references</h2>
+  <div class="grid">
+    <a class="card" href="5-ledger.html" target="_blank">
+      <div class="preview"><iframe src="5-ledger.html"></iframe></div>
+      <div class="meta">
+        <span class="tag ledger">Concept 5 · after "Plan"</span>
+        <h2>Ledger — monochrome CRM</h2>
+        <p>3-column detail layout: nav, restaurant profile + activity timeline, tabbed main content with document-style order rows. Professional, back-office grade.</p>
+        <div class="swatches"><span style="background:#151517;"></span><span style="background:#2E6FE0;"></span><span style="background:#1AA35C;"></span><span style="background:#F4F4F5; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="6-companion.html" target="_blank">
+      <div class="preview"><iframe src="6-companion.html"></iframe></div>
+      <div class="meta">
+        <span class="tag companion">Concept 6 · after "Logip"</span>
+        <h2>Companion — friendly + AI panel</h2>
+        <p>Floating white main card + a persistent dark "Operato AI" contact panel on the right, showing recent Q&A as chat bubbles. Warm daily-use feel.</p>
+        <div class="swatches"><span style="background:#1E2235;"></span><span style="background:#3D6BF0;"></span><span style="background:#F2994A;"></span><span style="background:#EEF0F7; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="7-pulse.html" target="_blank">
+      <div class="preview"><iframe src="7-pulse.html"></iframe></div>
+      <div class="meta">
+        <span class="tag pulse">Concept 7 · after "Flup"</span>
+        <h2>Pulse — dense BI dashboard</h2>
+        <p>Double sidebar with sectioned nav, colorful donut + dual-series bar charts, zone/category breakdowns. Analytics-first, most data-dense.</p>
+        <div class="swatches"><span style="background:#0EA968;"></span><span style="background:#9B5DE5;"></span><span style="background:#F15BB5;"></span><span style="background:#FFFFFF; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="8-thread.html" target="_blank">
+      <div class="preview"><iframe src="8-thread.html"></iframe></div>
+      <div class="meta">
+        <span class="tag thread">Concept 8 · after "LoopAI"</span>
+        <h2>Thread — chat-style Ask Operato</h2>
+        <p>Reimagines the Ask Operato page itself as a chat thread with quick-prompt chips and a question-history sidebar, SQL transparency preserved.</p>
+        <div class="swatches"><span style="background:#6C5CE7;"></span><span style="background:#EA5FA0;"></span><span style="background:#F4F1FC; border:1px solid #333;"></span><span style="background:#1E1B2E;"></span></div>
+      </div>
+    </a>
+  </div>
+
+  <h2 class="sectitle">Original synthesis</h2>
+  <div class="grid">
+    <a class="card" href="9-meridian.html" target="_blank">
+      <div class="preview"><iframe src="9-meridian.html"></iframe></div>
+      <div class="meta">
+        <span class="tag meridian">Concept 9 · mine<span class="badge-rec">RECOMMENDED</span></span>
+        <h2>Meridian</h2>
+        <p>Warm-neutral base with a confident teal/coral identity (not grayscale). AI is ambient everywhere via a sidebar launcher + global ⌘K bar, not just one nav item. Sparklines on KPI tiles, a comparison ghost-line on the revenue chart. Built on a plain sidebar+content shell so it scales cleanly to every module — tables, dialogs, forms.</p>
+        <div class="swatches"><span style="background:#0F6E63;"></span><span style="background:#E8734A;"></span><span style="background:#C48A1E;"></span><span style="background:#FAFAF8; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+  </div>
+</body>
+</html>

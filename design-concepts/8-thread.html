@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operato — Concept 8: Thread (LoopAI-inspired)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root{
+    --bg:#F4F1FC; --surface:#FFFFFF; --border:#EBE6F7; --text:#1E1B2E; --muted:#8983A3;
+    --indigo:#6C5CE7; --indigo-2:#8B7CF0; --pink:#EA5FA0; --blue:#4C8DFF; --green:#1AA35C; --amber:#C48A1E; --violet:#9B5DE5;
+    --radius:20px; font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ color:var(--text); font-size:13.5px; -webkit-font-smoothing:antialiased;
+    background: var(--bg);
+    background-image: radial-gradient(700px circle at 100% 0%, rgba(234,95,160,0.10), transparent 55%), radial-gradient(700px circle at 0% 100%, rgba(108,92,231,0.10), transparent 55%);
+  }
+  .mono{ font-family:'JetBrains Mono', ui-monospace, monospace; }
+  .shell{ display:flex; min-height:100vh; }
+
+  .sidebar{ width:224px; flex-shrink:0; background:rgba(255,255,255,0.6); backdrop-filter:blur(10px); border-right:1px solid var(--border); padding:20px 14px; display:flex; flex-direction:column; }
+  .logo{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:15.5px; padding:0 6px 20px; }
+  nav{ display:flex; flex-direction:column; gap:2px; flex:1; }
+  .navitem{ display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; color:#5C5775; font-weight:600; font-size:13px; }
+  .navitem.active{ background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; }
+  .navitem:not(.active):hover{ background:rgba(108,92,231,0.06); }
+  .user{ display:flex; align-items:center; gap:9px; padding:10px; border-top:1px solid var(--border); margin-top:8px; }
+  .avatar{ width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+  .main{ flex:1; min-width:0; padding:20px 22px; display:flex; flex-direction:column; }
+  .pillrow{ display:flex; align-items:center; gap:8px; }
+  .pill{ background:var(--surface); border:1px solid var(--border); padding:6px 13px; border-radius:100px; font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:6px; }
+  .pill.dim{ color:var(--muted); font-weight:500; }
+  .pillrow .spacer{ flex:1; }
+  .pill.right{ background:linear-gradient(135deg,#EDE9FF,#FCE8F2); color:var(--indigo); }
+
+  .body{ flex:1; display:flex; gap:16px; margin-top:16px; min-height:0; }
+
+  .thread{ flex:1; min-width:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; padding:22px 26px; }
+  .t-head{ display:flex; align-items:center; gap:12px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+  .t-head .ic{ width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,var(--indigo),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:17px; color:#fff; }
+  .t-head .nm{ font-weight:800; font-size:14.5px; }
+  .t-head .st{ font-size:11px; color:var(--green); font-weight:600; display:flex; align-items:center; gap:5px; }
+  .t-head .st::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--green); }
+  .t-head .spacer{ flex:1; }
+  .t-head button{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:#fff; font-size:13px; }
+
+  .msgs{ flex:1; overflow:hidden; padding:18px 4px; display:flex; flex-direction:column; gap:16px; }
+  .msg{ max-width:78%; }
+  .msg.user{ align-self:flex-end; }
+  .msg .bub{ border-radius:16px; padding:12px 16px; font-size:13px; line-height:1.55; }
+  .msg.user .bub{ background:linear-gradient(135deg,var(--indigo),var(--indigo-2)); color:#fff; border-bottom-right-radius:4px; }
+  .msg.ai .bub{ background:#FAF9FE; border:1px solid var(--border); border-bottom-left-radius:4px; }
+  .msg .time{ font-size:10px; color:var(--muted); margin-top:5px; }
+  .msg.user .time{ text-align:right; }
+  .badge-sample{ display:inline-block; margin-top:9px; background:#FFF3E0; color:#8A5C10; font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; }
+  .calc{ margin-top:10px; border-top:1px dashed var(--border); padding-top:10px; }
+  .calc summary{ font-size:11.5px; font-weight:700; color:var(--indigo); cursor:pointer; }
+  .calc pre{ background:#1E1B2E; color:#D8D4EF; border-radius:10px; padding:10px 12px; font-size:11px; margin-top:8px; overflow-x:auto; }
+
+  .suggestions{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px; }
+  .chip{ display:flex; align-items:center; gap:9px; border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:11.5px; font-weight:600; color:#4B4664; }
+  .chip .ic{ width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; flex-shrink:0; }
+
+  .inputbar{ margin-top:14px; background:#FAF9FE; border:1px solid var(--border); border-radius:100px; padding:8px 8px 8px 18px; display:flex; align-items:center; gap:10px; }
+  .inputbar input{ flex:1; background:transparent; }
+  .inputbar span.ph{ flex:1; color:var(--muted); font-size:13px; }
+  .inputbar .ic-btn{ width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--muted); }
+  .inputbar .send{ background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; }
+  .disclaimer{ text-align:center; font-size:10.5px; color:var(--muted); margin-top:10px; }
+
+  .right{ width:270px; flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; }
+  .right-head{ display:flex; align-items:center; justify-content:space-between; }
+  .right-head h4{ font-size:13.5px; font-weight:800; }
+  .quota{ font-size:11px; color:var(--muted); margin-top:4px; }
+  .qlist{ margin-top:14px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
+  .qitem{ padding:11px 8px; border-radius:10px; border-bottom:1px solid var(--border); }
+  .qitem.on{ background:#FAF6FF; }
+  .qitem .q{ font-size:12px; font-weight:600; line-height:1.4; }
+  .qitem .t{ font-size:10.5px; color:var(--muted); margin-top:4px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">🍽 Operato</div>
+    <nav>
+      <div class="navitem"><span>◧</span> Overview</div>
+      <div class="navitem active"><span>✦</span> Ask AI</div>
+      <div class="navitem"><span>🍲</span> Menu</div>
+      <div class="navitem"><span>🧾</span> Orders</div>
+      <div class="navitem"><span>📦</span> Inventory</div>
+      <div class="navitem"><span>👥</span> Staff</div>
+      <div class="navitem"><span>🤝</span> Customers</div>
+    </nav>
+    <div class="user"><div class="avatar">AR</div><div style="font-size:12px; font-weight:700;">Aditi Rao</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="pillrow">
+      <div class="pill">✦ Ask Operato</div>
+      <div class="pill dim">AI Assistant</div>
+      <div class="spacer"></div>
+      <div class="pill right">⚡ Powered by Gemini</div>
+    </div>
+
+    <div class="body">
+      <div class="thread">
+        <div class="t-head">
+          <div class="ic">✦</div>
+          <div><div class="nm">Ask Operato</div><div class="st">Ready</div></div>
+          <div class="spacer"></div>
+          <button>↻</button><button>⭐</button><button>⋯</button>
+        </div>
+        <div class="msgs">
+          <div class="msg user"><div class="bub">What were our top 5 dishes by revenue this month?</div><div class="time">10:15 AM</div></div>
+          <div class="msg ai">
+            <div class="bub">
+              Butter Chicken led with ₹42,180 across 184 orders, followed by Paneer Tikka (₹31,900), Chicken Biryani (₹29,600), Masala Dosa (₹18,200) and Cold Coffee (₹9,700).
+              <span class="badge-sample">Based on full data</span>
+              <details class="calc">
+                <summary>How this was calculated ⌄</summary>
+                <pre class="mono">SELECT mi.name, SUM(oi.quantity * oi.price) AS revenue
+FROM "OrderItem" oi
+JOIN "MenuItem" mi ON mi.id = oi."menuItemId"
+WHERE oi."restaurantId" = $1
+  AND oi."createdAt" >= date_trunc('month', now())
+GROUP BY mi.name ORDER BY revenue DESC LIMIT 5;</pre>
+              </details>
+            </div>
+            <div class="time">10:15 AM</div>
+          </div>
+          <div class="msg user"><div class="bub">How does that compare to last month?</div><div class="time">10:16 AM</div></div>
+          <div class="msg ai"><div class="bub">Butter Chicken is up 9.4% month-over-month; Cold Coffee is the only one down, off 6% as iced drinks lost share to hot beverages.</div><div class="time">10:16 AM</div></div>
+        </div>
+
+        <div class="suggestions">
+          <div class="chip"><div class="ic" style="background:var(--indigo);">📈</div>Top dishes this week</div>
+          <div class="chip"><div class="ic" style="background:var(--pink);">↔</div>Compare to last month</div>
+          <div class="chip"><div class="ic" style="background:var(--amber);">📦</div>Slowest inventory item</div>
+          <div class="chip"><div class="ic" style="background:var(--green);">👥</div>Best staff by hours</div>
+          <div class="chip"><div class="ic" style="background:var(--blue);">🧾</div>Revenue by order type</div>
+          <div class="chip"><div class="ic" style="background:var(--violet);">🤝</div>New vs returning</div>
+        </div>
+
+        <div class="inputbar">
+          <span class="ph">Ask a follow-up question…</span>
+          <div class="ic-btn">📎</div>
+          <div class="ic-btn">🎤</div>
+          <div class="ic-btn send">✦</div>
+        </div>
+        <div class="disclaimer">Operato writes and runs real SQL against your data — verify important numbers.</div>
+      </div>
+
+      <aside class="right">
+        <div class="right-head"><h4>Today's Questions</h4><span>🔍</span></div>
+        <div class="quota">12 of 50 questions left today</div>
+        <div class="qlist">
+          <div class="qitem on"><div class="q">What were our top 5 dishes by revenue this month?</div><div class="t">10:15 AM</div></div>
+          <div class="qitem"><div class="q">How does that compare to last month?</div><div class="t">10:16 AM</div></div>
+          <div class="qitem"><div class="q">Which staff member logged the most hours this week?</div><div class="t">9:40 AM</div></div>
+          <div class="qitem"><div class="q">What's our slowest-moving inventory item?</div><div class="t">9:12 AM</div></div>
+          <div class="qitem"><div class="q">How much did we make this week vs last week?</div><div class="t">Yesterday</div></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

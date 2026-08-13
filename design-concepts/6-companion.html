@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operato — Concept 6: Companion (Logip-inspired)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#EEF0F7; --surface:#FFFFFF; --border:#EDEEF4; --text:#1B1D28; --muted:#8A8CA0;
+    --navy:#1E2235; --navy-2:#272C42; --blue:#3D6BF0; --orange:#F2994A; --green:#1AA35C; --violet:#7C5CFC; --amber:#C48A1E;
+    --radius:22px; font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--text); font-size:13.5px; -webkit-font-smoothing:antialiased; }
+  .shell{ display:flex; min-height:100vh; gap:0; }
+
+  .sidebar{ width:220px; flex-shrink:0; background:var(--surface); padding:22px 14px; display:flex; flex-direction:column; }
+  .logo{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; padding:0 8px 26px; }
+  .logo .mark{ font-size:18px; }
+  nav{ display:flex; flex-direction:column; gap:4px; flex:1; }
+  .navitem{ display:flex; align-items:center; gap:11px; padding:10px 14px; border-radius:100px; color:#5A5C70; font-weight:600; font-size:13px; }
+  .navitem .dot{ width:16px; text-align:center; }
+  .navitem.active{ background:var(--text); color:#fff; }
+  .navitem:not(.active):hover{ background:#F4F4F9; }
+  .upgrade{ margin-top:auto; background:linear-gradient(160deg,#F4F0FF,#EAF1FF); border-radius:18px; padding:16px; }
+  .upgrade h4{ font-size:13px; font-weight:800; }
+  .upgrade p{ font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .upgrade button{ margin-top:12px; background:var(--blue); color:#fff; border:none; padding:8px 16px; border-radius:100px; font-size:12px; font-weight:700; }
+
+  .center{ flex:1; min-width:0; padding:22px; }
+  .panel{ background:var(--surface); border-radius:var(--radius); padding:30px 32px; min-height:calc(100vh - 44px); }
+  .head{ display:flex; align-items:flex-start; justify-content:space-between; }
+  .head h1{ font-size:24px; font-weight:800; }
+  .head p{ font-size:12.5px; color:var(--muted); margin-top:5px; }
+  .datebtn{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--muted); background:#F4F4F9; padding:8px 14px; border-radius:12px; }
+
+  hr{ border:none; border-top:1px solid var(--border); margin:22px 0; }
+
+  .stats3{ display:flex; gap:34px; }
+  .stat{ display:flex; align-items:center; gap:12px; }
+  .stat .ic{ width:42px; height:42px; border-radius:50%; background:#F4F4F9; display:flex; align-items:center; justify-content:center; font-size:17px; }
+  .stat .lbl{ font-size:11.5px; color:var(--muted); font-weight:600; }
+  .stat .val{ font-size:17px; font-weight:800; margin-top:2px; display:flex; align-items:center; gap:6px; }
+  .stat .val .d{ font-size:10.5px; font-weight:700; }
+  .d.up{ color:var(--green); } .d.down{ color:#E0503C; }
+
+  .sec-title{ display:flex; align-items:center; margin-top:30px; }
+  .sec-title h3{ font-size:15px; font-weight:800; }
+  .sec-title .spacer{ flex:1; }
+  .dd{ font-size:12px; font-weight:600; color:var(--muted); background:#F4F4F9; padding:6px 12px; border-radius:10px; }
+
+  .chartwrap{ margin-top:18px; position:relative; }
+  .tooltip{ position:absolute; left:255px; top:6px; background:var(--navy); color:#fff; border-radius:12px; padding:12px 16px; font-size:11.5px; box-shadow:0 12px 30px -10px rgba(0,0,0,.3); }
+  .tooltip .tdate{ font-weight:700; margin-bottom:8px; }
+  .tooltip .trow{ display:flex; justify-content:space-between; gap:20px; margin-top:4px; }
+  .tooltip .trow span:first-child{ color:#9EA1B5; }
+  .tooltip .dotb{ width:7px; height:7px; border-radius:2px; display:inline-block; margin-right:6px; }
+
+  .taskrow{ display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--border); }
+  .taskrow .tic{ width:34px; height:34px; border-radius:10px; background:#F4F4F9; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .taskrow .tn{ flex:1; font-weight:700; font-size:13px; }
+  .taskrow .status{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); font-weight:600; width:110px; }
+  .statusdot{ width:7px; height:7px; border-radius:50%; }
+  .taskrow .time{ display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--muted); width:70px; }
+  .taskrow .more{ color:var(--muted); }
+
+  .right{ width:288px; flex-shrink:0; padding:22px 22px 22px 0; }
+  .darkcard{ background:linear-gradient(160deg,var(--navy),var(--navy-2)); color:#fff; border-radius:var(--radius); padding:24px 20px; }
+  .dc-avatar{ width:70px; height:70px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--violet)); display:flex; align-items:center; justify-content:center; font-size:28px; margin:4px auto 12px; }
+  .dc-name{ text-align:center; font-weight:800; font-size:15px; }
+  .dc-sub{ text-align:center; font-size:11.5px; color:#9EA1B5; margin-top:2px; }
+  .dc-actions{ display:flex; justify-content:center; gap:10px; margin:18px 0 6px; }
+  .dc-actions button{ width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#fff; font-size:14px; }
+  .dc-divider{ font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:#9EA1B5; font-weight:700; margin:20px 0 12px; text-align:center; }
+  .qa{ display:flex; flex-direction:column; gap:10px; max-height:280px; overflow:hidden; }
+  .bubble{ border-radius:12px; padding:9px 12px; font-size:11.5px; line-height:1.5; }
+  .bubble.you{ background:rgba(255,255,255,0.08); align-self:flex-end; max-width:88%; }
+  .bubble.ai{ background:rgba(61,107,240,0.18); max-width:92%; }
+  .bwho{ font-size:10px; color:#9EA1B5; margin-bottom:3px; font-weight:700; }
+  .askbar{ margin-top:16px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11.5px; color:#B7B9CC; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo"><span class="mark">🍽</span> Operato</div>
+    <nav>
+      <div class="navitem"><span class="dot">◧</span> Overview</div>
+      <div class="navitem"><span class="dot">✦</span> Ask AI</div>
+      <div class="navitem"><span class="dot">🍲</span> Menu</div>
+      <div class="navitem"><span class="dot">🧾</span> Orders</div>
+      <div class="navitem active"><span class="dot">📦</span> Inventory</div>
+      <div class="navitem"><span class="dot">👥</span> Staff</div>
+      <div class="navitem"><span class="dot">🤝</span> Customers</div>
+    </nav>
+    <div class="upgrade">
+      <h4>Upgrade to Pro</h4>
+      <p>Get 200 AI questions/day and automatic weekly summaries.</p>
+      <button>Upgrade — ₹999/mo</button>
+    </div>
+  </aside>
+
+  <div class="center">
+    <div class="panel">
+      <div class="head">
+        <div>
+          <h1>Hello, Aditi 👋</h1>
+          <p>Track your restaurant here. You're close to a record week!</p>
+        </div>
+        <div class="datebtn">📅 27 Jul 2026</div>
+      </div>
+      <hr/>
+      <div class="stats3">
+        <div class="stat"><div class="ic">🧾</div><div><div class="lbl">Orders Today</div><div class="val">47 <span class="d down">▾ -3</span></div></div></div>
+        <div class="stat"><div class="ic">⏱</div><div><div class="lbl">Hours Tracked</div><div class="val">142h <span class="d up">▴ +6h</span></div></div></div>
+        <div class="stat"><div class="ic">◎</div><div><div class="lbl">Efficiency</div><div class="val">93% <span class="d up">▴ +4%</span></div></div></div>
+      </div>
+
+      <div class="sec-title"><h3>Performance</h3><div class="spacer"></div><div class="dd">01–07 Jul ⌄</div></div>
+      <div class="chartwrap">
+        <svg viewBox="0 0 600 170" width="100%" height="150" preserveAspectRatio="none">
+          <path d="M0,110 L86,95 L172,120 L258,70 L344,105 L430,60 L516,90 L600,55" fill="none" stroke="#3D6BF0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M0,130 L86,120 L172,100 L258,110 L344,80 L430,95 L516,75 L600,88" fill="none" stroke="#F2994A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="258" cy="70" r="4.5" fill="#3D6BF0"/>
+          <line x1="258" y1="0" x2="258" y2="170" stroke="#E5E6EF" stroke-width="1" stroke-dasharray="3,3"/>
+        </svg>
+        <div class="tooltip">
+          <div class="tdate">27 Jul 2026</div>
+          <div class="trow"><span><span class="dotb" style="background:#3D6BF0;"></span>This week</span><span>₹28,400</span></div>
+          <div class="trow"><span><span class="dotb" style="background:#F2994A;"></span>Last week</span><span>₹24,100</span></div>
+        </div>
+      </div>
+
+      <div class="sec-title"><h3>Live Orders</h3><div class="spacer"></div><div class="dd">Today ⌄</div></div>
+      <div class="taskrow"><div class="tic">🧾</div><div class="tn">Order #1042 · Table 4</div><div class="status"><span class="statusdot" style="background:#3D6BF0;"></span>Preparing</div><div class="time">🕐 4m ago</div><div class="more">⋯</div></div>
+      <div class="taskrow"><div class="tic">🧾</div><div class="tn">Order #1041 · Takeaway</div><div class="status"><span class="statusdot" style="background:#7C5CFC;"></span>Ready</div><div class="time">🕐 16m ago</div><div class="more">⋯</div></div>
+      <div class="taskrow"><div class="tic">🧾</div><div class="tn">Order #1040 · Table 7</div><div class="status"><span class="statusdot" style="background:#1AA35C;"></span>Served</div><div class="time">🕐 38m ago</div><div class="more">⋯</div></div>
+    </div>
+  </div>
+
+  <aside class="right">
+    <div class="darkcard">
+      <div class="dc-avatar">✦</div>
+      <div class="dc-name">Operato AI</div>
+      <div class="dc-sub">Always on · Ready</div>
+      <div class="dc-actions">
+        <button>🔊</button><button>📌</button><button>⋯</button>
+      </div>
+      <div class="dc-divider">Recent Questions</div>
+      <div class="qa">
+        <div class="bubble you"><div class="bwho">You · 10:15 AM</div>"What were our top 5 dishes by revenue this month?"</div>
+        <div class="bubble ai"><div class="bwho">Operato</div>Butter Chicken led with ₹42,180 across 184 orders, followed by Paneer Tikka and Chicken Biryani.</div>
+        <div class="bubble you"><div class="bwho">You · 9:52 AM</div>"Which supplier has the best price on basmati rice?"</div>
+        <div class="bubble ai"><div class="bwho">Operato</div>Sundar Traders — ₹68/kg, about 12% below your average across the last 3 orders.</div>
+      </div>
+      <div class="askbar">Ask a follow-up... <span>✦ →</span></div>
+    </div>
+  </aside>
+</div>
+</body>
+</html>

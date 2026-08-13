@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operato — Concept 3: Clean Ops</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --bg: #F6F7F9;
+    --surface: #FFFFFF;
+    --surface-2: #F0F1F4;
+    --border: #E5E7EB;
+    --text: #14161A;
+    --muted: #6B7280;
+    --primary: #0E9F71;
+    --primary-2: #0B8A61;
+    --primary-tint: #E4F7EE;
+    --amber: #B7791F;
+    --amber-bg: #FDF3E1;
+    --amber-border: #F3E1B8;
+    --blue: #2563EB;
+    --violet: #7C3AED;
+    --emerald: #0E9F71;
+    --radius: 10px;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background: var(--bg); color: var(--text); -webkit-font-smoothing:antialiased; font-size:14px; }
+
+  .shell{ display:flex; min-height:100vh; }
+
+  .sidebar{ width:236px; flex-shrink:0; background: var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:16px 10px; }
+  .switcher{ border:1px solid var(--border); border-radius:8px; padding:9px 10px; display:flex; align-items:center; gap:9px; cursor:pointer; }
+  .switcher:hover{ background: var(--surface-2); }
+  .switcher .icon{ width:26px; height:26px; border-radius:7px; background: var(--text); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; }
+  .switcher .info{ flex:1; min-width:0; }
+  .switcher .name{ font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .switcher .role{ font-size:10.5px; color:var(--muted); }
+  .switcher .chev{ color:var(--muted); font-size:11px; }
+
+  nav{ margin-top:16px; display:flex; flex-direction:column; gap:1px; flex:1; }
+  .navitem{ display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:6px; color: #374151; font-size:12.5px; font-weight:500; }
+  .navitem .dot{ width:15px; text-align:center; font-size:12.5px; opacity:.8; }
+  .navitem.active{ background: var(--primary-tint); color: var(--primary-2); font-weight:600; }
+  .navitem.active .dot{ opacity:1; }
+  .navitem:not(.active):hover{ background: var(--surface-2); }
+
+  .user{ display:flex; align-items:center; gap:9px; padding:8px 8px; border-top:1px solid var(--border); margin-top:6px; }
+  .avatar{ width:24px; height:24px; border-radius:50%; background: var(--surface-2); border:1px solid var(--border); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; }
+  .user .name{ font-size:12px; font-weight:600; }
+  .user .email{ font-size:10.5px; color:var(--muted); }
+
+  .main{ flex:1; min-width:0; }
+  .topbar{ position:sticky; top:0; z-index:5; background: rgba(246,247,249,.92); backdrop-filter: blur(6px); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; }
+  .topbar h1{ font-size:16px; font-weight:700; letter-spacing:-.01em; }
+  .topbar p{ font-size:11.5px; color:var(--muted); margin-top:1px; }
+  .range-chip{ background: var(--surface); border:1px solid var(--border); padding:6px 12px; border-radius:7px; font-size:12px; font-weight:500; }
+
+  .content{ padding:22px 28px 60px; display:flex; flex-direction:column; gap:14px; max-width:1240px; }
+
+  .kpi-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .card{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:16px; }
+  .kpi .label{ font-size:11.5px; color:var(--muted); font-weight:500; }
+  .kpi .value{ font-size:22px; margin-top:7px; font-weight:700; letter-spacing:-.02em; }
+  .kpi .delta{ margin-top:8px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:3px; }
+  .delta.up{ color: var(--primary); }
+  .delta.down{ color:#DC2626; }
+
+  .alert{ background: var(--amber-bg); border:1px solid var(--amber-border); border-radius: var(--radius); padding:12px 16px; display:flex; align-items:center; gap:12px; }
+  .alert .ic{ font-size:14px; flex-shrink:0; }
+  .alert .txt{ flex:1; font-size:12.5px; color:#78500F; }
+  .alert .txt b{ font-weight:700; }
+  .alert .btn-ghost{ background:#fff; border:1px solid var(--amber-border); padding:6px 12px; border-radius:6px; font-size:11.5px; font-weight:600; color:#78500F; white-space:nowrap; }
+
+  .grid-2{ display:grid; grid-template-columns:2fr 1fr; gap:12px; }
+  .card h3{ font-size:12.5px; font-weight:700; }
+  .card .sub{ font-size:10.5px; color:var(--muted); margin-top:2px; margin-bottom:12px; }
+
+  .legend{ display:flex; gap:14px; margin-top:12px; flex-wrap:wrap; }
+  .legend .item{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+  .legend .sw{ width:7px; height:7px; border-radius:2px; }
+
+  .stackbar{ height:8px; border-radius:4px; overflow:hidden; display:flex; background:var(--surface-2); }
+
+  .barlist{ display:flex; flex-direction:column; gap:9px; margin-top:2px; }
+  .barrow{ display:grid; grid-template-columns:104px 1fr 40px; align-items:center; gap:9px; }
+  .barrow .lbl{ font-size:11.5px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#374151; }
+  .bartrack{ height:6px; background: var(--surface-2); border-radius:4px; overflow:hidden; }
+  .barfill{ height:100%; border-radius:4px; background: var(--primary); }
+  .barrow .num{ font-size:11px; color:var(--muted); text-align:right; }
+
+  .meter-wrap{ margin-top:2px; }
+  .meter{ height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden; }
+  .meter-fill{ height:100%; background: var(--primary); }
+  .meter-num{ font-size:22px; font-weight:700; margin-top:12px; letter-spacing:-.02em; }
+  .meter-cap{ font-size:11px; color:var(--muted); margin-top:3px; }
+
+  .ai-teaser{ background: var(--surface); border:1px solid var(--border); }
+  .ai-teaser .ic-badge{ width:28px; height:28px; border-radius:7px; background: var(--primary-tint); color:var(--primary-2); display:flex; align-items:center; justify-content:center; font-size:13px; margin-bottom:10px; }
+  .ai-teaser .q-input{ margin-top:12px; background: var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:11px 13px; font-size:12px; color:var(--muted); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ai-teaser .send{ background: var(--text); color:#fff; border:none; border-radius:6px; padding:7px 12px; font-size:11.5px; font-weight:600; flex-shrink:0; }
+  .ai-teaser .quota{ margin-top:9px; font-size:10.5px; color:var(--muted); }
+
+  table{ width:100%; border-collapse:collapse; margin-top:2px; }
+  th{ text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; padding:0 0 8px; }
+  td{ font-size:12px; padding:8px 0; border-top:1px solid var(--border); }
+  .badge{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:600; padding:3px 8px; border-radius:5px; }
+  .badge.amber{ background:var(--amber-bg); color:var(--amber); }
+  .badge.blue{ background:#EFF3FF; color:var(--blue); }
+  .badge.violet{ background:#F4EEFE; color:var(--violet); }
+  .badge.emerald{ background:var(--primary-tint); color:var(--emerald); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="switcher">
+      <div class="icon">SR</div>
+      <div class="info">
+        <div class="name">Spice Route Kitchen</div>
+        <div class="role">Owner</div>
+      </div>
+      <div class="chev">⌄</div>
+    </div>
+    <nav>
+      <div class="navitem active"><span class="dot">▤</span> Overview</div>
+      <div class="navitem"><span class="dot">✦</span> Ask AI</div>
+      <div class="navitem"><span class="dot">☰</span> Menu</div>
+      <div class="navitem"><span class="dot">▧</span> Orders</div>
+      <div class="navitem"><span class="dot">▥</span> Inventory</div>
+      <div class="navitem"><span class="dot">◔</span> Staff</div>
+      <div class="navitem"><span class="dot">◍</span> Customers</div>
+    </nav>
+    <div class="user">
+      <div class="avatar">AR</div>
+      <div>
+        <div class="name">Aditi Rao</div>
+        <div class="email">aditi@spiceroute.in</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Overview</h1>
+        <p>Your restaurant at a glance</p>
+      </div>
+      <div class="range-chip">Last 7 days</div>
+    </header>
+
+    <div class="content">
+      <div class="kpi-row">
+        <div class="card kpi"><div class="label">Revenue</div><div class="value">₹1,84,320</div><div class="delta up">↑ 12.4%</div></div>
+        <div class="card kpi"><div class="label">Orders</div><div class="value">342</div><div class="delta up">↑ 8.1%</div></div>
+        <div class="card kpi"><div class="label">Average order</div><div class="value">₹539</div><div class="delta down">↓ 2.3%</div></div>
+        <div class="card kpi"><div class="label">New customers</div><div class="value">28</div><div class="delta up">↑ 15.6%</div></div>
+      </div>
+
+      <div class="alert">
+        <div class="ic">⚠</div>
+        <div class="txt"><b>3 items are running low</b> — Paneer, Basmati Rice and Cooking Oil are close to your reorder line.</div>
+        <button class="btn-ghost">Go to Inventory →</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Revenue, last 30 days</h3>
+          <div class="sub">Daily gross revenue across all order types</div>
+          <svg viewBox="0 0 600 190" width="100%" height="160" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="c-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0E9F71" stop-opacity="0.16"/>
+                <stop offset="100%" stop-color="#0E9F71" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,150 L50,142 L100,155 L150,122 L200,132 L250,102 L300,112 L350,82 L400,96 L450,72 L500,58 L550,66 L600,42 L600,190 L0,190 Z" fill="url(#c-area)"/>
+            <path d="M0,150 L50,142 L100,155 L150,122 L200,132 L250,102 L300,112 L350,82 L400,96 L450,72 L500,58 L550,66 L600,42" fill="none" stroke="#0E9F71" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="card">
+          <h3>How people order</h3>
+          <div class="sub">Share of orders by type</div>
+          <div class="stackbar">
+            <div style="width:54%; background:var(--primary);"></div>
+            <div style="width:31%; background:var(--blue);"></div>
+            <div style="width:15%; background:var(--violet);"></div>
+          </div>
+          <div class="legend">
+            <div class="item"><span class="sw" style="background:var(--primary);"></span>Dine-in · 54%</div>
+            <div class="item"><span class="sw" style="background:var(--blue);"></span>Takeaway · 31%</div>
+            <div class="item"><span class="sw" style="background:var(--violet);"></span>Delivery · 15%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Top dishes by units sold</h3>
+          <div class="sub">Last 7 days</div>
+          <div class="barlist">
+            <div class="barrow"><div class="lbl">Butter Chicken</div><div class="bartrack"><div class="barfill" style="width:92%;"></div></div><div class="num">184</div></div>
+            <div class="barrow"><div class="lbl">Paneer Tikka</div><div class="bartrack"><div class="barfill" style="width:78%;"></div></div><div class="num">156</div></div>
+            <div class="barrow"><div class="lbl">Chicken Biryani</div><div class="bartrack"><div class="barfill" style="width:71%;"></div></div><div class="num">142</div></div>
+            <div class="barrow"><div class="lbl">Masala Dosa</div><div class="bartrack"><div class="barfill" style="width:58%;"></div></div><div class="num">118</div></div>
+            <div class="barrow"><div class="lbl">Cold Coffee</div><div class="bartrack"><div class="barfill" style="width:45%;"></div></div><div class="num">96</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Known customers</h3>
+          <div class="sub">Revenue tied to a saved profile</div>
+          <div class="meter-wrap">
+            <div class="meter"><div class="meter-fill" style="width:68%;"></div></div>
+            <div class="meter-num">68%</div>
+            <div class="meter-cap">₹1,25,340 of ₹1,84,320 from known customers</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card ai-teaser">
+          <div class="ic-badge">✦</div>
+          <h3>Ask Operato</h3>
+          <div class="sub">Plain-English questions, answered from your real data</div>
+          <div class="q-input">"What were our top 5 dishes by revenue this month?" <button class="send">Ask →</button></div>
+          <div class="quota">12 of 50 questions left today</div>
+        </div>
+        <div class="card">
+          <h3>Recent orders</h3>
+          <table>
+            <tr><th>Order</th><th>Total</th><th>Status</th></tr>
+            <tr><td>#1042 · Table 4</td><td>₹860</td><td><span class="badge blue">Preparing</span></td></tr>
+            <tr><td>#1041 · Takeaway</td><td>₹240</td><td><span class="badge violet">Ready</span></td></tr>
+            <tr><td>#1040 · Table 7</td><td>₹1,450</td><td><span class="badge emerald">Served</span></td></tr>
+            <tr><td>#1039 · Delivery</td><td>₹680</td><td><span class="badge amber">Pending</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
