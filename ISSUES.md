@@ -63,6 +63,7 @@ Closed issues are not listed. If it was found and fixed, it lives in STATUS.md's
 |---|---|---|---|
 | P1 | 📋 Menu image field keeps a raw-URL fallback input | Looks like an unfinished form next to the Uploadthing button | Intentional — it lets you re-attach an existing upload without re-uploading. Remove only if that stops being useful |
 | P2 | 🛠 Billing page has no invoice/payment history | An owner can see their plan and renewal date, nothing else | Razorpay holds the invoices; surface them via `invoices.all({ subscription_id })` if it's ever asked for |
+| P3 | 📋🛠 **Touch targets are 25–28px on mobile, not 44px** | shadcn's `size="sm"` buttons render at 28px and tab triggers at 25px. That clears WCAG 2.5.8 **AA** (24px) but misses the 2.5.5 **AAA** 44px target — which matters more here than in a typical dashboard, because Orders and Inventory get used on a tablet, one-handed, with wet hands. Found by a responsive audit, not yet fixed | Raise the floor to 44px on coarse pointers only (`@media (pointer: coarse)`), so desktop density is untouched. Deliberately deferred: doing it globally changes layout density on every screen and wants its own visual pass |
 
 ---
 

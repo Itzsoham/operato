@@ -232,8 +232,11 @@ export function OrderTypeMix({ data }: { data: TypeSlice[] }) {
             >
               {/* Only label INSIDE when the text actually fits — a clipped label is worse
                   than none. Below the threshold the legend and tooltip carry it. */}
+              {/* The label wears --chart-foreground, NOT text-white: the dark ramp is
+                  deliberately light, so a fixed white label measures 2.3:1 there. This
+                  token flips with the theme and clears 4.5:1 on all six slots in both. */}
               {percent >= 12 ? (
-                <span className="text-xs font-medium text-white tabular-nums">{percent}%</span>
+                <span className="text-chart-foreground text-xs font-medium tabular-nums">{percent}%</span>
               ) : null}
             </div>
           );

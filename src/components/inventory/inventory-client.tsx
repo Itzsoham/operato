@@ -135,10 +135,10 @@ export function InventoryClient({
       {/* The reorder list — the whole point of tracking stock. This is arithmetic, not
           an AI call: "how many days of chicken do I have" has an exact answer. */}
       {reorder.length > 0 ? (
-        <Card className="border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+        <Card className="border-warning-border bg-warning-subtle">
           <CardContent className="flex flex-col gap-2 p-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="size-4 text-amber-600 dark:text-amber-500" />
+              <AlertTriangle className="text-warning-subtle-foreground size-4" />
               <span className="font-medium">
                 {reorder.length} item{reorder.length === 1 ? "" : "s"} below the reorder line
               </span>
@@ -217,14 +217,14 @@ export function InventoryClient({
               </TableRow>
             ) : (
               stock?.map((item) => (
-                <TableRow key={item.id} className={item.needsReorder ? "bg-amber-50/50 dark:bg-amber-950/20" : ""}>
+                <TableRow key={item.id} className={item.needsReorder ? "bg-warning-subtle/50" : ""}>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{item.name}</span>
                       {item.needsReorder ? (
                         <Badge
                           variant="secondary"
-                          className="bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+                          className="bg-warning-subtle text-warning-subtle-foreground"
                         >
                           reorder
                         </Badge>
@@ -246,7 +246,7 @@ export function InventoryClient({
                       // reorder list, which is the opposite of the truth.
                       <span className="text-muted-foreground">—</span>
                     ) : (
-                      <span className={item.daysLeft < 3 ? "font-medium text-amber-700 dark:text-amber-400" : ""}>
+                      <span className={item.daysLeft < 3 ? "text-warning-subtle-foreground font-medium" : ""}>
                         {item.daysLeft}d
                       </span>
                     )}

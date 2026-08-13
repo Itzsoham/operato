@@ -292,7 +292,7 @@ function NewOrderForm({
                 >
                   <span
                     aria-hidden
-                    className={`size-2.5 shrink-0 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-600"}`}
+                    className={`size-2.5 shrink-0 rounded-full ${item.isVeg ? "bg-veg" : "bg-nonveg"}`}
                   />
                   <span className="min-w-0 flex-1 truncate text-sm">{item.name}</span>
                   <span className="text-muted-foreground w-16 text-right text-sm tabular-nums">

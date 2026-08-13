@@ -4,6 +4,7 @@ import { Armchair, Plus, Receipt } from "lucide-react";
 import { useState } from "react";
 
 import { NewOrderDialog } from "@/components/orders/new-order-dialog";
+import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,16 +34,6 @@ const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
   CONFIRMED: "PREPARING",
   PREPARING: "READY",
   READY: "SERVED",
-};
-
-const STATUS_STYLE: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-  CONFIRMED: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-  PREPARING: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200",
-  READY: "bg-violet-100 text-violet-900 dark:bg-violet-950 dark:text-violet-200",
-  SERVED: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
-  PAID: "bg-muted text-muted-foreground",
-  CANCELLED: "bg-muted text-muted-foreground line-through",
 };
 
 export function OrdersClient({ restaurantId }: { restaurantId: string }) {
@@ -284,9 +275,7 @@ function OrderList({
               <div className="flex min-w-40 flex-col">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{order.orderNumber}</span>
-                  <Badge className={STATUS_STYLE[order.status]} variant="secondary">
-                    {order.status.toLowerCase()}
-                  </Badge>
+                  <OrderStatusBadge status={order.status} />
                 </div>
                 <span className="text-muted-foreground text-xs">
                   {order.table ? `Table ${order.table.number}` : order.type.replace("_", " ").toLowerCase()}

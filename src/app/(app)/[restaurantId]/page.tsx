@@ -63,10 +63,10 @@ export default async function OverviewPage({
         {/* Reorder alert — the one thing on this page that needs acting on today. Status
             colour + an icon + a sentence; never colour alone. */}
         {reorder.length > 0 ? (
-          <Card className="border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+          <Card className="border-warning-border bg-warning-subtle">
             <CardContent className="flex flex-wrap items-center gap-3 p-4">
               <AlertTriangle
-                className="size-4 shrink-0 text-amber-600 dark:text-amber-500"
+                className="text-warning-subtle-foreground size-4 shrink-0"
                 aria-hidden
               />
               <span className="text-sm font-medium">

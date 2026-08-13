@@ -36,6 +36,7 @@ Sixteen modules/features, each built → reviewed → fixed → verified.
 | 1 | Seed data | 2 restaurants, ~6k orders, ~15k line items, 320 customers, 3 months, correlated |
 | 2 | Auth + onboarding | Sign up/in/out, Google button, Restaurant+OWNER in one transaction, page guards |
 | 3 | Dashboard shell | Sidebar, restaurant switcher, nav, user menu, theme toggle (light/dark/system) |
+| 3b | **Design system — "Tandoor"** | Replaces shadcn's achromatic neutral preset. Warm-paper light / warm-charcoal dark, charred-brown primary (turmeric-promoted in dark), semantic solid+subtle pairs, a CVD-solved 6-slot chart ramp, FSSAI-correct veg/non-veg marks, and the ordinal order-lifecycle badge. Plus Jakarta Sans + JetBrains Mono, `tabular-nums` on money. Every token is contrast-verified; see `design-concepts/10-mise-system.html` for the spec and the four rules it enforces |
 | 4 | Menu | Categories + dishes, availability, drag-reorder, category management UI, Uploadthing images |
 | 5 | Orders + Tables | Floor grid, order → kitchen → payment, row-locked customer rollup, date-filtered/paginated history |
 | 6 | Inventory | Signed-delta ledger, row-locked movements, velocity + reorder list, full item CRUD UI |

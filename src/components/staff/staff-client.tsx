@@ -230,7 +230,7 @@ function StaffRow({
           {staff.isActive ? (
             <Badge
               variant="secondary"
-              className="bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
+              className="bg-success-subtle text-success-subtle-foreground"
             >
               Active
             </Badge>

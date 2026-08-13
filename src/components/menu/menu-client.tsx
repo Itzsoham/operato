@@ -143,7 +143,7 @@ export function MenuClient({ restaurantId }: { restaurantId: string }) {
                         aria-label={item.isVeg ? "Vegetarian" : "Non-vegetarian"}
                         title={item.isVeg ? "Vegetarian" : "Non-vegetarian"}
                         className={`size-2.5 shrink-0 rounded-full border ${
-                          item.isVeg ? "border-green-600 bg-green-600" : "border-red-600 bg-red-600"
+                          item.isVeg ? "border-veg bg-veg" : "border-nonveg bg-nonveg"
                         }`}
                       />
                       <div className="flex flex-col">
