@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en" data-palette="terracotta">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Operato — Concept 10: Mise</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  /* ============================================================
+     PALETTES — every colour decision lives here. The markup below
+     references only tokens, so switching data-palette on <html>
+     re-skins the entire product with nothing else changing.
+     ============================================================ */
+
+  /* ---------- 1 · TANDOOR — charred clay oven ---------- */
+  [data-palette="tandoor"]{
+    --paper:#FDFAF4; --surface:#FFFFFF; --surface-2:#F5F0E6; --surface-3:#EDE6D8;
+    --border:#E7DFD0; --border-strong:#D6CBB6;
+    --ink:#241C14; --ink-2:#524736; --ink-3:#7A6E59;
+    --primary:#2E211A; --primary-text:#2E211A; --primary-fg:#FFFFFF; --primary-hover:#1F1610; --primary-tint:#EFE9E3;
+    --accent:#C0442C; --accent-text:#9A3520; --accent-tint:#FBEAE4;
+    --ready:#E2A32D; --ready-fg:#241C14; --ready-bd:#B8811C;
+    --gold:#E2A32D; --gold-text:#8A5C0B; --gold-tint:#FBF1DC; --gold-border:#EFDCAF;
+    --success:#4F7A3F; --success-tint:#EDF2E6; --success-bd:#CFE0C4;
+    --danger:#A31D14;  --danger-tint:#FBE9E7;  --danger-bd:#F2CFC9;
+    --info:#4A6D8C;    --info-tint:#EAF0F5;    --info-bd:#D2E0EA;
+    --rail-fill:#DCD2C4; --rail-now:#F2D492;
+    --c1:#8C4A2F; --c2:#C0442C; --c3:#B77B12; --c4:#5C7A4A; --c5:#7A5C3A; --c6:#5E7D7A;
+    --s-bg:#17130F; --s-surface:#221D18; --s-surface-2:#2D2620; --s-border:#3C3429;
+    --s-text:#F5F0E6; --s-muted:#A79A85;
+    --s-primary:#E2A32D; --s-primary-fg:#241C14; --s-success:#6FBF8F; --s-danger:#F0837A;
+  }
+
+  /* ---------- 2 · MASALA — the full spice box ---------- */
+  [data-palette="masala"]{
+    --paper:#FDF8F0; --surface:#FFFFFF; --surface-2:#F7F0E3; --surface-3:#F0E7D5;
+    --border:#EADFCB; --border-strong:#D9C9AC;
+    --ink:#2A1F16; --ink-2:#59493A; --ink-3:#7C6B54;
+    --primary:#B8442A; --primary-text:#9C3722; --primary-fg:#FFFFFF; --primary-hover:#9C3722; --primary-tint:#FAE9E3;
+    --accent:#5C7A4A; --accent-text:#425A33; --accent-tint:#EEF2E8;
+    --ready:#E8B33C; --ready-fg:#2A1F16; --ready-bd:#BE8A18;
+    --gold:#D99420; --gold-text:#8A5A0B; --gold-tint:#FCF1DB; --gold-border:#F0DCAE;
+    --success:#5C7A4A; --success-tint:#EEF2E8; --success-bd:#D2E0C8;
+    --danger:#9B1B12;  --danger-tint:#FAE7E5;  --danger-bd:#F0CBC7;
+    --info:#4A6D8C;    --info-tint:#EAF0F5;    --info-bd:#D2E0EA;
+    --rail-fill:#F0C9BC; --rail-now:#F5DCA0;
+    --c1:#B8442A; --c2:#B77B12; --c3:#5C7A4A; --c4:#8A6A3F; --c5:#7B4A5C; --c6:#4A6D8C;
+    --s-bg:#191310; --s-surface:#241C18; --s-surface-2:#302620; --s-border:#3F332A;
+    --s-text:#F7F0E3; --s-muted:#AB9A85;
+    --s-primary:#E8B33C; --s-primary-fg:#2A1F16; --s-success:#7FBF7A; --s-danger:#F0837A;
+  }
+
+  /* ---------- 3 · TERRACOTTA & OLIVE — clay pot, olive branch ---------- */
+  [data-palette="terracotta"]{
+    --paper:#FBF6EE; --surface:#FFFFFF; --surface-2:#F4EDE1; --surface-3:#EDE4D4;
+    --border:#E6DACA; --border-strong:#D3C3AC;
+    --ink:#2B241C; --ink-2:#584C3D; --ink-3:#786954;
+    --primary:#B85C38; --primary-text:#9C4A2B; --primary-fg:#FFFFFF; --primary-hover:#9C4A2B; --primary-tint:#FAEBE2;
+    --accent:#6B7A3F; --accent-text:#4E5A2C; --accent-tint:#EFF2E4;
+    --ready:#D9A441; --ready-fg:#2B241C; --ready-bd:#B0801E;
+    --gold:#D9A441; --gold-text:#87600F; --gold-tint:#FBF2DF; --gold-border:#EEDCAE;
+    --success:#5A7A3C; --success-tint:#EEF2E6; --success-bd:#D3E0C3;
+    --danger:#A32615;  --danger-tint:#FBEAE6;  --danger-bd:#F2CFC8;
+    --info:#5E7D7A;    --info-tint:#EAF1F0;    --info-bd:#D0E1DE;
+    --rail-fill:#EBCFBE; --rail-now:#EFD79B;
+    --c1:#B85C38; --c2:#6B7A3F; --c3:#A87A1E; --c4:#5E7D7A; --c5:#8A6246; --c6:#7B5480;
+    --s-bg:#18130E; --s-surface:#231D16; --s-surface-2:#2E271E; --s-border:#3D3427;
+    --s-text:#F4EDE1; --s-muted:#A89882;
+    --s-primary:#D9A441; --s-primary-fg:#2B241C; --s-success:#7FBF7A; --s-danger:#F0837A;
+  }
+
+  /* ---------- 4 · WINE & COPPER — upscale dining ---------- */
+  [data-palette="wine"]{
+    --paper:#FCF8F5; --surface:#FFFFFF; --surface-2:#F5EEEA; --surface-3:#EEE4DE;
+    --border:#E8DCD5; --border-strong:#D6C4BA;
+    --ink:#241A1C; --ink-2:#4F3E42; --ink-3:#7B6669;
+    --primary:#7A2E3B; --primary-text:#7A2E3B; --primary-fg:#FFFFFF; --primary-hover:#632430; --primary-tint:#F6E9EC;
+    --accent:#C87941; --accent-text:#8E5222; --accent-tint:#FBEEE1;
+    --ready:#C87941; --ready-fg:#241A1C; --ready-bd:#A05B28;
+    --gold:#D9A441; --gold-text:#87600F; --gold-tint:#FBF2DF; --gold-border:#EEDCAE;
+    --success:#4F7A5A; --success-tint:#EBF2ED; --success-bd:#CBE0D3;
+    --danger:#A81F27;  --danger-tint:#FBE9EA;  --danger-bd:#F2CBCE;
+    --info:#4A6D8C;    --info-tint:#EAF0F5;    --info-bd:#D2E0EA;
+    --rail-fill:#E5CDD2; --rail-now:#E9C6A5;
+    --c1:#7A2E3B; --c2:#C87941; --c3:#4F7A5A; --c4:#9B6A7A; --c5:#8A6A3F; --c6:#4A6D8C;
+    --s-bg:#171012; --s-surface:#221A1C; --s-surface-2:#2D2325; --s-border:#3C2F32;
+    --s-text:#F5EEEA; --s-muted:#A8949A;
+    --s-primary:#C87941; --s-primary-fg:#241A1C; --s-success:#6FBF8F; --s-danger:#F0837A;
+  }
+
+  /* ---------- 5 · CHAI & CINNAMON — café, bakery, all-day ---------- */
+  [data-palette="chai"]{
+    --paper:#FBF7F1; --surface:#FFFFFF; --surface-2:#F4EDE3; --surface-3:#EDE5D7;
+    --border:#E7DCCC; --border-strong:#D4C5AF;
+    --ink:#291F17; --ink-2:#55483A; --ink-3:#7C6C57;
+    --primary:#8B5A2B; --primary-text:#8B5A2B; --primary-fg:#FFFFFF; --primary-hover:#734622; --primary-tint:#F5EBDF;
+    --accent:#C25E3A; --accent-text:#953F20; --accent-tint:#FAEAE2;
+    --ready:#D9A441; --ready-fg:#291F17; --ready-bd:#B0801E;
+    --gold:#D9A441; --gold-text:#87600F; --gold-tint:#FBF2DF; --gold-border:#EEDCAE;
+    --success:#5A7A4A; --success-tint:#EEF2E8; --success-bd:#D2E0C8;
+    --danger:#A32B18;  --danger-tint:#FBEAE6;  --danger-bd:#F2D0C8;
+    --info:#5A6E8C;    --info-tint:#EBEFF5;    --info-bd:#D3DCEA;
+    --rail-fill:#E6D5BE; --rail-now:#EFD79B;
+    --c1:#8B5A2B; --c2:#C25E3A; --c3:#5A7A4A; --c4:#A87A1E; --c5:#6E5A7A; --c6:#5A6E8C;
+    --s-bg:#18120C; --s-surface:#231C14; --s-surface-2:#2E251B; --s-border:#3D3325;
+    --s-text:#F4EDE3; --s-muted:#A8977F;
+    --s-primary:#D9A441; --s-primary-fg:#291F17; --s-success:#7FBF7A; --s-danger:#F0837A;
+  }
+
+  :root{ --r-card:14px; --r-ctl:10px; --r-pill:100px;
+         --sh-1:0 1px 2px rgba(30,22,14,.04);
+         --sh-2:0 1px 2px rgba(30,22,14,.04), 0 8px 20px -14px rgba(30,22,14,.22); }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    font-family:'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased;
+    font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1;
+  }
+  .num{ font-family:'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing:-.02em; }
+  svg{ display:block; }
+
+  /* ============ PALETTE SWITCHER ============ */
+  .pbar{ position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:10px;
+         background:#15120F; padding:9px 20px; border-bottom:1px solid rgba(255,255,255,.09); }
+  .pbar .cap{ font-size:9.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#8E8375; }
+  .pbar .opts{ display:flex; gap:6px; }
+  .pbtn{ display:flex; align-items:center; gap:7px; background:transparent; border:1px solid rgba(255,255,255,.13);
+         border-radius:var(--r-pill); padding:5px 12px 5px 7px; cursor:pointer; font-family:inherit;
+         font-size:11.5px; font-weight:700; color:#B5AB9C; transition:background .13s, color .13s, border-color .13s; }
+  .pbtn:hover{ background:rgba(255,255,255,.06); color:#EFE9DF; }
+  .pbtn .dots{ display:flex; gap:2px; }
+  .pbtn .dots i{ width:9px; height:9px; border-radius:3px; display:block; }
+  .pbtn[aria-pressed="true"]{ background:#EFE9DF; color:#15120F; border-color:#EFE9DF; }
+  .pbar .hint{ margin-left:auto; font-size:11px; color:#6E655A; font-weight:600; }
+
+  .shell{ display:flex; min-height:100vh; }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar{ width:252px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:16px 12px 12px; }
+  .brand{ display:flex; align-items:center; gap:9px; padding:2px 8px 14px; }
+  .brand .mark{ width:28px; height:28px; border-radius:8px; background:var(--primary); display:flex; align-items:center; justify-content:center; }
+  .brand .wordmark{ font-size:15px; font-weight:800; letter-spacing:-.02em; }
+  .brand .wordmark span{ color:var(--accent-text); }
+
+  .switcher{ border:1px solid var(--border); border-radius:var(--r-ctl); padding:9px 11px; display:flex; align-items:center; gap:9px; background:var(--surface); box-shadow:var(--sh-1); cursor:pointer; }
+  .switcher .logo{ width:28px; height:28px; border-radius:7px; background:linear-gradient(140deg,var(--gold),var(--accent)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px; flex-shrink:0; }
+  .switcher .info{ flex:1; min-width:0; }
+  .switcher .name{ font-weight:700; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .switcher .role{ font-size:10.5px; color:var(--ink-3); font-weight:500; }
+
+  .ask{ margin-top:10px; display:flex; align-items:center; gap:8px; background:var(--primary); border-radius:var(--r-ctl); padding:10px 11px; font-size:12.5px; font-weight:700; color:var(--primary-fg); cursor:pointer; }
+  .ask .kbd{ margin-left:auto; font-size:9.5px; color:rgba(255,255,255,.72); background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.16); padding:2px 5px; border-radius:5px; font-weight:700; }
+
+  nav{ margin-top:14px; display:flex; flex-direction:column; gap:1px; flex:1; }
+  .navlabel{ font-size:9.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); font-weight:800; padding:12px 10px 5px; }
+  .navitem{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; color:var(--ink-2); font-size:12.5px; font-weight:600; cursor:pointer; }
+  .navitem svg{ width:16px; height:16px; stroke:currentColor; stroke-width:1.7; fill:none; stroke-linecap:round; stroke-linejoin:round; opacity:.85; }
+  .navitem.active{ background:var(--primary-tint); color:var(--primary-text); font-weight:700; box-shadow:inset 2px 0 0 var(--primary); }
+  .navitem.active svg{ opacity:1; }
+  .navitem:not(.active):hover{ background:var(--surface-2); color:var(--ink); }
+  .navitem .count{ margin-left:auto; font-size:10px; font-weight:800; background:var(--ready); color:var(--ready-fg); border-radius:var(--r-pill); padding:1px 7px; }
+
+  .live{ border:1px solid var(--border); border-radius:var(--r-ctl); padding:10px 11px; margin-bottom:8px; background:var(--surface-2); }
+  .live .hd{ display:flex; align-items:center; gap:6px; font-size:9.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+  .live .pip{ width:6px; height:6px; border-radius:50%; background:var(--success); box-shadow:0 0 0 3px var(--success-tint); }
+  .live .row{ display:flex; justify-content:space-between; font-size:11.5px; margin-top:7px; color:var(--ink-2); font-weight:600; }
+  .live .row b{ font-weight:800; color:var(--ink); }
+
+  .user{ display:flex; align-items:center; gap:9px; padding:9px 6px 2px; border-top:1px solid var(--border); }
+  .avatar{ width:28px; height:28px; border-radius:8px; background:var(--primary); color:var(--primary-fg); display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; }
+  .user .name{ font-size:12px; font-weight:700; }
+  .user .email{ font-size:10.5px; color:var(--ink-3); }
+
+  /* ============ MAIN ============ */
+  .main{ flex:1; min-width:0; }
+  .topbar{ position:sticky; top:41px; z-index:5; background:color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); padding:13px 28px; display:flex; align-items:center; gap:16px; }
+  .topbar h1{ font-size:19px; font-weight:800; letter-spacing:-.025em; }
+  .topbar .sub{ font-size:11.5px; color:var(--ink-3); margin-top:1px; font-weight:500; }
+  .cmd{ flex:1; max-width:380px; margin-left:auto; display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-ctl); padding:8px 12px; color:var(--ink-3); font-size:12.5px; font-weight:500; box-shadow:var(--sh-1); }
+  .cmd .kbd{ margin-left:auto; font-size:9.5px; background:var(--surface-2); border:1px solid var(--border); padding:2px 6px; border-radius:5px; font-weight:800; color:var(--ink-3); }
+  .seg{ display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-ctl); padding:2px; }
+  .seg span{ font-size:11.5px; font-weight:700; padding:5px 11px; border-radius:7px; color:var(--ink-3); }
+  .seg span.on{ background:var(--surface); color:var(--ink); box-shadow:var(--sh-1); }
+
+  .content{ padding:20px 28px 56px; display:flex; flex-direction:column; gap:14px; max-width:1320px; }
+
+  /* ---- SERVICE RAIL ---- */
+  .rail{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); box-shadow:var(--sh-2); padding:14px 18px 12px; }
+  .rail .hd{ display:flex; align-items:baseline; gap:10px; margin-bottom:12px; }
+  .rail .hd h3{ font-size:13px; font-weight:800; letter-spacing:-.01em; }
+  .rail .hd .now{ font-size:11px; font-weight:700; color:var(--gold-text); background:var(--gold-tint); border:1px solid var(--gold-border); border-radius:var(--r-pill); padding:2px 9px; }
+  .rail .hd .tot{ margin-left:auto; font-size:11.5px; color:var(--ink-3); font-weight:600; }
+  .rail .hd .tot b{ color:var(--ink); font-weight:800; }
+  .parts{ display:grid; grid-template-columns:1fr 1.5fr .7fr 2fr .8fr; gap:8px; }
+  .part{ position:relative; }
+  .part .bar{ height:54px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:flex-end; overflow:hidden; }
+  .part .fill{ width:100%; background:var(--rail-fill); border-top:2px solid var(--c1); }
+  .part.now .bar{ border-color:var(--gold-border); background:var(--gold-tint); }
+  .part.now .fill{ background:var(--rail-now); border-top:2px solid var(--ready-bd); }
+  .part.next .bar{ background:repeating-linear-gradient(135deg, var(--surface-2) 0 6px, var(--surface) 6px 12px); }
+  .part.next .fill{ display:none; }
+  .part .lbl{ display:flex; align-items:center; gap:5px; margin-top:7px; font-size:11px; font-weight:700; }
+  .part .lbl .t{ color:var(--ink-3); font-weight:600; }
+  .part .amt{ font-size:11px; color:var(--ink-3); font-weight:600; margin-top:2px; }
+  .part.now .lbl{ color:var(--gold-text); }
+  /* "now" playhead — deliberately --ink, never --danger. A clock position is not
+     an alarm; red stays reserved for genuine problems. */
+  .marker{ position:absolute; top:-5px; bottom:30px; width:2px; background:var(--ink); border-radius:2px; z-index:2; }
+  .marker::before{ content:""; position:absolute; top:-4px; left:-3px; width:8px; height:8px; border-radius:50%; background:var(--ink); }
+
+  /* ---- KPI ---- */
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); box-shadow:var(--sh-2); padding:16px; }
+  .kpi .top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .kpi .label{ font-size:11.5px; color:var(--ink-3); font-weight:700; }
+  .kpi .value{ font-size:25px; font-weight:800; letter-spacing:-.035em; margin-top:7px; }
+  .kpi .foot{ display:flex; align-items:center; gap:7px; margin-top:8px; }
+  .delta{ font-size:11px; font-weight:800; display:inline-flex; align-items:center; gap:3px; padding:2.5px 7px; border-radius:var(--r-pill); }
+  .delta.up{ color:var(--success); background:var(--success-tint); }
+  .delta.down{ color:var(--danger); background:var(--danger-tint); }
+  .kpi .vs{ font-size:10.5px; color:var(--ink-3); font-weight:600; }
+
+  /* ---- alert ---- */
+  .alert{ background:var(--danger-tint); border:1px solid var(--danger-bd); border-radius:var(--r-card); padding:13px 16px; display:flex; align-items:center; gap:12px; }
+  .alert .ic{ width:32px; height:32px; border-radius:9px; background:var(--surface); border:1px solid var(--danger-bd); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .alert .ic svg{ width:16px; height:16px; stroke:var(--danger); stroke-width:1.9; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .alert .txt{ flex:1; font-size:12.5px; color:var(--danger); font-weight:500; line-height:1.45; }
+  .alert .txt b{ font-weight:800; }
+  .alert .btn{ background:var(--surface); border:1px solid var(--danger-bd); padding:7px 13px; border-radius:9px; font-size:11.5px; font-weight:800; color:var(--danger); white-space:nowrap; cursor:pointer; font-family:inherit; }
+
+  /* ---- grids ---- */
+  .g-2{ display:grid; grid-template-columns:1.85fr 1fr; gap:12px; }
+  .card h3{ font-size:13px; font-weight:800; letter-spacing:-.01em; }
+  .card .sub{ font-size:11px; color:var(--ink-3); margin-top:2px; font-weight:500; }
+  .cardhd{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+  .link{ font-size:11.5px; font-weight:700; color:var(--primary-text); }
+
+  /* ---- ORDER BOARD ---- */
+  .orow{ display:grid; grid-template-columns:88px 1fr 132px 74px 96px; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--border); }
+  .orow:first-of-type{ border-top:none; }
+  .oid{ font-size:12px; font-weight:800; }
+  .oid .where{ font-size:10.5px; color:var(--ink-3); font-weight:600; display:block; margin-top:1px; }
+  .oitems{ font-size:12px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500; }
+  .otime{ font-size:11.5px; font-weight:700; text-align:right; }
+  .otime.late{ color:var(--danger); }
+  .oamt{ font-size:12.5px; font-weight:700; text-align:right; }
+
+  .state{ display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 7px; border-radius:var(--r-pill); font-size:10.5px; font-weight:800; border:1px solid transparent; }
+  .state .steps{ display:flex; gap:2px; }
+  .state .steps i{ width:3px; height:9px; border-radius:1px; background:currentColor; opacity:.22; }
+  .state .steps i.on{ opacity:1; }
+  .s-placed { color:var(--info);      background:var(--info-tint);    border-color:var(--info-bd); }
+  .s-prep   { color:var(--gold-text); background:var(--gold-tint);    border-color:var(--gold-border); }
+  .s-ready  { color:var(--ready-fg);  background:var(--ready);        border-color:var(--ready-bd); }
+  .s-served { color:var(--success);   background:var(--success-tint); border-color:var(--success-bd); }
+  .s-paid   { color:var(--ink-3);     background:var(--surface-2);    border-color:var(--border); }
+
+  .legendrow{ display:flex; align-items:center; gap:7px; margin-top:12px; padding-top:11px; border-top:1px dashed var(--border); flex-wrap:wrap; }
+  .legendrow .cap{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); margin-right:2px; }
+  .legendrow .arrow{ color:var(--border-strong); font-size:11px; }
+
+  /* ---- chart ---- */
+  .chartwrap{ position:relative; }
+  .yaxis{ position:absolute; left:0; top:0; bottom:20px; width:38px; display:flex; flex-direction:column; justify-content:space-between; }
+  .yaxis span{ font-size:9.5px; color:var(--ink-3); font-weight:600; }
+  .plot{ margin-left:38px; }
+  .xaxis{ margin-left:38px; display:flex; justify-content:space-between; margin-top:5px; }
+  .xaxis span{ font-size:9.5px; color:var(--ink-3); font-weight:600; }
+  .clegend{ display:flex; gap:14px; margin-top:10px; margin-left:38px; }
+  .clegend .i{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-3); font-weight:600; }
+  .clegend .ln{ width:14px; height:2.5px; border-radius:2px; }
+  .clegend .ln.dash{ background-image:linear-gradient(90deg,var(--border-strong) 55%,transparent 55%); background-size:5px 2px; height:2px; }
+
+  /* ---- bar list ---- */
+  .barlist{ display:flex; flex-direction:column; gap:9px; }
+  .brow{ display:grid; grid-template-columns:1fr 46px; gap:10px; align-items:center; }
+  .brow .lbl{ font-size:12px; font-weight:600; margin-bottom:5px; }
+  .btrack{ height:7px; background:var(--surface-2); border-radius:var(--r-pill); overflow:hidden; }
+  .bfill{ height:100%; border-radius:var(--r-pill); }
+  .brow .n{ font-size:11.5px; color:var(--ink-2); text-align:right; font-weight:700; }
+
+  .stack{ height:10px; border-radius:var(--r-pill); overflow:hidden; display:flex; gap:2px; }
+  .stack div{ height:100%; }
+  .sl{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+  .sl .i{ display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:600; color:var(--ink-2); }
+  .sl .sw{ width:8px; height:8px; border-radius:2.5px; }
+  .sl .v{ margin-left:auto; font-weight:800; color:var(--ink); }
+  .hr{ height:1px; background:var(--border); margin:16px 0 14px; }
+
+  /* ---- AI ---- */
+  .ai{ background:linear-gradient(115deg, var(--primary-tint) 0%, var(--surface) 45%, var(--gold-tint) 100%); border:1px solid var(--border); }
+  .ai .hd{ display:flex; align-items:center; gap:11px; }
+  .ai .badge{ width:34px; height:34px; border-radius:10px; background:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai .quota{ margin-left:auto; font-size:11px; color:var(--ink-3); font-weight:700; }
+  .ai .input{ margin-top:13px; background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:11px 11px 11px 15px; display:flex; align-items:center; gap:10px; box-shadow:var(--sh-1); }
+  .ai .input .ph{ flex:1; font-size:13px; color:var(--ink-3); font-weight:500; }
+  .ai .send{ background:var(--primary); color:var(--primary-fg); border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .chips{ display:flex; gap:7px; margin-top:11px; flex-wrap:wrap; }
+  .chips span{ background:color-mix(in srgb, var(--surface) 85%, transparent); border:1px solid var(--border); border-radius:var(--r-pill); padding:5px 11px; font-size:11px; font-weight:700; color:var(--ink-2); cursor:pointer; }
+
+  /* ============ SERVICE MODE ============ */
+  .modehd{ margin-top:26px; padding-top:22px; border-top:1px solid var(--border); }
+  .modehd h2{ font-size:15px; font-weight:800; letter-spacing:-.02em; }
+  .modehd p{ font-size:12px; color:var(--ink-3); margin-top:4px; max-width:660px; line-height:1.55; font-weight:500; }
+
+  .svc{ background:var(--s-bg); border-radius:var(--r-card); padding:18px; margin-top:14px; color:var(--s-text); }
+  .svc .bar{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .svc .bar h3{ font-size:15px; font-weight:800; }
+  .svc .bar .pill{ font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--s-primary-fg); background:var(--s-primary); padding:3px 9px; border-radius:var(--r-pill); }
+  .svc .bar .clock{ margin-left:auto; font-size:13px; font-weight:700; color:var(--s-muted); }
+  .tickets{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .ticket{ background:var(--s-surface); border:1px solid var(--s-border); border-radius:12px; padding:13px; display:flex; flex-direction:column; }
+  .ticket.hot{ border-color:var(--s-primary); box-shadow:0 0 0 1px var(--s-primary), 0 0 26px -8px color-mix(in srgb, var(--s-primary) 55%, transparent); }
+  .ticket .th{ display:flex; align-items:center; justify-content:space-between; }
+  .ticket .tno{ font-size:15px; font-weight:800; letter-spacing:-.02em; }
+  .ticket .tt{ font-size:12px; font-weight:700; color:var(--s-muted); }
+  .ticket .tt.late{ color:var(--s-danger); }
+  .ticket .tw{ font-size:11px; color:var(--s-muted); font-weight:600; margin-top:2px; }
+  .ticket ul{ list-style:none; margin:11px 0 12px; display:flex; flex-direction:column; gap:5px; flex:1; }
+  .ticket li{ font-size:12.5px; font-weight:500; display:flex; gap:7px; }
+  .ticket li b{ color:var(--s-primary); font-weight:800; min-width:16px; }
+  .ticket .act{ width:100%; border:none; border-radius:9px; padding:10px; font-size:12.5px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .act.primary{ background:var(--s-primary); color:var(--s-primary-fg); }
+  .act.ghost{ background:var(--s-surface-2); color:var(--s-text); border:1px solid var(--s-border); }
+  .svc .note{ margin-top:13px; font-size:11px; color:var(--s-muted); font-weight:600; display:flex; align-items:center; gap:7px; }
+  .svc .note .dot{ width:5px; height:5px; border-radius:50%; background:var(--s-primary); }
+</style>
+</head>
+<body>
+
+<!-- ================= PALETTE SWITCHER ================= -->
+<div class="pbar">
+  <span class="cap">Palette</span>
+  <div class="opts">
+    <button class="pbtn" data-set="tandoor" aria-pressed="false">
+      <span class="dots"><i style="background:#2E211A"></i><i style="background:#C0442C"></i><i style="background:#E2A32D"></i></span>Tandoor</button>
+    <button class="pbtn" data-set="masala" aria-pressed="false">
+      <span class="dots"><i style="background:#B8442A"></i><i style="background:#D99420"></i><i style="background:#5C7A4A"></i></span>Masala</button>
+    <button class="pbtn" data-set="terracotta" aria-pressed="true">
+      <span class="dots"><i style="background:#B85C38"></i><i style="background:#6B7A3F"></i><i style="background:#D9A441"></i></span>Terracotta</button>
+    <button class="pbtn" data-set="wine" aria-pressed="false">
+      <span class="dots"><i style="background:#7A2E3B"></i><i style="background:#C87941"></i><i style="background:#D9A441"></i></span>Wine</button>
+    <button class="pbtn" data-set="chai" aria-pressed="false">
+      <span class="dots"><i style="background:#8B5A2B"></i><i style="background:#C25E3A"></i><i style="background:#D9A441"></i></span>Chai</button>
+  </div>
+  <span class="hint">Same markup, only tokens change — including Service mode below</span>
+</div>
+
+<div class="shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ready)" stroke-width="2" stroke-linecap="round">
+          <path d="M4 4v7a3 3 0 0 0 3 3v6M7 4v6M10 4v6"/><path d="M18 4c-1.5 2-2 4-2 7h4c0-3-.5-5-2-7ZM18 11v9"/>
+        </svg>
+      </div>
+      <div class="wordmark">Oper<span>a</span>to</div>
+    </div>
+
+    <div class="switcher">
+      <div class="logo">SR</div>
+      <div class="info">
+        <div class="name">Spice Route Kitchen</div>
+        <div class="role">Owner · Koramangala</div>
+      </div>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg>
+    </div>
+
+    <div class="ask">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ready)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+      Ask Operato
+      <span class="kbd">⌘K</span>
+    </div>
+
+    <nav>
+      <div class="navlabel">Workspace</div>
+      <div class="navitem active">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>
+        Overview
+      </div>
+
+      <div class="navlabel">Service</div>
+      <div class="navitem">
+        <svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2Z"/><path d="M9 8h6M9 12h6"/></svg>
+        Orders <span class="count">7</span>
+      </div>
+      <div class="navitem">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/></svg>
+        Tables
+      </div>
+      <div class="navitem">
+        <svg viewBox="0 0 24 24"><path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5Z"/><path d="M4 8.5 12 13l8-4.5M12 13v7"/></svg>
+        Inventory <span class="count">3</span>
+      </div>
+
+      <div class="navlabel">Catalogue</div>
+      <div class="navitem">
+        <svg viewBox="0 0 24 24"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H11v16H5.5A2.5 2.5 0 0 1 3 17.5Z"/><path d="M21 6.5A2.5 2.5 0 0 0 18.5 4H13v16h5.5a2.5 2.5 0 0 0 2.5-2.5Z"/></svg>
+        Menu
+      </div>
+
+      <div class="navlabel">People</div>
+      <div class="navitem">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.4 3.4 0 0 1 0 5.6M17.5 14.6A5.5 5.5 0 0 1 20.5 20"/></svg>
+        Staff
+      </div>
+      <div class="navitem">
+        <svg viewBox="0 0 24 24"><path d="M20.4 5.9a4.3 4.3 0 0 0-6.1 0L12 8.2 9.7 5.9a4.3 4.3 0 1 0-6.1 6.1l8.4 8.4 8.4-8.4a4.3 4.3 0 0 0 0-6.1Z"/></svg>
+        Customers
+      </div>
+    </nav>
+
+    <div class="live">
+      <div class="hd"><span class="pip"></span> Dinner service · live</div>
+      <div class="row"><span>Open tables</span><b>9 of 14</b></div>
+      <div class="row"><span>On the floor</span><b>5 staff</b></div>
+      <div class="row"><span>Avg ticket time</span><b>18m 40s</b></div>
+    </div>
+
+    <div class="user">
+      <div class="avatar">AR</div>
+      <div>
+        <div class="name">Aditi Rao</div>
+        <div class="email">aditi@spiceroute.in</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Overview</h1>
+        <div class="sub">Tuesday, 13 August · dinner service in progress</div>
+      </div>
+      <div class="cmd">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        Ask about revenue, dishes, staff…
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="seg"><span>Today</span><span class="on">7 days</span><span>30 days</span></div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== SERVICE RAIL ===== -->
+      <div class="rail">
+        <div class="hd">
+          <h3>Today by day-part</h3>
+          <span class="now">Dinner rush · 68% through</span>
+          <div class="tot">Today so far <b class="num">₹41,280</b> · pacing <b>+9%</b> vs last Tuesday</div>
+        </div>
+        <div class="parts">
+          <!-- fill heights are proportional: 100% of the bar = ₹30,000 -->
+          <div class="part done">
+            <div class="bar"></div>
+            <div class="lbl">Prep <span class="t">7–11a</span></div>
+            <div class="amt num">₹0</div>
+          </div>
+          <div class="part done">
+            <div class="bar"><div class="fill" style="height:49%"></div></div>
+            <div class="lbl">Lunch <span class="t">11a–3p</span></div>
+            <div class="amt num">₹14,650</div>
+          </div>
+          <div class="part done">
+            <div class="bar"><div class="fill" style="height:10%"></div></div>
+            <div class="lbl">Lull <span class="t">3–6p</span></div>
+            <div class="amt num">₹3,120</div>
+          </div>
+          <div class="part now">
+            <div class="marker" style="left:68%"></div>
+            <div class="bar"><div class="fill" style="height:78%"></div></div>
+            <div class="lbl">Dinner <span class="t">6–10p</span></div>
+            <div class="amt num">₹23,510 <span style="color:var(--ink-3)">· running</span></div>
+          </div>
+          <div class="part next">
+            <div class="bar"></div>
+            <div class="lbl">Close <span class="t">10p–12a</span></div>
+            <div class="amt">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== KPIs ===== -->
+      <div class="kpis">
+        <div class="card kpi">
+          <div class="top">
+            <div class="label">Revenue</div>
+            <svg width="56" height="22" viewBox="0 0 56 22"><path d="M0,17 L9,14 L19,16 L28,9 L37,12 L46,5 L56,7" fill="none" stroke="var(--c1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="value num">₹1,84,320</div>
+          <div class="foot"><span class="delta up">↑ 12.4%</span><span class="vs">vs prior 7 days</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="top">
+            <div class="label">Orders</div>
+            <svg width="56" height="22" viewBox="0 0 56 22"><path d="M0,11 L9,13 L19,8 L28,10 L37,6 L46,9 L56,4" fill="none" stroke="var(--c1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="value num">342</div>
+          <div class="foot"><span class="delta up">↑ 8.1%</span><span class="vs">49 per day</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="top">
+            <div class="label">Average ticket</div>
+            <!-- --c5, not --danger: a -2.3% average ticket is a trend, not an alarm.
+                 The delta chip below already carries the red. Also keeps this line
+                 distinguishable from --c1 in the red-primary palettes. -->
+            <svg width="56" height="22" viewBox="0 0 56 22"><path d="M0,7 L9,10 L19,9 L28,13 L37,11 L46,16 L56,15" fill="none" stroke="var(--c5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="value num">₹539</div>
+          <div class="foot"><span class="delta down">↓ 2.3%</span><span class="vs">₹13 lower</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="top">
+            <div class="label">New customers</div>
+            <svg width="56" height="22" viewBox="0 0 56 22"><path d="M0,18 L9,15 L19,16 L28,11 L37,10 L46,6 L56,4" fill="none" stroke="var(--c1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="value num">28</div>
+          <div class="foot"><span class="delta up">↑ 15.6%</span><span class="vs">of 342 orders</span></div>
+        </div>
+      </div>
+
+      <!-- ===== ALERT ===== -->
+      <div class="alert">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+        <div class="txt"><b>3 items fall below reorder level before Friday.</b> Paneer (1.8&nbsp;kg left · 4 days of cover), Basmati Rice (12&nbsp;kg · 3 days), Cooking Oil (6&nbsp;L · 2 days).</div>
+        <button class="btn">Create purchase list</button>
+      </div>
+
+      <!-- ===== ORDER BOARD + RIGHT COLUMN ===== -->
+      <div class="g-2">
+        <div class="card">
+          <div class="cardhd">
+            <div><h3>Live orders</h3><div class="sub">Everything currently open on the floor</div></div>
+            <span class="link">Open Orders →</span>
+          </div>
+
+          <div class="orow">
+            <div class="oid">#1047<span class="where">Table 9</span></div>
+            <div class="oitems">2× Butter Chicken, 4× Naan, 1× Raita</div>
+            <div><span class="state s-ready"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span></div>
+            <div class="otime late num">14m</div>
+            <div class="oamt num">₹1,240</div>
+          </div>
+          <div class="orow">
+            <div class="oid">#1046<span class="where">Takeaway</span></div>
+            <div class="oitems">1× Chicken Biryani, 1× Cold Coffee</div>
+            <div><span class="state s-ready"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span></div>
+            <div class="otime num">6m</div>
+            <div class="oamt num">₹430</div>
+          </div>
+          <div class="orow">
+            <div class="oid">#1045<span class="where">Table 4</span></div>
+            <div class="oitems">3× Paneer Tikka, 2× Masala Dosa, 2× Lassi</div>
+            <div><span class="state s-prep"><span class="steps"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span></div>
+            <div class="otime num">9m</div>
+            <div class="oamt num">₹860</div>
+          </div>
+          <div class="orow">
+            <div class="oid">#1044<span class="where">Delivery</span></div>
+            <div class="oitems">1× Butter Chicken, 2× Naan</div>
+            <div><span class="state s-prep"><span class="steps"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span></div>
+            <div class="otime num">4m</div>
+            <div class="oamt num">₹680</div>
+          </div>
+          <div class="orow">
+            <div class="oid">#1043<span class="where">Table 12</span></div>
+            <div class="oitems">2× Masala Dosa, 1× Filter Coffee</div>
+            <div><span class="state s-placed"><span class="steps"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span></div>
+            <div class="otime num">1m</div>
+            <div class="oamt num">₹340</div>
+          </div>
+          <div class="orow">
+            <div class="oid">#1042<span class="where">Table 7</span></div>
+            <div class="oitems">4× Chicken Biryani, 2× Raita, 4× Gulab Jamun</div>
+            <div><span class="state s-served"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span></div>
+            <div class="otime num">32m</div>
+            <div class="oamt num">₹1,450</div>
+          </div>
+          <div class="orow">
+            <div class="oid">#1041<span class="where">Table 2</span></div>
+            <div class="oitems">1× Paneer Tikka, 2× Naan</div>
+            <div><span class="state s-paid"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span></div>
+            <div class="otime num">41m</div>
+            <div class="oamt num">₹520</div>
+          </div>
+
+          <div class="legendrow">
+            <span class="cap">Lifecycle</span>
+            <span class="state s-placed"><span class="steps"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+            <span class="arrow">→</span>
+            <span class="state s-prep"><span class="steps"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+            <span class="arrow">→</span>
+            <span class="state s-ready"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+            <span class="arrow">→</span>
+            <span class="state s-served"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+            <span class="arrow">→</span>
+            <span class="state s-paid"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardhd"><div><h3>How people order</h3><div class="sub">Share of 342 orders</div></div></div>
+          <div class="stack">
+            <div style="width:54%; background:var(--c1);"></div>
+            <div style="width:31%; background:var(--c2);"></div>
+            <div style="width:15%; background:var(--c3);"></div>
+          </div>
+          <div class="sl">
+            <div class="i"><span class="sw" style="background:var(--c1)"></span>Dine-in<span class="v num">54%</span></div>
+            <div class="i"><span class="sw" style="background:var(--c2)"></span>Takeaway<span class="v num">31%</span></div>
+            <div class="i"><span class="sw" style="background:var(--c3)"></span>Delivery<span class="v num">15%</span></div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3>Known customers</h3>
+          <div class="sub" style="margin-bottom:11px;">Revenue tied to a saved profile</div>
+          <div class="btrack" style="height:9px;"><div class="bfill" style="width:68%; background:var(--primary);"></div></div>
+          <div class="num" style="font-size:22px; font-weight:800; margin-top:10px; letter-spacing:-.03em;">68%</div>
+          <div style="font-size:11px; color:var(--ink-3); font-weight:600; margin-top:3px;">₹1,25,340 of ₹1,84,320</div>
+
+          <div class="hr"></div>
+
+          <h3>Busiest hour</h3>
+          <div class="sub" style="margin-bottom:12px;">Orders opened, last 7 days</div>
+          <div style="display:flex; align-items:flex-end; gap:4px; height:56px;">
+            <div style="flex:1; height:18%; background:var(--surface-3); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:34%; background:var(--surface-3); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:62%; background:var(--rail-fill); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:48%; background:var(--rail-fill); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:22%; background:var(--surface-3); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:30%; background:var(--surface-3); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:76%; background:var(--rail-fill); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:100%; background:var(--ready); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:88%; background:var(--rail-fill); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:54%; background:var(--rail-fill); border-radius:3px 3px 0 0;"></div>
+            <div style="flex:1; height:26%; background:var(--surface-3); border-radius:3px 3px 0 0;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px;">
+            <span style="font-size:9.5px; color:var(--ink-3); font-weight:600;">11a</span>
+            <span style="font-size:9.5px; color:var(--ink-3); font-weight:600;">3p</span>
+            <span style="font-size:9.5px; color:var(--ink-3); font-weight:600;">7p</span>
+            <span style="font-size:9.5px; color:var(--ink-3); font-weight:600;">11p</span>
+          </div>
+          <div style="font-size:11.5px; color:var(--ink-2); font-weight:600; margin-top:11px;">
+            Peak is <b style="color:var(--gold-text); font-weight:800;">8–9pm</b> · 63 orders
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CHART + TOP DISHES ===== -->
+      <div class="g-2">
+        <div class="card">
+          <div class="cardhd">
+            <div><h3>Revenue, last 30 days</h3><div class="sub">Shaded bands mark weekends</div></div>
+            <span class="link">Export CSV</span>
+          </div>
+          <div class="chartwrap">
+            <div class="yaxis"><span>₹9k</span><span>₹6k</span><span>₹3k</span><span>₹0</span></div>
+            <div class="plot">
+              <svg viewBox="0 0 600 175" width="100%" height="158" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="mise-a" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.16"/>
+                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <rect x="82"  y="0" width="38" height="175" fill="var(--surface-2)"/>
+                <rect x="222" y="0" width="38" height="175" fill="var(--surface-2)"/>
+                <rect x="362" y="0" width="38" height="175" fill="var(--surface-2)"/>
+                <rect x="502" y="0" width="38" height="175" fill="var(--surface-2)"/>
+                <line x1="0" y1="43"  x2="600" y2="43"  stroke="var(--border)" stroke-width="1"/>
+                <line x1="0" y1="87"  x2="600" y2="87"  stroke="var(--border)" stroke-width="1"/>
+                <line x1="0" y1="131" x2="600" y2="131" stroke="var(--border)" stroke-width="1"/>
+                <line x1="0" y1="174" x2="600" y2="174" stroke="var(--border-strong)" stroke-width="1.4"/>
+                <path d="M0,138 L50,131 L100,143 L150,112 L200,121 L250,94 L300,103 L350,75 L400,88 L450,66 L500,53 L550,61 L600,38 L600,175 L0,175 Z" fill="url(#mise-a)"/>
+                <path d="M0,152 L50,147 L100,138 L150,145 L200,129 L250,136 L300,120 L350,127 L400,111 L450,118 L500,101 L550,109 L600,92" fill="none" stroke="var(--border-strong)" stroke-width="1.8" stroke-dasharray="5,4" stroke-linecap="round"/>
+                <path d="M0,138 L50,131 L100,143 L150,112 L200,121 L250,94 L300,103 L350,75 L400,88 L450,66 L500,53 L550,61 L600,38" fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+                <circle cx="600" cy="38" r="4" fill="var(--ready)" stroke="var(--surface)" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="xaxis"><span>15 Jul</span><span>22 Jul</span><span>29 Jul</span><span>5 Aug</span><span>13 Aug</span></div>
+          </div>
+          <div class="clegend">
+            <div class="i"><span class="ln" style="background:var(--primary)"></span>This period</div>
+            <div class="i"><span class="ln dash"></span>Previous 30 days</div>
+            <div class="i"><span class="sw" style="width:11px;height:11px;border-radius:3px;background:var(--surface-2);border:1px solid var(--border)"></span>Weekend</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardhd"><div><h3>Top dishes</h3><div class="sub">By units sold, last 7 days</div></div></div>
+          <div class="barlist">
+            <div><div class="lbl">Butter Chicken</div><div class="brow"><div class="btrack"><div class="bfill" style="width:92%; background:var(--c1)"></div></div><div class="n num">184</div></div></div>
+            <div><div class="lbl">Paneer Tikka</div><div class="brow"><div class="btrack"><div class="bfill" style="width:78%; background:var(--c1)"></div></div><div class="n num">156</div></div></div>
+            <div><div class="lbl">Chicken Biryani</div><div class="brow"><div class="btrack"><div class="bfill" style="width:71%; background:var(--c1)"></div></div><div class="n num">142</div></div></div>
+            <div><div class="lbl">Masala Dosa</div><div class="brow"><div class="btrack"><div class="bfill" style="width:58%; background:var(--c1)"></div></div><div class="n num">118</div></div></div>
+            <div><div class="lbl">Cold Coffee</div><div class="brow"><div class="btrack"><div class="bfill" style="width:45%; background:var(--c1)"></div></div><div class="n num">96</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ASK OPERATO ===== -->
+      <div class="card ai">
+        <div class="hd">
+          <div class="badge">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ready)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+          </div>
+          <div><h3>Ask Operato</h3><div class="sub">Plain-English questions, answered from your real data</div></div>
+          <div class="quota num">12 of 50 questions left today</div>
+        </div>
+        <div class="input">
+          <span class="ph">Which dishes lost money once ingredient cost went up?</span>
+          <button class="send">Ask →</button>
+        </div>
+        <div class="chips">
+          <span>Compare dinner vs lunch margin</span>
+          <span>Slowest-moving inventory</span>
+          <span>Who closed the most tables?</span>
+          <span>New vs returning this month</span>
+        </div>
+      </div>
+
+      <!-- ===== SERVICE MODE ===== -->
+      <div class="modehd">
+        <h2>Service mode — the same data on a floor tablet</h2>
+        <p>One codebase, two densities. The office view above is a light, information-rich back-office screen. Service mode inverts to a warm dark ground for glare and grease, drops to four glanceable tickets, and promotes the palette's brightest warm tone to primary — on a dark surface it is the most legible colour at arm's length, where a deep primary would disappear.</p>
+      </div>
+
+      <div class="svc">
+        <div class="bar">
+          <h3>Kitchen pass</h3>
+          <span class="pill">Dinner rush</span>
+          <span class="clock num">20:14 · 7 open</span>
+        </div>
+        <div class="tickets">
+          <div class="ticket hot">
+            <div class="th"><div class="tno">#1047</div><div class="tt late num">14m</div></div>
+            <div class="tw">Table 9 · 4 covers</div>
+            <ul><li><b>2×</b> Butter Chicken</li><li><b>4×</b> Naan</li><li><b>1×</b> Raita</li></ul>
+            <button class="act primary">Mark picked up</button>
+          </div>
+          <div class="ticket hot">
+            <div class="th"><div class="tno">#1046</div><div class="tt num">6m</div></div>
+            <div class="tw">Takeaway · Rohit S.</div>
+            <ul><li><b>1×</b> Chicken Biryani</li><li><b>1×</b> Cold Coffee</li></ul>
+            <button class="act primary">Mark picked up</button>
+          </div>
+          <div class="ticket">
+            <div class="th"><div class="tno">#1045</div><div class="tt num">9m</div></div>
+            <div class="tw">Table 4 · 3 covers</div>
+            <ul><li><b>3×</b> Paneer Tikka</li><li><b>2×</b> Masala Dosa</li><li><b>2×</b> Lassi</li></ul>
+            <button class="act ghost">Mark ready</button>
+          </div>
+          <div class="ticket">
+            <div class="th"><div class="tno">#1044</div><div class="tt num">4m</div></div>
+            <div class="tw">Delivery · Swiggy</div>
+            <ul><li><b>1×</b> Butter Chicken</li><li><b>2×</b> Naan</li></ul>
+            <button class="act ghost">Mark ready</button>
+          </div>
+        </div>
+        <div class="note"><span class="dot"></span>Glowing tickets are ready and waiting — the only thing on this screen competing for attention.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btns = document.querySelectorAll('.pbtn');
+    var saved = null;
+    try { saved = localStorage.getItem('mise-palette'); } catch (e) {}
+    if (saved) apply(saved);
+
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        apply(b.dataset.set);
+        try { localStorage.setItem('mise-palette', b.dataset.set); } catch (e) {}
+      });
+    });
+
+    function apply(name) {
+      root.dataset.palette = name;
+      btns.forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.set === name));
+      });
+    }
+  })();
+</script>
+</body>
+</html>

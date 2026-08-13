@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en" data-palette="terracotta">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mise — Design System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  /* Palette definitions are the single source of truth in PALETTES (JS, below).
+     These blocks mirror them so the page itself is skinned by the same switch. */
+  [data-palette="tandoor"]{
+    --paper:#FDFAF4; --surface:#FFFFFF; --surface-2:#F5F0E6; --surface-3:#EDE6D8;
+    --border:#E7DFD0; --border-strong:#D6CBB6; --ink:#241C14; --ink-2:#524736; --ink-3:#7A6E59;
+    --primary:#2E211A; --primary-tint:#EFE9E3; --accent:#C0442C; --accent-text:#9A3520;
+    --ready:#E2A32D; --ready-fg:#241C14; --gold-text:#8A5C0B; --gold-tint:#FBF1DC; --gold-border:#EFDCAF;
+    --success:#4F7A3F; --success-tint:#EDF2E6; --danger:#A31D14; --danger-tint:#FBE9E7;
+    --s-bg:#17130F; --s-surface:#221D18; --s-border:#3C3429; --s-text:#F5F0E6; --s-muted:#A79A85; --s-primary:#E2A32D;
+  }
+  [data-palette="masala"]{
+    --paper:#FDF8F0; --surface:#FFFFFF; --surface-2:#F7F0E3; --surface-3:#F0E7D5;
+    --border:#EADFCB; --border-strong:#D9C9AC; --ink:#2A1F16; --ink-2:#59493A; --ink-3:#7C6B54;
+    --primary:#B8442A; --primary-tint:#FAE9E3; --accent:#5C7A4A; --accent-text:#425A33;
+    --ready:#E8B33C; --ready-fg:#2A1F16; --gold-text:#8A5A0B; --gold-tint:#FCF1DB; --gold-border:#F0DCAE;
+    --success:#5C7A4A; --success-tint:#EEF2E8; --danger:#9B1B12; --danger-tint:#FAE7E5;
+    --s-bg:#191310; --s-surface:#241C18; --s-border:#3F332A; --s-text:#F7F0E3; --s-muted:#AB9A85; --s-primary:#E8B33C;
+  }
+  [data-palette="terracotta"]{
+    --paper:#FBF6EE; --surface:#FFFFFF; --surface-2:#F4EDE1; --surface-3:#EDE4D4;
+    --border:#E6DACA; --border-strong:#D3C3AC; --ink:#2B241C; --ink-2:#584C3D; --ink-3:#786954;
+    --primary:#B85C38; --primary-tint:#FAEBE2; --accent:#6B7A3F; --accent-text:#4E5A2C;
+    --ready:#D9A441; --ready-fg:#2B241C; --gold-text:#87600F; --gold-tint:#FBF2DF; --gold-border:#EEDCAE;
+    --success:#5A7A3C; --success-tint:#EEF2E6; --danger:#A32615; --danger-tint:#FBEAE6;
+    --s-bg:#18130E; --s-surface:#231D16; --s-border:#3D3427; --s-text:#F4EDE1; --s-muted:#A89882; --s-primary:#D9A441;
+  }
+  [data-palette="wine"]{
+    --paper:#FCF8F5; --surface:#FFFFFF; --surface-2:#F5EEEA; --surface-3:#EEE4DE;
+    --border:#E8DCD5; --border-strong:#D6C4BA; --ink:#241A1C; --ink-2:#4F3E42; --ink-3:#7B6669;
+    --primary:#7A2E3B; --primary-tint:#F6E9EC; --accent:#C87941; --accent-text:#8E5222;
+    --ready:#C87941; --ready-fg:#241A1C; --gold-text:#87600F; --gold-tint:#FBF2DF; --gold-border:#EEDCAE;
+    --success:#4F7A5A; --success-tint:#EBF2ED; --danger:#A81F27; --danger-tint:#FBE9EA;
+    --s-bg:#171012; --s-surface:#221A1C; --s-border:#3C2F32; --s-text:#F5EEEA; --s-muted:#A8949A; --s-primary:#C87941;
+  }
+  [data-palette="chai"]{
+    --paper:#FBF7F1; --surface:#FFFFFF; --surface-2:#F4EDE3; --surface-3:#EDE5D7;
+    --border:#E7DCCC; --border-strong:#D4C5AF; --ink:#291F17; --ink-2:#55483A; --ink-3:#7C6C57;
+    --primary:#8B5A2B; --primary-tint:#F5EBDF; --accent:#C25E3A; --accent-text:#953F20;
+    --ready:#D9A441; --ready-fg:#291F17; --gold-text:#87600F; --gold-tint:#FBF2DF; --gold-border:#EEDCAE;
+    --success:#5A7A4A; --success-tint:#EEF2E8; --danger:#A32B18; --danger-tint:#FBEAE6;
+    --s-bg:#18120C; --s-surface:#231C14; --s-border:#3D3325; --s-text:#F4EDE3; --s-muted:#A8977F; --s-primary:#D9A441;
+  }
+
+  :root{ --r-card:14px; --sh-2:0 1px 2px rgba(30,22,14,.04), 0 8px 20px -14px rgba(30,22,14,.22); }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif; background:var(--paper); color:var(--ink);
+        -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums; }
+  code,.mono{ font-family:'JetBrains Mono',ui-monospace,monospace; }
+  svg{ display:block; }
+
+  /* switcher */
+  .pbar{ position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:10px;
+         background:#15120F; padding:9px 20px; border-bottom:1px solid rgba(255,255,255,.09); }
+  .pbar .cap{ font-size:9.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#8E8375; }
+  .pbar .opts{ display:flex; gap:6px; }
+  .pbtn{ display:flex; align-items:center; gap:7px; background:transparent; border:1px solid rgba(255,255,255,.13);
+         border-radius:100px; padding:5px 12px 5px 7px; cursor:pointer; font-family:inherit;
+         font-size:11.5px; font-weight:700; color:#B5AB9C; transition:background .13s,color .13s,border-color .13s; }
+  .pbtn:hover{ background:rgba(255,255,255,.06); color:#EFE9DF; }
+  .pbtn .dots{ display:flex; gap:2px; }
+  .pbtn .dots i{ width:9px; height:9px; border-radius:3px; display:block; }
+  .pbtn[aria-pressed="true"]{ background:#EFE9DF; color:#15120F; border-color:#EFE9DF; }
+  .pbar .hint{ margin-left:auto; font-size:11px; color:#6E655A; font-weight:600; }
+
+  .wrap{ max-width:1080px; margin:0 auto; padding:40px 40px 90px; }
+  .hero{ display:flex; align-items:flex-start; gap:16px; }
+  .hero .mark{ width:44px; height:44px; border-radius:12px; background:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  h1{ font-size:31px; font-weight:800; letter-spacing:-.035em; }
+  h1 .pname{ color:var(--accent-text); }
+  .lede{ font-size:14.5px; color:var(--ink-2); max-width:730px; line-height:1.62; margin-top:9px; font-weight:500; }
+  .lede b{ font-weight:800; color:var(--ink); }
+
+  h2{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-3);
+      margin:50px 0 6px; padding-top:26px; border-top:1px solid var(--border); }
+  h2 + .note{ font-size:13px; color:var(--ink-2); margin-bottom:20px; max-width:770px; line-height:1.6; font-weight:500; }
+  h3{ font-size:14px; font-weight:800; margin:26px 0 11px; letter-spacing:-.01em; }
+
+  .pal{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); box-shadow:var(--sh-2); overflow:hidden; }
+  .prow{ display:grid; grid-template-columns:62px 1fr 118px 104px 1.35fr; gap:14px; align-items:center; padding:11px 16px; border-top:1px solid var(--border); }
+  .prow:first-child{ border-top:none; background:var(--surface-2); }
+  .prow.head span{ font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); }
+  .swx{ width:46px; height:34px; border-radius:8px; border:1px solid rgba(0,0,0,.12); }
+  .ptok{ font-size:12px; font-weight:700; }
+  .ptok em{ display:block; font-style:normal; font-size:10.5px; color:var(--ink-3); font-weight:600; margin-top:1px; }
+  .phex{ font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:500; color:var(--ink-2); }
+  .pcon{ font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:600; }
+  .pcon .ok{ color:var(--success); } .pcon .no{ color:var(--danger); }
+  .puse{ font-size:11.5px; color:var(--ink-2); line-height:1.45; font-weight:500; }
+
+  .rules{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .rule{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); padding:15px 17px; box-shadow:var(--sh-2); }
+  .rule .n{ font-size:9.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--gold-text);
+            background:var(--gold-tint); border:1px solid var(--gold-border); border-radius:100px; padding:2px 8px; display:inline-block; }
+  .rule h4{ font-size:13.5px; font-weight:800; margin:9px 0 6px; letter-spacing:-.01em; }
+  .rule p{ font-size:12.5px; color:var(--ink-2); line-height:1.58; font-weight:500; }
+  .rule p code{ font-size:11.5px; background:var(--surface-2); border:1px solid var(--border); border-radius:4px; padding:1px 4px; }
+
+  .life{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); padding:20px 22px; box-shadow:var(--sh-2); }
+  .lifeflow{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .state{ display:inline-flex; align-items:center; gap:6px; padding:5px 12px 5px 9px; border-radius:100px; font-size:11.5px; font-weight:800; border:1px solid transparent; }
+  .state .steps{ display:flex; gap:2px; }
+  .state .steps i{ width:3px; height:10px; border-radius:1px; background:currentColor; opacity:.22; }
+  .state .steps i.on{ opacity:1; }
+  .s-placed{ color:var(--ink-2);   background:var(--surface-2); border-color:var(--border); }
+  .s-prep{   color:var(--gold-text); background:var(--gold-tint); border-color:var(--gold-border); }
+  .s-ready{  color:var(--ready-fg); background:var(--ready);     border-color:var(--accent-text); }
+  .s-served{ color:var(--success);  background:var(--success-tint); border-color:var(--border); }
+  .s-paid{   color:var(--ink-3);    background:var(--surface-2);  border-color:var(--border); }
+  .arrow{ color:var(--border-strong); font-size:13px; font-weight:700; }
+  .lifegrid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:18px; padding-top:16px; border-top:1px dashed var(--border); }
+  .lifegrid div{ font-size:11.5px; color:var(--ink-2); line-height:1.5; font-weight:500; }
+  .lifegrid b{ display:block; font-weight:800; color:var(--ink); margin-bottom:3px; font-size:12px; }
+
+  .chips6{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+  .cchip{ background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:12px; box-shadow:var(--sh-2); }
+  .cchip .band{ height:32px; border-radius:7px; }
+  .cchip .nm{ font-size:11.5px; font-weight:800; margin-top:9px; }
+  .cchip .hx{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-3); margin-top:2px; }
+  .cchip .rt{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; margin-top:4px; }
+
+  .dark{ background:var(--s-bg); border-radius:var(--r-card); padding:22px; }
+  .dark .pal{ background:var(--s-surface); border-color:var(--s-border); box-shadow:none; }
+  .dark .prow{ border-top-color:var(--s-border); }
+  .dark .prow:first-child{ background:rgba(255,255,255,.05); }
+  .dark .prow.head span{ color:var(--s-muted); }
+  .dark .ptok{ color:var(--s-text); } .dark .ptok em{ color:var(--s-muted); }
+  .dark .phex{ color:var(--s-muted); } .dark .puse{ color:var(--s-text); opacity:.82; }
+  .dark .swx{ border-color:rgba(255,255,255,.16); }
+  .dark .pcon .ok{ color:var(--s-primary); }
+
+  .type{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); box-shadow:var(--sh-2); overflow:hidden; }
+  .trow{ display:grid; grid-template-columns:118px 1fr 210px; gap:16px; align-items:baseline; padding:13px 18px; border-top:1px solid var(--border); }
+  .trow:first-child{ border-top:none; }
+  .trow .tk{ font-size:11px; font-weight:800; color:var(--ink-3); font-family:'JetBrains Mono',monospace; }
+  .trow .spec{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-3); text-align:right; line-height:1.5; }
+
+  .strip{ display:flex; align-items:flex-end; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); padding:18px; box-shadow:var(--sh-2); }
+  .strip .u{ text-align:center; }
+  .strip .box{ background:var(--primary-tint); border:1px solid var(--border-strong); border-radius:3px; }
+  .lb{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-3); margin-top:7px; font-weight:600; }
+  .radii{ display:flex; gap:14px; }
+  .radii .b{ width:76px; height:56px; background:var(--surface); border:1.5px solid var(--primary); }
+  .elev{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .elev .e{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); padding:16px; }
+  .elev .e .t{ font-size:12px; font-weight:800; }
+  .elev .e .d{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-3); margin-top:5px; line-height:1.5; }
+  .e.e1{ box-shadow:0 1px 2px rgba(30,22,14,.04); }
+  .e.e2{ box-shadow:0 1px 2px rgba(30,22,14,.04), 0 8px 20px -14px rgba(30,22,14,.22); }
+  .e.e3{ box-shadow:0 1px 2px rgba(30,22,14,.05), 0 18px 42px -22px rgba(30,22,14,.36); }
+
+  pre{ background:#15120F; color:#E7E2D8; border-radius:var(--r-card); padding:20px 22px; overflow-x:auto;
+       font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.72; }
+  pre .c{ color:#8C8375; } pre .v{ color:#E0A72E; } pre .p{ color:#9FBFA6; }
+
+  .foot{ margin-top:52px; padding-top:22px; border-top:1px solid var(--border); font-size:12px; color:var(--ink-3); line-height:1.65; font-weight:500; }
+</style>
+</head>
+<body>
+
+<div class="pbar">
+  <span class="cap">Palette</span>
+  <div class="opts">
+    <button class="pbtn" data-set="tandoor" aria-pressed="false"><span class="dots"><i style="background:#2E211A"></i><i style="background:#C0442C"></i><i style="background:#E2A32D"></i></span>Tandoor</button>
+    <button class="pbtn" data-set="masala" aria-pressed="false"><span class="dots"><i style="background:#B8442A"></i><i style="background:#D99420"></i><i style="background:#5C7A4A"></i></span>Masala</button>
+    <button class="pbtn" data-set="terracotta" aria-pressed="true"><span class="dots"><i style="background:#B85C38"></i><i style="background:#6B7A3F"></i><i style="background:#D9A441"></i></span>Terracotta</button>
+    <button class="pbtn" data-set="wine" aria-pressed="false"><span class="dots"><i style="background:#7A2E3B"></i><i style="background:#C87941"></i><i style="background:#D9A441"></i></span>Wine</button>
+    <button class="pbtn" data-set="chai" aria-pressed="false"><span class="dots"><i style="background:#8B5A2B"></i><i style="background:#C25E3A"></i><i style="background:#D9A441"></i></span>Chai</button>
+  </div>
+  <span class="hint">Swatches, hexes, contrast ratios and the CSS below all follow the switch</span>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="mark">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ready)" stroke-width="2" stroke-linecap="round">
+        <path d="M4 4v7a3 3 0 0 0 3 3v6M7 4v6M10 4v6"/><path d="M18 4c-1.5 2-2 4-2 7h4c0-3-.5-5-2-7ZM18 11v9"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Mise — <span class="pname" id="h-name">Terracotta &amp; Olive</span></h1>
+      <p class="lede" id="h-desc"></p>
+    </div>
+  </div>
+
+  <h2>Four rules the palette enforces</h2>
+  <p class="note">These hold in all five variants — only the hues change. They are what make it a restaurant <em>operations</em> palette rather than a restaurant <em>brand</em> palette.</p>
+  <div class="rules">
+    <div class="rule">
+      <span class="n">Rule 01</span>
+      <h4>Red is never decoration</h4>
+      <p id="r1">Danger appears only for destructive actions, validation errors and breached thresholds — never as a button, a logo or a chart series that isn't about failure. Scarcity is what keeps a stock-out warning visible.</p>
+    </div>
+    <div class="rule">
+      <span class="n">Rule 02</span>
+      <h4>Interactive and identity are different colours</h4>
+      <p><code>--primary</code> carries every button, link and active nav item and must clear 4.5:1 with its foreground. <code>--ready</code> is the loud identity tone — it is a <em>fill</em>, never a text colour on light. <code>--gold-text</code> exists for when that tone has to carry words.</p>
+    </div>
+    <div class="rule">
+      <span class="n">Rule 03</span>
+      <h4>Neutrals are warm, never grey</h4>
+      <p>Every neutral carries a yellow-red bias. Against a cool grey, food photography on the Menu screen reads sickly and the product feels clinical. The warmth costs nothing in contrast and does most of the hospitality work.</p>
+    </div>
+    <div class="rule">
+      <span class="n">Rule 04</span>
+      <h4>Status is ordinal, not categorical</h4>
+      <p>An order state is a position in a sequence, not a label. Colour <em>and</em> a five-tick meter encode it together, so the state survives greyscale, projector glare and colour-blindness — none of which are hypothetical in a kitchen.</p>
+    </div>
+  </div>
+
+  <h2>Neutrals</h2>
+  <p class="note">Ratios are computed against <code>--paper</code>, the true page background. WCAG AA needs 4.5:1 for body text, 3:1 for large text and graphical objects.</p>
+  <div class="pal" id="t-neutral"></div>
+
+  <h2>Brand &amp; semantic</h2>
+  <p class="note" id="brand-note"></p>
+  <div class="pal" id="t-brand"></div>
+
+  <h2>Order lifecycle — the ordinal system</h2>
+  <p class="note">The signature component. Ready is the only <em>filled</em> chip in the system — food is going cold, and it should win every glance. Note it is never bound to <code>--accent</code>: in the olive and cardamom palettes that would collide with Served-green, and in the red-primary palettes with danger.</p>
+  <div class="life">
+    <div class="lifeflow">
+      <span class="state s-placed"><span class="steps"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+      <span class="arrow">→</span>
+      <span class="state s-prep"><span class="steps"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+      <span class="arrow">→</span>
+      <span class="state s-ready"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+      <span class="arrow">→</span>
+      <span class="state s-served"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+      <span class="arrow">→</span>
+      <span class="state s-paid"><span class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+    </div>
+    <div class="lifegrid">
+      <div><b>Placed</b>Quietest live state — nothing is required of anyone yet.</div>
+      <div><b>Preparing</b>Gold tint. In the fire. Low saturation; there may be twenty at once.</div>
+      <div><b>Ready</b>Solid fill, the loudest thing on screen. Highest urgency on the floor.</div>
+      <div><b>Served</b>Success green. Resolved, but money is still outstanding.</div>
+      <div><b>Paid</b>Deliberately neutral. Closed rows must recede or a busy night looks like chaos.</div>
+    </div>
+  </div>
+
+  <h2>Chart ramp</h2>
+  <p class="note">Six categorical series, all mid-luminance so none disappears on warm paper, and every one at or above <b>3:1</b> against <code>--paper</code> — the WCAG minimum for graphical objects. The bright identity tone is deliberately excluded: it measures around 2:1 as a bare fill and only survives where a darker 1px border supplies the separation, as on the Ready chip.</p>
+  <div class="chips6" id="t-chart"></div>
+
+  <h2>Service mode — dark</h2>
+  <p class="note">Not a theme, a second density, used on floor and kitchen tablets. The ground is a <em>warm</em> near-black rather than pure black: pure black against a bright kitchen produces halation, and greasy glass shows every smear on it. The key inversion is that the palette's brightest warm tone becomes the primary interactive colour, because on this ground it out-reads the light-mode primary by a wide margin.</p>
+  <div class="dark">
+    <div class="pal" id="t-dark"></div>
+  </div>
+
+  <h2>Typography</h2>
+  <p class="note"><b>Plus Jakarta Sans</b> for interface — geometric enough to look like software, with slightly humanist terminals that keep it from feeling like a bank. <b>JetBrains Mono</b> for every currency figure, timer, quantity and the SQL that Ask&nbsp;Operato exposes. Both ship <code>tabular-nums</code>, which is non-negotiable: a money column whose digits shift width is unreadable while scanning. Type is identical in all five palettes.</p>
+  <div class="type">
+    <div class="trow"><div class="tk">display</div><div style="font-size:31px;font-weight:800;letter-spacing:-.035em;">₹1,84,320</div><div class="spec">31 / 36 · 800 · -0.035em</div></div>
+    <div class="trow"><div class="tk">kpi</div><div class="mono" style="font-size:25px;font-weight:800;letter-spacing:-.035em;">₹1,84,320</div><div class="spec">25 / 30 · 800 · mono · tnum</div></div>
+    <div class="trow"><div class="tk">h1 / page</div><div style="font-size:19px;font-weight:800;letter-spacing:-.025em;">Overview</div><div class="spec">19 / 24 · 800 · -0.025em</div></div>
+    <div class="trow"><div class="tk">h3 / card</div><div style="font-size:13px;font-weight:800;letter-spacing:-.01em;">Live orders</div><div class="spec">13 / 18 · 800 · -0.01em</div></div>
+    <div class="trow"><div class="tk">body</div><div style="font-size:12.5px;font-weight:500;color:var(--ink-2);">2× Butter Chicken, 4× Naan, 1× Raita</div><div class="spec">12.5 / 18 · 500</div></div>
+    <div class="trow"><div class="tk">label</div><div style="font-size:11.5px;font-weight:700;color:var(--ink-3);">Average ticket</div><div class="spec">11.5 / 16 · 700</div></div>
+    <div class="trow"><div class="tk">caption</div><div style="font-size:11px;font-weight:500;color:var(--ink-3);">vs prior 7 days</div><div class="spec">11 / 15 · 500</div></div>
+    <div class="trow"><div class="tk">overline</div><div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);">Service</div><div class="spec">9.5 · 800 · 0.09em · caps</div></div>
+  </div>
+
+  <h2>Space, radius, elevation</h2>
+  <p class="note">Dashboard density: a 4px base with the working range compressed to 8–28px. Identical across palettes.</p>
+  <h3>Spacing — 4px base</h3>
+  <div class="strip">
+    <div class="u"><div class="box" style="width:4px;height:26px"></div><div class="lb">4</div></div>
+    <div class="u"><div class="box" style="width:8px;height:32px"></div><div class="lb">8</div></div>
+    <div class="u"><div class="box" style="width:12px;height:38px"></div><div class="lb">12</div></div>
+    <div class="u"><div class="box" style="width:14px;height:44px"></div><div class="lb">14</div></div>
+    <div class="u"><div class="box" style="width:16px;height:50px"></div><div class="lb">16</div></div>
+    <div class="u"><div class="box" style="width:20px;height:56px"></div><div class="lb">20</div></div>
+    <div class="u"><div class="box" style="width:28px;height:62px"></div><div class="lb">28</div></div>
+    <div class="u"><div class="box" style="width:40px;height:68px"></div><div class="lb">40</div></div>
+    <div style="margin-left:auto;font-size:11.5px;color:var(--ink-3);max-width:330px;line-height:1.55;font-weight:500;">
+      <b style="color:var(--ink)">14px</b> gap between cards · <b style="color:var(--ink)">16px</b> card padding · <b style="color:var(--ink)">28px</b> page gutter · <b style="color:var(--ink)">9px</b> table row padding.
+    </div>
+  </div>
+
+  <h3>Radius</h3>
+  <div class="radii">
+    <div><div class="b" style="border-radius:14px"></div><div class="lb">14px · card</div></div>
+    <div><div class="b" style="border-radius:10px"></div><div class="lb">10px · control</div></div>
+    <div><div class="b" style="border-radius:8px"></div><div class="lb">8px · button</div></div>
+    <div><div class="b" style="border-radius:100px"></div><div class="lb">full · chip</div></div>
+  </div>
+
+  <h3>Elevation</h3>
+  <div class="elev">
+    <div class="e e1"><div class="t">01 · hairline</div><div class="d">0 1px 2px rgba(30,22,14,.04)<br>Inputs, switcher, inline chips.</div></div>
+    <div class="e e2"><div class="t">02 · card</div><div class="d">+ 0 8px 20px -14px rgba(30,22,14,.22)<br>Every card. The default.</div></div>
+    <div class="e e3"><div class="t">03 · overlay</div><div class="d">+ 0 18px 42px -22px rgba(30,22,14,.36)<br>Dialogs, popovers, ⌘K palette.</div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">Shadows are tinted with the ink colour, never neutral black — a pure-black shadow on warm paper reads as a grey smudge.</p>
+
+  <h2>Tokens — drop into <code>src/app/globals.css</code></h2>
+  <p class="note">shadcn variable names, so <code>bg-background</code>, <code>text-muted-foreground</code>, <code>bg-primary</code> and the rest resolve without touching a single generated component. This block follows the switcher — copy whichever palette you settle on.</p>
+  <pre id="t-css"></pre>
+
+  <h3>Fonts — <code>src/app/layout.tsx</code></h3>
+<pre><span class="p">import</span> { Plus_Jakarta_Sans, JetBrains_Mono } <span class="p">from</span> <span class="v">"next/font/google"</span>;
+
+<span class="p">const</span> jakarta = <span class="v">Plus_Jakarta_Sans</span>({
+  subsets: [<span class="v">"latin"</span>], variable: <span class="v">"--font-jakarta"</span>, weight: [<span class="v">"400"</span>,<span class="v">"500"</span>,<span class="v">"600"</span>,<span class="v">"700"</span>,<span class="v">"800"</span>],
+});
+<span class="p">const</span> mono = <span class="v">JetBrains_Mono</span>({
+  subsets: [<span class="v">"latin"</span>], variable: <span class="v">"--font-mono"</span>, weight: [<span class="v">"400"</span>,<span class="v">"500"</span>,<span class="v">"600"</span>],
+});</pre>
+
+  <div class="foot">
+    Every contrast figure on this page is a WCAG 2.1 relative-luminance ratio computed in the browser from the live token values, not a hand-written estimate — switch palettes and watch them recalculate. Values below AA are labelled <span style="color:var(--danger);font-weight:700;">✗</span> deliberately: the bright identity tone always fails as text on light, which is precisely why a separate text variant exists.
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Single source of truth. Contrast is computed, never typed.
+   ============================================================ */
+const PALETTES = {
+  tandoor: {
+    label: 'Tandoor', title: 'Tandoor',
+    desc: 'Charred clay-oven brown carries the buttons; tandoori red and turmeric do the talking. The darkest primary of the five, which keeps dense tables calm while the accents stay unmistakably food.',
+    brandNote: 'A near-black primary means every button and link is effectively a neutral, leaving tandoori red and turmeric free to signal without competing.',
+    neutral: [
+      ['--paper','#FDFAF4','background','App canvas. Everything sits on this.'],
+      ['--surface','#FFFFFF','card','Cards, popovers, table rows.'],
+      ['--surface-2','#F5F0E6','muted','Progress tracks, table headers, disabled fills.'],
+      ['--surface-3','#EDE6D8','hover','Row and nav hover only. Never a resting state.'],
+      ['--border','#E7DFD0','','Default 1px hairline on cards, inputs, dividers.'],
+      ['--border-strong','#D6CBB6','','Chart axes, focus borders, comparison lines.'],
+      ['--ink-3','#7A6E59','muted-foreground','Labels, captions, metadata. Lightest text permitted.'],
+      ['--ink-2','#524736','','Body copy, table cells, nav labels at rest.'],
+      ['--ink','#241C14','foreground','Headings and every number that matters.'],
+    ],
+    brand: [
+      ['--primary','#2E211A','primary · fill','Buttons and active nav. Deep enough to double as link text.','f','#FFFFFF'],
+      ['--primary-text','#2E211A','','Links and active nav labels on paper.','t'],
+      ['--primary-tint','#EFE9E3','','Active nav ground, selected rows.','s'],
+      ['--accent','#C0442C','tandoori red · fill','Secondary buttons, chart series, brand moments.','f','#FFFFFF'],
+      ['--accent-text','#9A3520','','The accent when it must carry words on light.','t'],
+      ['--ready','#E2A32D','turmeric · FILL ONLY','Ready chip, day-part "now" band, dark-mode primary.','f','#241C14'],
+      ['--gold-text','#8A5C0B','','Warning text and any gold that carries words.','t'],
+      ['--success','#4F7A3F','curry leaf','Positive deltas, paid, served, in-stock.','t'],
+      ['--danger','#A31D14','','Breached, failed, destructive. Nothing else.','t'],
+    ],
+    chart: [['Clay','#8C4A2F'],['Tandoor','#C0442C'],['Turmeric','#B77B12'],['Curry leaf','#5C7A4A'],['Roast','#7A5C3A'],['Sage-teal','#5E7D7A']],
+    dark: [
+      ['--s-bg','#17130F','','Screen ground. Warm charcoal, not black.'],
+      ['--s-surface','#221D18','','Ticket cards, panels.'],
+      ['--s-border','#3C3429','','Card edges, dividers.'],
+      ['--s-muted','#A79A85','','Timers, covers, secondary metadata.','t'],
+      ['--s-text','#F5F0E6','','Ticket numbers, item lines.','t'],
+      ['--s-primary','#E2A32D','turmeric promoted','Primary action, ready-ticket glow, quantities.','f','#241C14'],
+    ],
+    css: { primary:'#2E211A', primaryFg:'#FFFFFF', ready:'#E2A32D', readyFg:'#241C14',
+           bg:'#FDFAF4', fg:'#241C14', card:'#FFFFFF', muted:'#F5F0E6', mutedFg:'#7A6E59',
+           border:'#E7DFD0', danger:'#A31D14', success:'#4F7A3F', warn:'#8A5C0B',
+           charts:['#8C4A2F','#C0442C','#D99420','#5C7A4A','#7A5C3A','#5E7D7A'],
+           sBg:'#17130F', sFg:'#F5F0E6', sCard:'#221D18', sMuted:'#2D2620', sMutedFg:'#A79A85',
+           sBorder:'#3C3429', sPrimary:'#E2A32D', sPrimaryFg:'#241C14' }
+  },
+  masala: {
+    label: 'Masala', title: 'Masala',
+    desc: 'The full spice box, and the boldest of the five: paprika red is the primary. Unmistakably a restaurant product — at the cost of red buttons living near red warnings, which is why danger goes deeper and always carries an icon.',
+    brandNote: 'The one variant where primary and danger share a hue family. Danger is pushed to a deeper, bluer red and is never used without its triangle icon, so the two never rely on colour alone to be told apart.',
+    neutral: [
+      ['--paper','#FDF8F0','background','App canvas.'],
+      ['--surface','#FFFFFF','card','Cards, popovers, table rows.'],
+      ['--surface-2','#F7F0E3','muted','Tracks, table headers, disabled fills.'],
+      ['--surface-3','#F0E7D5','hover','Row and nav hover only.'],
+      ['--border','#EADFCB','','Default hairline.'],
+      ['--border-strong','#D9C9AC','','Chart axes, focus borders.'],
+      ['--ink-3','#7C6B54','muted-foreground','Labels, captions, metadata.'],
+      ['--ink-2','#59493A','','Body copy, table cells.'],
+      ['--ink','#2A1F16','foreground','Headings and key numbers.'],
+    ],
+    brand: [
+      ['--primary','#B8442A','paprika · fill','Buttons and active nav.','f','#FFFFFF'],
+      ['--primary-text','#9C3722','','Links and active nav labels on paper — the fill is 4.4:1 there.','t'],
+      ['--primary-tint','#FAE9E3','','Active nav ground, selected rows.','s'],
+      ['--accent','#5C7A4A','cardamom · fill','Secondary buttons, the calm counterweight to all the red.','f','#FFFFFF'],
+      ['--accent-text','#425A33','','Cardamom carrying words on light.','t'],
+      ['--ready','#E8B33C','saffron · FILL ONLY','Ready chip, "now" band, dark-mode primary.','f','#2A1F16'],
+      ['--gold-text','#8A5A0B','','Warning text, gold carrying words.','t'],
+      ['--success','#5C7A4A','','Positive deltas, paid, served, in-stock.','t'],
+      ['--danger','#9B1B12','deeper than primary','Destructive and breached only — always with an icon.','t'],
+    ],
+    chart: [['Paprika','#B8442A'],['Turmeric','#B77B12'],['Cardamom','#5C7A4A'],['Cumin','#8A6A3F'],['Plum','#7B4A5C'],['Slate','#4A6D8C']],
+    dark: [
+      ['--s-bg','#191310','','Screen ground.'],
+      ['--s-surface','#241C18','','Ticket cards, panels.'],
+      ['--s-border','#3F332A','','Card edges, dividers.'],
+      ['--s-muted','#AB9A85','','Timers, covers, metadata.','t'],
+      ['--s-text','#F7F0E3','','Ticket numbers, item lines.','t'],
+      ['--s-primary','#E8B33C','saffron promoted','Primary action, ready glow, quantities.','f','#2A1F16'],
+    ],
+    css: { primary:'#B8442A', primaryFg:'#FFFFFF', ready:'#E8B33C', readyFg:'#2A1F16',
+           bg:'#FDF8F0', fg:'#2A1F16', card:'#FFFFFF', muted:'#F7F0E3', mutedFg:'#7C6B54',
+           border:'#EADFCB', danger:'#9B1B12', success:'#5C7A4A', warn:'#8A5A0B',
+           charts:['#B8442A','#D99420','#5C7A4A','#8A6A3F','#7B4A5C','#4A6D8C'],
+           sBg:'#191310', sFg:'#F7F0E3', sCard:'#241C18', sMuted:'#302620', sMutedFg:'#AB9A85',
+           sBorder:'#3F332A', sPrimary:'#E8B33C', sPrimaryFg:'#2A1F16' }
+  },
+  terracotta: {
+    label: 'Terracotta', title: 'Terracotta &amp; Olive',
+    desc: 'Clay pot and olive branch — warmer and softer than Masala, reading trattoria and farm-to-table rather than spice house. Terracotta is orange-leaning enough that true red stays clearly separate for errors, which makes it the most food-forward option that keeps Rule 01 fully intact.',
+    brandNote: 'The pairing that gives the most warmth per unit of risk: a clay primary that is visibly not red, and an olive secondary that is visibly not the success green.',
+    neutral: [
+      ['--paper','#FBF6EE','background','App canvas — sand.'],
+      ['--surface','#FFFFFF','card','Cards, popovers, table rows.'],
+      ['--surface-2','#F4EDE1','muted','Tracks, table headers, disabled fills.'],
+      ['--surface-3','#EDE4D4','hover','Row and nav hover only.'],
+      ['--border','#E6DACA','','Default hairline.'],
+      ['--border-strong','#D3C3AC','','Chart axes, focus borders.'],
+      ['--ink-3','#786954','muted-foreground','Labels, captions, metadata.'],
+      ['--ink-2','#584C3D','','Body copy, table cells.'],
+      ['--ink','#2B241C','foreground','Headings and key numbers.'],
+    ],
+    brand: [
+      ['--primary','#B85C38','clay · fill','Buttons and active nav.','f','#FFFFFF'],
+      ['--primary-text','#9C4A2B','','Links and active nav labels on paper — the fill is only 4.2:1 there.','t'],
+      ['--primary-tint','#FAEBE2','','Active nav ground, selected rows.','s'],
+      ['--accent','#6B7A3F','olive · fill','Secondary buttons, chart series 2.','f','#FFFFFF'],
+      ['--accent-text','#4E5A2C','','Olive carrying words on light.','t'],
+      ['--ready','#D9A441','honey · FILL ONLY','Ready chip, "now" band, dark-mode primary.','f','#2B241C'],
+      ['--gold-text','#87600F','','Warning text, honey carrying words.','t'],
+      ['--success','#5A7A3C','','Positive deltas, paid, served, in-stock.','t'],
+      ['--danger','#A32615','','Breached, failed, destructive. Nothing else.','t'],
+    ],
+    chart: [['Clay','#B85C38'],['Olive','#6B7A3F'],['Honey','#A87A1E'],['Sage-teal','#5E7D7A'],['Cocoa','#8A6246'],['Plum','#7B5480']],
+    dark: [
+      ['--s-bg','#18130E','','Screen ground.'],
+      ['--s-surface','#231D16','','Ticket cards, panels.'],
+      ['--s-border','#3D3427','','Card edges, dividers.'],
+      ['--s-muted','#A89882','','Timers, covers, metadata.','t'],
+      ['--s-text','#F4EDE1','','Ticket numbers, item lines.','t'],
+      ['--s-primary','#D9A441','honey promoted','Primary action, ready glow, quantities.','f','#2B241C'],
+    ],
+    css: { primary:'#B85C38', primaryFg:'#FFFFFF', ready:'#D9A441', readyFg:'#2B241C',
+           bg:'#FBF6EE', fg:'#2B241C', card:'#FFFFFF', muted:'#F4EDE1', mutedFg:'#786954',
+           border:'#E6DACA', danger:'#A32615', success:'#5A7A3C', warn:'#87600F',
+           charts:['#B85C38','#6B7A3F','#D9A441','#5E7D7A','#8A6246','#7B5480'],
+           sBg:'#18130E', sFg:'#F4EDE1', sCard:'#231D16', sMuted:'#2E271E', sMutedFg:'#A89882',
+           sBorder:'#3D3427', sPrimary:'#D9A441', sPrimaryFg:'#2B241C' }
+  },
+  wine: {
+    label: 'Wine', title: 'Wine &amp; Copper',
+    desc: 'Burgundy and beaten copper — the upscale-dining option, for fine dining, a bar programme or a hotel restaurant. The primary is deep enough to behave like a neutral while still reading unmistakably as food and drink.',
+    brandNote: 'A very dark primary buys the same freedom Tandoor gets, but in a wine hue rather than a brown one — so the product reads premium instead of rustic.',
+    neutral: [
+      ['--paper','#FCF8F5','background','App canvas.'],
+      ['--surface','#FFFFFF','card','Cards, popovers, table rows.'],
+      ['--surface-2','#F5EEEA','muted','Tracks, table headers, disabled fills.'],
+      ['--surface-3','#EEE4DE','hover','Row and nav hover only.'],
+      ['--border','#E8DCD5','','Default hairline.'],
+      ['--border-strong','#D6C4BA','','Chart axes, focus borders.'],
+      ['--ink-3','#7B6669','muted-foreground','Labels, captions, metadata.'],
+      ['--ink-2','#4F3E42','','Body copy, table cells.'],
+      ['--ink','#241A1C','foreground','Headings and key numbers.'],
+    ],
+    brand: [
+      ['--primary','#7A2E3B','burgundy · fill','Buttons and active nav. Deep enough to double as link text.','f','#FFFFFF'],
+      ['--primary-text','#7A2E3B','','Links and active nav labels on paper.','t'],
+      ['--primary-tint','#F6E9EC','','Active nav ground, selected rows.','s'],
+      ['--accent','#C87941','copper · fill','Secondary buttons, chart series 2, the Ready fill.','f','#241A1C'],
+      ['--accent-text','#8E5222','','Copper carrying words on light.','t'],
+      ['--ready','#C87941','copper · FILL ONLY','Ready chip, "now" band, dark-mode primary.','f','#241A1C'],
+      ['--gold-text','#87600F','','Warning text, brass carrying words.','t'],
+      ['--success','#4F7A5A','','Positive deltas, paid, served, in-stock.','t'],
+      ['--danger','#A81F27','','Breached, failed, destructive. Nothing else.','t'],
+    ],
+    chart: [['Wine','#7A2E3B'],['Copper','#C87941'],['Bay','#4F7A5A'],['Rosé','#9B6A7A'],['Brass','#8A6A3F'],['Slate','#4A6D8C']],
+    dark: [
+      ['--s-bg','#171012','','Screen ground.'],
+      ['--s-surface','#221A1C','','Ticket cards, panels.'],
+      ['--s-border','#3C2F32','','Card edges, dividers.'],
+      ['--s-muted','#A8949A','','Timers, covers, metadata.','t'],
+      ['--s-text','#F5EEEA','','Ticket numbers, item lines.','t'],
+      ['--s-primary','#C87941','copper promoted','Primary action, ready glow, quantities.','f','#241A1C'],
+    ],
+    css: { primary:'#7A2E3B', primaryFg:'#FFFFFF', ready:'#C87941', readyFg:'#241A1C',
+           bg:'#FCF8F5', fg:'#241A1C', card:'#FFFFFF', muted:'#F5EEEA', mutedFg:'#7B6669',
+           border:'#E8DCD5', danger:'#A81F27', success:'#4F7A5A', warn:'#87600F',
+           charts:['#7A2E3B','#C87941','#4F7A5A','#9B6A7A','#8A6A3F','#4A6D8C'],
+           sBg:'#171012', sFg:'#F5EEEA', sCard:'#221A1C', sMuted:'#2D2325', sMutedFg:'#A8949A',
+           sBorder:'#3C2F32', sPrimary:'#C87941', sPrimaryFg:'#241A1C' }
+  },
+  chai: {
+    label: 'Chai', title: 'Chai &amp; Cinnamon',
+    desc: 'Caramel, cinnamon and roast — the gentlest of the five, suited to a café, bakery or all-day dining room. Lowest visual fatigue over an eight-hour shift, at the cost of being the least distinctive as a brand.',
+    brandNote: 'A mid-dark brown primary is the most neutral of the five while still being a food colour, which makes this the easiest variant to live inside all day.',
+    neutral: [
+      ['--paper','#FBF7F1','background','App canvas — cream.'],
+      ['--surface','#FFFFFF','card','Cards, popovers, table rows.'],
+      ['--surface-2','#F4EDE3','muted','Tracks, table headers, disabled fills.'],
+      ['--surface-3','#EDE5D7','hover','Row and nav hover only.'],
+      ['--border','#E7DCCC','','Default hairline.'],
+      ['--border-strong','#D4C5AF','','Chart axes, focus borders.'],
+      ['--ink-3','#7C6C57','muted-foreground','Labels, captions, metadata.'],
+      ['--ink-2','#55483A','','Body copy, table cells.'],
+      ['--ink','#291F17','foreground','Headings and key numbers.'],
+    ],
+    brand: [
+      ['--primary','#8B5A2B','cinnamon · fill','Buttons and active nav. Deep enough to double as link text.','f','#FFFFFF'],
+      ['--primary-text','#8B5A2B','','Links and active nav labels on paper.','t'],
+      ['--primary-tint','#F5EBDF','','Active nav ground, selected rows.','s'],
+      ['--accent','#C25E3A','roast · fill','Secondary buttons, chart series 2.','f','#FFFFFF'],
+      ['--accent-text','#953F20','','Roast carrying words on light.','t'],
+      ['--ready','#D9A441','honey · FILL ONLY','Ready chip, "now" band, dark-mode primary.','f','#291F17'],
+      ['--gold-text','#87600F','','Warning text, honey carrying words.','t'],
+      ['--success','#5A7A4A','','Positive deltas, paid, served, in-stock.','t'],
+      ['--danger','#A32B18','','Breached, failed, destructive. Nothing else.','t'],
+    ],
+    chart: [['Cinnamon','#8B5A2B'],['Roast','#C25E3A'],['Mint','#5A7A4A'],['Honey','#A87A1E'],['Fig','#6E5A7A'],['Slate','#5A6E8C']],
+    dark: [
+      ['--s-bg','#18120C','','Screen ground.'],
+      ['--s-surface','#231C14','','Ticket cards, panels.'],
+      ['--s-border','#3D3325','','Card edges, dividers.'],
+      ['--s-muted','#A8977F','','Timers, covers, metadata.','t'],
+      ['--s-text','#F4EDE3','','Ticket numbers, item lines.','t'],
+      ['--s-primary','#D9A441','honey promoted','Primary action, ready glow, quantities.','f','#291F17'],
+    ],
+    css: { primary:'#8B5A2B', primaryFg:'#FFFFFF', ready:'#D9A441', readyFg:'#291F17',
+           bg:'#FBF7F1', fg:'#291F17', card:'#FFFFFF', muted:'#F4EDE3', mutedFg:'#7C6C57',
+           border:'#E7DCCC', danger:'#A32B18', success:'#5A7A4A', warn:'#87600F',
+           charts:['#8B5A2B','#C25E3A','#5A7A4A','#D9A441','#6E5A7A','#5A6E8C'],
+           sBg:'#18120C', sFg:'#F4EDE3', sCard:'#231C14', sMuted:'#2E251B', sMutedFg:'#A8977F',
+           sBorder:'#3D3325', sPrimary:'#D9A441', sPrimaryFg:'#291F17' }
+  }
+};
+
+/* ---- WCAG 2.1 relative luminance + contrast ---- */
+function lum(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function ratio(a, b) {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+/* Each row declares what it IS, because the threshold depends on the job:
+     's' surface  — no text sits on it, no ratio applies
+     't' text     — must clear 4.5:1 against the page background
+     'f' fill     — a button/chip/chart body; needs 3:1 as a graphical object,
+                    and where a foreground is named we show that pair instead,
+                    since that is the ratio a reader actually experiences. */
+function rows(list, bg) {
+  let html = '<div class="prow head"><span></span><span>Token</span><span>Hex</span><span>Contrast</span><span>Use</span></div>';
+  list.forEach(([tok, hex, note, use, kind, pair]) => {
+    const k = kind || (/surface|paper|border|tint|--s-bg/.test(tok) ? 's' : 't');
+    let cell = '—';
+    if (k === 't' || k === 'f') {
+      const min = k === 't' ? 4.5 : 3;
+      const r = ratio(hex, bg);
+      const pass = r >= min;
+      cell = '<span class="' + (pass ? 'ok' : 'no') + '">' + r.toFixed(1) + ':1 ' + (pass ? '✓' : '✗') + '</span>';
+      if (k === 'f' && pair) {
+        const pr = ratio(pair, hex);
+        cell += '<span style="display:block;font-size:10px;opacity:.72;margin-top:2px">fg ' +
+                pr.toFixed(1) + ':1 ' + (pr >= 4.5 ? '✓' : '✗') + '</span>';
+      }
+    }
+    html += '<div class="prow">' +
+      '<div class="swx" style="background:' + hex + '"></div>' +
+      '<div class="ptok">' + esc(tok) + (note ? '<em>' + esc(note) + '</em>' : '') + '</div>' +
+      '<div class="phex">' + hex.toUpperCase() + '</div>' +
+      '<div class="pcon">' + cell + '</div>' +
+      '<div class="puse">' + use + '</div></div>';
+  });
+  return html;
+}
+
+function cssBlock(c) {
+  const q = (k, v) => '<span class="v">' + k + '</span>: ' + v + ';';
+  return '<span class="c">/* Mise — Operato design tokens */</span>\n' +
+'<span class="p">@layer base</span> {\n' +
+'  <span class="p">:root</span> {\n' +
+'    ' + q('--background', c.bg) + '   ' + q('--foreground', c.fg) + '\n' +
+'    ' + q('--card', c.card) + '        ' + q('--card-foreground', c.fg) + '\n' +
+'    ' + q('--popover', c.card) + '     ' + q('--popover-foreground', c.fg) + '\n' +
+'    ' + q('--muted', c.muted) + '       ' + q('--muted-foreground', c.mutedFg) + '\n' +
+'    ' + q('--border', c.border) + '      ' + q('--input', c.border) + '\n' +
+'    ' + q('--ring', c.primary) + '\n\n' +
+'    <span class="c">/* brand */</span>\n' +
+'    ' + q('--primary', c.primary) + '     ' + q('--primary-foreground', c.primaryFg) + '\n' +
+'    ' + q('--secondary', c.muted) + '   ' + q('--secondary-foreground', c.fg) + '\n' +
+'    ' + q('--brand-ready', c.ready) + '        <span class="c">/* FILL ONLY — ' + ratio(c.ready, c.bg).toFixed(1) + ':1 on paper */</span>\n' +
+'    ' + q('--brand-ready-fg', c.readyFg) + '     <span class="c">/* ink that sits on it — ' + ratio(c.readyFg, c.ready).toFixed(1) + ':1 */</span>\n' +
+'    ' + q('--brand-warn-text', c.warn) + '    <span class="c">/* when that tone must carry words */</span>\n\n' +
+'    <span class="c">/* semantic */</span>\n' +
+'    ' + q('--destructive', c.danger) + ' ' + q('--destructive-foreground', '#FFFFFF') + '\n' +
+'    ' + q('--success', c.success) + '\n\n' +
+'    <span class="c">/* charts — all >=3:1 on --background */</span>\n' +
+    c.charts.map((h, i) => '    ' + q('--chart-' + (i + 1), h) + '  <span class="c">/* ' + ratio(h, c.bg).toFixed(1) + ':1 */</span>').join('\n') + '\n\n' +
+'    ' + q('--radius', '0.625rem') + '\n' +
+'  }\n\n' +
+'  <span class="c">/* Service mode — floor + kitchen tablets. Applied with .service on &lt;html&gt;,\n' +
+'     NOT prefers-color-scheme: it is a deployment choice, not a user preference. */</span>\n' +
+'  <span class="p">.service</span> {\n' +
+'    ' + q('--background', c.sBg) + '   ' + q('--foreground', c.sFg) + '\n' +
+'    ' + q('--card', c.sCard) + '        ' + q('--card-foreground', c.sFg) + '\n' +
+'    ' + q('--muted', c.sMuted) + '       ' + q('--muted-foreground', c.sMutedFg) + '\n' +
+'    ' + q('--border', c.sBorder) + '      ' + q('--input', c.sBorder) + '\n' +
+'    ' + q('--ring', c.sPrimary) + '\n' +
+'    <span class="c">/* the inversion: ' + ratio(c.sPrimary, c.sBg).toFixed(1) + ':1 here vs the light primary\'s ' + ratio(c.primary, c.sBg).toFixed(1) + ':1 */</span>\n' +
+'    ' + q('--primary', c.sPrimary) + '     ' + q('--primary-foreground', c.sPrimaryFg) + '\n' +
+'  }\n\n' +
+'  <span class="p">body</span> {\n' +
+'    <span class="v">font-family</span>: <span class="v">var</span>(--font-jakarta), ui-sans-serif, system-ui, sans-serif;\n' +
+'    <span class="v">font-variant-numeric</span>: tabular-nums;   <span class="c">/* money columns must not jitter */</span>\n' +
+'  }\n}';
+}
+
+function render(name) {
+  const P = PALETTES[name];
+  document.documentElement.dataset.palette = name;
+  document.getElementById('h-name').innerHTML = P.title;
+  document.getElementById('h-desc').innerHTML = P.desc;
+  document.getElementById('brand-note').innerHTML = P.brandNote;
+
+  const bg = P.css.bg;
+  document.getElementById('t-neutral').innerHTML = rows(P.neutral, bg);
+  document.getElementById('t-brand').innerHTML = rows(P.brand, bg);
+  document.getElementById('t-dark').innerHTML = rows(P.dark, P.css.sBg);
+
+  document.getElementById('t-chart').innerHTML = P.chart.map(([nm, hex]) => {
+    const r = ratio(hex, bg);
+    return '<div class="cchip"><div class="band" style="background:' + hex + '"></div>' +
+      '<div class="nm">' + nm + '</div><div class="hx">' + hex.toUpperCase() + '</div>' +
+      '<div class="rt" style="color:' + (r >= 3 ? 'var(--success)' : 'var(--danger)') + '">' +
+      r.toFixed(1) + ':1 ' + (r >= 3 ? '✓' : '✗') + '</div></div>';
+  }).join('');
+
+  document.getElementById('t-css').innerHTML = cssBlock(P.css);
+
+  document.querySelectorAll('.pbtn').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.set === name)));
+}
+
+document.querySelectorAll('.pbtn').forEach(b =>
+  b.addEventListener('click', () => {
+    render(b.dataset.set);
+    try { localStorage.setItem('mise-palette', b.dataset.set); } catch (e) {}
+  }));
+
+let start = 'terracotta';
+try { const s = localStorage.getItem('mise-palette'); if (s && PALETTES[s]) start = s; } catch (e) {}
+render(start);
+</script>
+</body>
+</html>

@@ -34,6 +34,8 @@
   .tag.pulse{ background: rgba(14,169,104,0.18); color:#5FE0A6; }
   .tag.thread{ background: linear-gradient(90deg, rgba(108,92,231,0.2), rgba(234,95,160,0.2)); color:#C9B8FF; }
   .tag.meridian{ background: linear-gradient(90deg, rgba(15,110,99,0.25), rgba(232,115,74,0.2)); color:#7FD9C9; }
+  .tag.mise{ background: linear-gradient(90deg, rgba(31,61,52,0.35), rgba(224,167,46,0.22)); color:#E0A72E; }
+  .meta p code{ font-family:ui-monospace,monospace; font-size:11px; background:rgba(255,255,255,0.08); padding:1px 4px; border-radius:4px; }
   .badge-rec{ display:inline-block; margin-left:8px; font-size:10px; font-weight:800; background:#FFD24D; color:#332600; padding:2px 8px; border-radius:100px; vertical-align:middle; }
 </style>
 </head>
@@ -132,6 +134,37 @@
         <h2>Meridian</h2>
         <p>Warm-neutral base with a confident teal/coral identity (not grayscale). AI is ambient everywhere via a sidebar launcher + global ⌘K bar, not just one nav item. Sparklines on KPI tiles, a comparison ghost-line on the revenue chart. Built on a plain sidebar+content shell so it scales cleanly to every module — tables, dialogs, forms.</p>
         <div class="swatches"><span style="background:#0F6E63;"></span><span style="background:#E8734A;"></span><span style="background:#C48A1E;"></span><span style="background:#FAFAF8; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+  </div>
+
+  <h2 class="sectitle">Round 3 — purpose-built for restaurant admin</h2>
+  <div class="grid">
+    <a class="card" href="10-mise.html" target="_blank">
+      <div class="preview"><iframe src="10-mise.html"></iframe></div>
+      <div class="meta">
+        <span class="tag mise">Concept 10 · Mise</span>
+        <h2>Mise — service-aware operations</h2>
+        <p>Warm paper + bay-leaf green with saffron as identity, and red held back so a stock-out is the only alarming thing on screen. Signature elements: a <b>day-part rail</b> (prep / lunch / lull / dinner / close) instead of a flat date range, and an <b>ordinal order-state chip</b> — colour plus a 5-tick meter, so status survives greyscale and glare. Ships a second density, <b>Service mode</b>, for floor tablets, where saffron is promoted to primary because on a dark ground it out-reads the green 8.4:1 to 1.4:1.</p>
+        <div class="swatches"><span style="background:#1F3D34;"></span><span style="background:#E0A72E;"></span><span style="background:#B42318;"></span><span style="background:#FBFAF7; border:1px solid #333;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="10-palette-options.html" target="_blank">
+      <div class="preview"><iframe src="10-palette-options.html"></iframe></div>
+      <div class="meta">
+        <span class="tag mise">Concept 10 · palettes</span>
+        <h2>Food-forward palette options</h2>
+        <p>Five replacements for the bay-green identity — Tandoor, Masala, Terracotta &amp; Olive, Wine &amp; Copper, Chai &amp; Cinnamon — each drawn from real food and kitchen materials and shown on the same dashboard fragment so they're directly comparable. Pick one and the concept + token spec get rebuilt in it.</p>
+        <div class="swatches"><span style="background:#C0442C;"></span><span style="background:#B8442A;"></span><span style="background:#B85C38;"></span><span style="background:#7A2E3B;"></span><span style="background:#8B5A2B;"></span></div>
+      </div>
+    </a>
+    <a class="card" href="10-mise-system.html" target="_blank">
+      <div class="preview"><iframe src="10-mise-system.html"></iframe></div>
+      <div class="meta">
+        <span class="tag mise">Concept 10 · spec</span>
+        <h2>Mise — design system</h2>
+        <p>The full token set: warm-neutral ramp, brand and semantic palettes with computed WCAG ratios, the order-lifecycle system, a 6-colour chart ramp all ≥3:1, the dark Service-mode palette, type scale, spacing, radii, elevation — plus paste-ready shadcn CSS variables for <code>globals.css</code> and the <code>next/font</code> setup.</p>
+        <div class="swatches"><span style="background:#2F6B57;"></span><span style="background:#B77B12;"></span><span style="background:#4A7396;"></span><span style="background:#C2612F;"></span><span style="background:#7B5480;"></span><span style="background:#6F8459;"></span></div>
       </div>
     </a>
   </div>

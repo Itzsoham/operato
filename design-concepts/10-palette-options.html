@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mise — food-forward palette options</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif; background:#141210; color:#EFEAE1;
+        -webkit-font-smoothing:antialiased; padding:44px 36px 90px; font-variant-numeric:tabular-nums; }
+  .wrap{ max-width:1220px; margin:0 auto; }
+  h1{ font-size:29px; font-weight:800; letter-spacing:-.035em; }
+  .lede{ font-size:14px; color:#A79E92; max-width:760px; line-height:1.62; margin-top:10px; font-weight:500; }
+  .lede b{ color:#EFEAE1; font-weight:700; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  code{ font-family:'JetBrains Mono',monospace; font-size:.9em; background:rgba(255,255,255,.07); padding:1px 5px; border-radius:4px; }
+
+  /* ---------- palette definitions ---------- */
+  .p{ --base:#FDFAF4; --surface:#FFFFFF; --surface-2:#F5F0E6; --border:#E7DFD0; --border-2:#D6CBB6;
+      --ink:#241C14; --ink-2:#524736; --ink-3:#7A6E59;
+      --primary:#2E211A; --primary-fg:#FFFFFF; --primary-tint:#EFE9E3;
+      --accent:#C0442C; --accent-text:#9A3520; --accent-tint:#FBEAE4;
+      --gold:#E2A32D; --gold-text:#8A5C0B; --gold-tint:#FBF1DC;
+      --ok:#4F7A3F; --ok-tint:#EDF2E6; --bad:#A31D14; --bad-tint:#FBE9E7;
+      /* Ready is the loudest warm state in every palette — never the accent, which
+         collides with danger-red in some and with Served-green in others. */
+      --ready:#E2A32D; --ready-fg:#241C14; --ready-bd:#B8811C;
+      --k1:#8C4A2F; --k2:#D99420; --k3:#5C7A4A; --k4:#A8563C; --k5:#7A5C3A; }
+
+  .p.masala{ --base:#FDF8F0; --surface:#FFFFFF; --surface-2:#F7F0E3; --border:#EADFCB; --border-2:#D9C9AC;
+      --ink:#2A1F16; --ink-2:#59493A; --ink-3:#83725C;
+      --primary:#B8442A; --primary-fg:#FFFFFF; --primary-tint:#FAE9E3;
+      --accent:#D99420; --accent-text:#8A5A0B; --accent-tint:#FCF1DB;
+      --gold:#E8B33C; --gold-text:#8A5C0B; --gold-tint:#FDF3DE;
+      --ok:#5C7A4A; --ok-tint:#EEF2E8; --bad:#9B1B12; --bad-tint:#FAE7E5;
+      --ready:#E8B33C; --ready-fg:#2A1F16; --ready-bd:#BE8A18;
+      --k1:#B8442A; --k2:#D99420; --k3:#5C7A4A; --k4:#8A6A3F; --k5:#7B4A5C; }
+
+  .p.terracotta{ --base:#FBF6EE; --surface:#FFFFFF; --surface-2:#F4EDE1; --border:#E6DACA; --border-2:#D3C3AC;
+      --ink:#2B241C; --ink-2:#584C3D; --ink-3:#82735F;
+      --primary:#B85C38; --primary-fg:#FFFFFF; --primary-tint:#FAEBE2;
+      --accent:#6B7A3F; --accent-text:#4E5A2C; --accent-tint:#EFF2E4;
+      --gold:#D9A441; --gold-text:#87600F; --gold-tint:#FBF2DF;
+      --ok:#5A7A3C; --ok-tint:#EEF2E6; --bad:#A32615; --bad-tint:#FBEAE6;
+      --ready:#D9A441; --ready-fg:#2B241C; --ready-bd:#B0801E;
+      --k1:#B85C38; --k2:#6B7A3F; --k3:#D9A441; --k4:#8A6246; --k5:#5E7D7A; }
+
+  .p.wine{ --base:#FCF8F5; --surface:#FFFFFF; --surface-2:#F5EEEA; --border:#E8DCD5; --border-2:#D6C4BA;
+      --ink:#241A1C; --ink-2:#4F3E42; --ink-3:#7B6669;
+      --primary:#7A2E3B; --primary-fg:#FFFFFF; --primary-tint:#F6E9EC;
+      --accent:#C87941; --accent-text:#8E5222; --accent-tint:#FBEEE1;
+      --gold:#D9A441; --gold-text:#87600F; --gold-tint:#FBF2DF;
+      --ok:#4F7A5A; --ok-tint:#EBF2ED; --bad:#A81F27; --bad-tint:#FBE9EA;
+      --ready:#C87941; --ready-fg:#241A1C; --ready-bd:#A05B28;
+      --k1:#7A2E3B; --k2:#C87941; --k3:#4F7A5A; --k4:#9B6A7A; --k5:#8A6A3F; }
+
+  .p.chai{ --base:#FBF7F1; --surface:#FFFFFF; --surface-2:#F4EDE3; --border:#E7DCCC; --border-2:#D4C5AF;
+      --ink:#291F17; --ink-2:#55483A; --ink-3:#80705C;
+      --primary:#8B5A2B; --primary-fg:#FFFFFF; --primary-tint:#F5EBDF;
+      --accent:#C25E3A; --accent-text:#953F20; --accent-tint:#FAEAE2;
+      --gold:#D9A441; --gold-text:#87600F; --gold-tint:#FBF2DF;
+      --ok:#5A7A4A; --ok-tint:#EEF2E8; --bad:#A32B18; --bad-tint:#FBEAE6;
+      --ready:#D9A441; --ready-fg:#291F17; --ready-bd:#B0801E;
+      --k1:#8B5A2B; --k2:#C25E3A; --k3:#5A7A4A; --k4:#D9A441; --k5:#6E5A7A; }
+
+  /* ---------- block chrome ---------- */
+  .block{ margin-top:34px; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.10); }
+  .bhead{ display:flex; align-items:flex-start; gap:14px; padding:16px 20px; background:#1D1A17; }
+  .bhead .dots{ display:flex; gap:5px; padding-top:3px; }
+  .bhead .dots i{ width:15px; height:15px; border-radius:5px; display:block; }
+  .bhead h2{ font-size:17px; font-weight:800; letter-spacing:-.02em; }
+  .bhead p{ font-size:12.5px; color:#A79E92; margin-top:3px; line-height:1.5; font-weight:500; max-width:640px; }
+  .bhead .pick{ margin-left:auto; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+                border:1px solid rgba(255,255,255,.18); border-radius:100px; padding:4px 11px; color:#A79E92; white-space:nowrap; }
+
+  /* ---------- swatches ---------- */
+  .sw{ display:grid; grid-template-columns:repeat(7,1fr); background:var(--base); }
+  .sw > div{ padding:11px 10px 12px; }
+  .sw .chip{ height:40px; border-radius:8px; border:1px solid rgba(0,0,0,.10); }
+  .sw .nm{ font-size:10.5px; font-weight:800; margin-top:8px; color:var(--ink); }
+  .sw .hx{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--ink-3); margin-top:2px; }
+
+  /* ---------- the live preview ---------- */
+  .demo{ background:var(--base); padding:18px 20px 22px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:15px;
+         box-shadow:0 1px 2px rgba(36,28,20,.04), 0 8px 20px -14px rgba(36,28,20,.22); }
+  .card h4{ font-size:12.5px; font-weight:800; color:var(--ink); letter-spacing:-.01em; }
+  .card .sub{ font-size:10.5px; color:var(--ink-3); margin-top:2px; font-weight:600; }
+
+  .kpis{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .kpi .lb{ font-size:10.5px; color:var(--ink-3); font-weight:700; }
+  .kpi .vl{ font-family:'JetBrains Mono',monospace; font-size:21px; font-weight:700; color:var(--ink); letter-spacing:-.03em; margin-top:5px; }
+  .kpi .dl{ display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:100px; margin-top:6px; }
+  .dl.up{ color:var(--ok); background:var(--ok-tint); }
+  .dl.dn{ color:var(--bad); background:var(--bad-tint); }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:11px; }
+  .st{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 7px; border-radius:100px;
+       font-size:10px; font-weight:800; border:1px solid transparent; }
+  .st .tk{ display:flex; gap:2px; } .st .tk i{ width:2.5px; height:8px; border-radius:1px; background:currentColor; opacity:.24; }
+  .st .tk i.on{ opacity:1; }
+  .s1{ color:var(--ink-2);   background:var(--surface-2); border-color:var(--border); }
+  .s2{ color:var(--gold-text); background:var(--gold-tint); border-color:color-mix(in srgb, var(--gold) 40%, white); }
+  .s3{ color:var(--ready-fg); background:var(--ready);     border-color:var(--ready-bd); }
+  .s4{ color:var(--ok);      background:var(--ok-tint);   border-color:color-mix(in srgb, var(--ok) 28%, white); }
+  .s5{ color:var(--ink-3);   background:var(--surface-2); border-color:var(--border); }
+
+  .btns{ display:flex; gap:8px; margin-top:13px; align-items:center; flex-wrap:wrap; }
+  .btn{ border:none; border-radius:9px; padding:8px 15px; font-size:11.5px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .btn.pri{ background:var(--primary); color:var(--primary-fg); }
+  .btn.sec{ background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
+  .btn.acc{ background:var(--accent); color:#fff; }
+  .spark{ margin-top:14px; padding-top:13px; border-top:1px solid var(--border); }
+  .spark svg{ display:block; }
+  .sparklb{ font-size:10px; color:var(--ink-3); font-weight:700; margin-top:5px; }
+  .nav{ display:flex; gap:5px; margin-top:13px; }
+  .nav span{ font-size:11px; font-weight:700; padding:6px 11px; border-radius:8px; color:var(--ink-2); }
+  .nav span.on{ background:var(--primary-tint); color:var(--primary); font-weight:800; box-shadow:inset 2px 0 0 var(--primary); }
+
+  .alert{ display:flex; align-items:center; gap:10px; background:var(--bad-tint); border:1px solid color-mix(in srgb, var(--bad) 22%, white);
+          border-radius:11px; padding:10px 13px; margin-top:12px; }
+  .alert .ic{ width:26px; height:26px; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+              border:1px solid color-mix(in srgb, var(--bad) 22%, white); }
+  .alert .tx{ font-size:11.5px; color:var(--bad); font-weight:600; line-height:1.4; }
+
+  .bars{ display:flex; align-items:flex-end; gap:5px; height:62px; margin-top:12px; }
+  .bars div{ flex:1; border-radius:3px 3px 0 0; }
+  .kleg{ display:flex; gap:11px; margin-top:9px; flex-wrap:wrap; }
+  .kleg .i{ display:flex; align-items:center; gap:5px; font-size:10px; color:var(--ink-3); font-weight:700; }
+  .kleg .d{ width:8px; height:8px; border-radius:2.5px; }
+
+  .foot{ margin-top:52px; padding-top:22px; border-top:1px solid rgba(255,255,255,.10); font-size:12.5px; color:#A79E92; line-height:1.65; font-weight:500; }
+  .foot b{ color:#EFEAE1; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Food-forward palette options</h1>
+  <p class="lede">Five replacements for the bay-green identity. Every one is drawn from actual food and kitchen materials — clay, spice, roast, wine — and every one is shown on the same fragment of the real dashboard so you can compare them doing the job rather than as swatches. <b>The layout, type and components are identical in all five;</b> only the colour tokens change.</p>
+
+  <!-- ============ 1. TANDOOR ============ -->
+  <div class="block">
+    <div class="bhead">
+      <div class="dots"><i style="background:#2E211A"></i><i style="background:#C0442C"></i><i style="background:#E2A32D"></i></div>
+      <div>
+        <h2>1 · Tandoor</h2>
+        <p>Charred clay-oven brown carries the buttons; tandoori red and turmeric do the talking. The most "restaurant" of the five without shouting — dark primary keeps dense tables calm.</p>
+      </div>
+      <span class="pick">Safest</span>
+    </div>
+    <div class="p tandoor">
+      <div class="sw">
+        <div><div class="chip" style="background:#FDFAF4"></div><div class="nm">Base</div><div class="hx">#FDFAF4</div></div>
+        <div><div class="chip" style="background:#2E211A"></div><div class="nm">Primary · char</div><div class="hx">#2E211A</div></div>
+        <div><div class="chip" style="background:#C0442C"></div><div class="nm">Accent · tandoor</div><div class="hx">#C0442C</div></div>
+        <div><div class="chip" style="background:#E2A32D"></div><div class="nm">Turmeric</div><div class="hx">#E2A32D</div></div>
+        <div><div class="chip" style="background:#4F7A3F"></div><div class="nm">Curry leaf</div><div class="hx">#4F7A3F</div></div>
+        <div><div class="chip" style="background:#A31D14"></div><div class="nm">Danger</div><div class="hx">#A31D14</div></div>
+        <div><div class="chip" style="background:#241C14"></div><div class="nm">Ink</div><div class="hx">#241C14</div></div>
+      </div>
+      <div class="demo">
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="lb">Revenue</div><div class="vl">₹1,84,320</div><div class="dl up">↑ 12.4%</div></div>
+            <div class="kpi"><div class="lb">Average ticket</div><div class="vl">₹539</div><div class="dl dn">↓ 2.3%</div></div>
+          </div>
+          <div class="spark">
+            <svg viewBox="0 0 320 64" width="100%" height="60" preserveAspectRatio="none">
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6 L320,64 L0,64 Z"
+                    fill="var(--primary)" fill-opacity="0.10"/>
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6"
+                    fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="320" cy="6" r="3.4" fill="var(--accent)"/>
+            </svg>
+            <div class="sparklb">Revenue · last 30 days</div>
+          </div>
+          <div class="nav"><span class="on">Overview</span><span>Orders</span><span>Menu</span><span>Inventory</span></div>
+          <div class="btns"><button class="btn pri">New order</button><button class="btn acc">Mark ready</button><button class="btn sec">Export</button></div>
+        </div>
+        <div class="card">
+          <h4>Live orders</h4><div class="sub">Lifecycle · placed → paid</div>
+          <div class="chips">
+            <span class="st s1"><span class="tk"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+            <span class="st s2"><span class="tk"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+            <span class="st s3"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+            <span class="st s4"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+            <span class="st s5"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+          </div>
+          <div class="bars">
+            <div style="height:32%;background:var(--k1)"></div><div style="height:54%;background:var(--k1)"></div>
+            <div style="height:41%;background:var(--k2)"></div><div style="height:76%;background:var(--k2)"></div>
+            <div style="height:63%;background:var(--k3)"></div><div style="height:88%;background:var(--k3)"></div>
+            <div style="height:49%;background:var(--k4)"></div><div style="height:70%;background:var(--k5)"></div>
+          </div>
+          <div class="kleg">
+            <div class="i"><span class="d" style="background:var(--k1)"></span>Dine-in</div>
+            <div class="i"><span class="d" style="background:var(--k2)"></span>Takeaway</div>
+            <div class="i"><span class="d" style="background:var(--k3)"></span>Delivery</div>
+          </div>
+          <div class="alert"><div class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--bad)"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="tx">Paneer, Basmati Rice and Cooking Oil below reorder level</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2. MASALA ============ -->
+  <div class="block">
+    <div class="bhead">
+      <div class="dots"><i style="background:#B8442A"></i><i style="background:#D99420"></i><i style="background:#5C7A4A"></i></div>
+      <div>
+        <h2>2 · Masala</h2>
+        <p>The full spice box, and the boldest option: paprika red <em>is</em> the primary. Unmistakably a restaurant product. The trade-off is real — red buttons sit next to red warnings, so danger goes a shade deeper and always carries an icon.</p>
+      </div>
+      <span class="pick">Boldest</span>
+    </div>
+    <div class="p masala">
+      <div class="sw">
+        <div><div class="chip" style="background:#FDF8F0"></div><div class="nm">Base</div><div class="hx">#FDF8F0</div></div>
+        <div><div class="chip" style="background:#B8442A"></div><div class="nm">Primary · paprika</div><div class="hx">#B8442A</div></div>
+        <div><div class="chip" style="background:#D99420"></div><div class="nm">Turmeric</div><div class="hx">#D99420</div></div>
+        <div><div class="chip" style="background:#E8B33C"></div><div class="nm">Saffron</div><div class="hx">#E8B33C</div></div>
+        <div><div class="chip" style="background:#5C7A4A"></div><div class="nm">Cardamom</div><div class="hx">#5C7A4A</div></div>
+        <div><div class="chip" style="background:#9B1B12"></div><div class="nm">Danger</div><div class="hx">#9B1B12</div></div>
+        <div><div class="chip" style="background:#2A1F16"></div><div class="nm">Ink</div><div class="hx">#2A1F16</div></div>
+      </div>
+      <div class="demo">
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="lb">Revenue</div><div class="vl">₹1,84,320</div><div class="dl up">↑ 12.4%</div></div>
+            <div class="kpi"><div class="lb">Average ticket</div><div class="vl">₹539</div><div class="dl dn">↓ 2.3%</div></div>
+          </div>
+          <div class="spark">
+            <svg viewBox="0 0 320 64" width="100%" height="60" preserveAspectRatio="none">
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6 L320,64 L0,64 Z"
+                    fill="var(--primary)" fill-opacity="0.10"/>
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6"
+                    fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="320" cy="6" r="3.4" fill="var(--accent)"/>
+            </svg>
+            <div class="sparklb">Revenue · last 30 days</div>
+          </div>
+          <div class="nav"><span class="on">Overview</span><span>Orders</span><span>Menu</span><span>Inventory</span></div>
+          <div class="btns"><button class="btn pri">New order</button><button class="btn acc">Mark ready</button><button class="btn sec">Export</button></div>
+        </div>
+        <div class="card">
+          <h4>Live orders</h4><div class="sub">Lifecycle · placed → paid</div>
+          <div class="chips">
+            <span class="st s1"><span class="tk"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+            <span class="st s2"><span class="tk"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+            <span class="st s3"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+            <span class="st s4"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+            <span class="st s5"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+          </div>
+          <div class="bars">
+            <div style="height:32%;background:var(--k1)"></div><div style="height:54%;background:var(--k1)"></div>
+            <div style="height:41%;background:var(--k2)"></div><div style="height:76%;background:var(--k2)"></div>
+            <div style="height:63%;background:var(--k3)"></div><div style="height:88%;background:var(--k3)"></div>
+            <div style="height:49%;background:var(--k4)"></div><div style="height:70%;background:var(--k5)"></div>
+          </div>
+          <div class="kleg">
+            <div class="i"><span class="d" style="background:var(--k1)"></span>Dine-in</div>
+            <div class="i"><span class="d" style="background:var(--k2)"></span>Takeaway</div>
+            <div class="i"><span class="d" style="background:var(--k3)"></span>Delivery</div>
+          </div>
+          <div class="alert"><div class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--bad)"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="tx">Paneer, Basmati Rice and Cooking Oil below reorder level</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 3. TERRACOTTA ============ -->
+  <div class="block">
+    <div class="bhead">
+      <div class="dots"><i style="background:#B85C38"></i><i style="background:#6B7A3F"></i><i style="background:#D9A441"></i></div>
+      <div>
+        <h2>3 · Terracotta &amp; Olive</h2>
+        <p>Clay pot and olive branch. Warmer and softer than Masala — reads trattoria / farm-to-table rather than spice house. Terracotta is orange-leaning enough that true red stays clearly separate for errors.</p>
+      </div>
+      <span class="pick">Warmest</span>
+    </div>
+    <div class="p terracotta">
+      <div class="sw">
+        <div><div class="chip" style="background:#FBF6EE"></div><div class="nm">Base · sand</div><div class="hx">#FBF6EE</div></div>
+        <div><div class="chip" style="background:#B85C38"></div><div class="nm">Primary · clay</div><div class="hx">#B85C38</div></div>
+        <div><div class="chip" style="background:#6B7A3F"></div><div class="nm">Olive</div><div class="hx">#6B7A3F</div></div>
+        <div><div class="chip" style="background:#D9A441"></div><div class="nm">Honey</div><div class="hx">#D9A441</div></div>
+        <div><div class="chip" style="background:#5E7D7A"></div><div class="nm">Sage-teal</div><div class="hx">#5E7D7A</div></div>
+        <div><div class="chip" style="background:#A32615"></div><div class="nm">Danger</div><div class="hx">#A32615</div></div>
+        <div><div class="chip" style="background:#2B241C"></div><div class="nm">Ink</div><div class="hx">#2B241C</div></div>
+      </div>
+      <div class="demo">
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="lb">Revenue</div><div class="vl">₹1,84,320</div><div class="dl up">↑ 12.4%</div></div>
+            <div class="kpi"><div class="lb">Average ticket</div><div class="vl">₹539</div><div class="dl dn">↓ 2.3%</div></div>
+          </div>
+          <div class="spark">
+            <svg viewBox="0 0 320 64" width="100%" height="60" preserveAspectRatio="none">
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6 L320,64 L0,64 Z"
+                    fill="var(--primary)" fill-opacity="0.10"/>
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6"
+                    fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="320" cy="6" r="3.4" fill="var(--accent)"/>
+            </svg>
+            <div class="sparklb">Revenue · last 30 days</div>
+          </div>
+          <div class="nav"><span class="on">Overview</span><span>Orders</span><span>Menu</span><span>Inventory</span></div>
+          <div class="btns"><button class="btn pri">New order</button><button class="btn acc">Mark ready</button><button class="btn sec">Export</button></div>
+        </div>
+        <div class="card">
+          <h4>Live orders</h4><div class="sub">Lifecycle · placed → paid</div>
+          <div class="chips">
+            <span class="st s1"><span class="tk"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+            <span class="st s2"><span class="tk"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+            <span class="st s3"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+            <span class="st s4"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+            <span class="st s5"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+          </div>
+          <div class="bars">
+            <div style="height:32%;background:var(--k1)"></div><div style="height:54%;background:var(--k1)"></div>
+            <div style="height:41%;background:var(--k2)"></div><div style="height:76%;background:var(--k2)"></div>
+            <div style="height:63%;background:var(--k3)"></div><div style="height:88%;background:var(--k3)"></div>
+            <div style="height:49%;background:var(--k4)"></div><div style="height:70%;background:var(--k5)"></div>
+          </div>
+          <div class="kleg">
+            <div class="i"><span class="d" style="background:var(--k1)"></span>Dine-in</div>
+            <div class="i"><span class="d" style="background:var(--k2)"></span>Takeaway</div>
+            <div class="i"><span class="d" style="background:var(--k3)"></span>Delivery</div>
+          </div>
+          <div class="alert"><div class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--bad)"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="tx">Paneer, Basmati Rice and Cooking Oil below reorder level</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 4. WINE ============ -->
+  <div class="block">
+    <div class="bhead">
+      <div class="dots"><i style="background:#7A2E3B"></i><i style="background:#C87941"></i><i style="background:#D9A441"></i></div>
+      <div>
+        <h2>4 · Wine &amp; Copper</h2>
+        <p>Burgundy and beaten copper. The upscale-dining option — fine-dining, bar programme, hotel restaurant. Deep enough (9.2:1) that it behaves like a neutral primary while still reading unmistakably as food and drink.</p>
+      </div>
+      <span class="pick">Most premium</span>
+    </div>
+    <div class="p wine">
+      <div class="sw">
+        <div><div class="chip" style="background:#FCF8F5"></div><div class="nm">Base</div><div class="hx">#FCF8F5</div></div>
+        <div><div class="chip" style="background:#7A2E3B"></div><div class="nm">Primary · wine</div><div class="hx">#7A2E3B</div></div>
+        <div><div class="chip" style="background:#C87941"></div><div class="nm">Copper</div><div class="hx">#C87941</div></div>
+        <div><div class="chip" style="background:#D9A441"></div><div class="nm">Brass</div><div class="hx">#D9A441</div></div>
+        <div><div class="chip" style="background:#4F7A5A"></div><div class="nm">Bay</div><div class="hx">#4F7A5A</div></div>
+        <div><div class="chip" style="background:#A81F27"></div><div class="nm">Danger</div><div class="hx">#A81F27</div></div>
+        <div><div class="chip" style="background:#241A1C"></div><div class="nm">Ink</div><div class="hx">#241A1C</div></div>
+      </div>
+      <div class="demo">
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="lb">Revenue</div><div class="vl">₹1,84,320</div><div class="dl up">↑ 12.4%</div></div>
+            <div class="kpi"><div class="lb">Average ticket</div><div class="vl">₹539</div><div class="dl dn">↓ 2.3%</div></div>
+          </div>
+          <div class="spark">
+            <svg viewBox="0 0 320 64" width="100%" height="60" preserveAspectRatio="none">
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6 L320,64 L0,64 Z"
+                    fill="var(--primary)" fill-opacity="0.10"/>
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6"
+                    fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="320" cy="6" r="3.4" fill="var(--accent)"/>
+            </svg>
+            <div class="sparklb">Revenue · last 30 days</div>
+          </div>
+          <div class="nav"><span class="on">Overview</span><span>Orders</span><span>Menu</span><span>Inventory</span></div>
+          <div class="btns"><button class="btn pri">New order</button><button class="btn acc">Mark ready</button><button class="btn sec">Export</button></div>
+        </div>
+        <div class="card">
+          <h4>Live orders</h4><div class="sub">Lifecycle · placed → paid</div>
+          <div class="chips">
+            <span class="st s1"><span class="tk"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+            <span class="st s2"><span class="tk"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+            <span class="st s3"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+            <span class="st s4"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+            <span class="st s5"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+          </div>
+          <div class="bars">
+            <div style="height:32%;background:var(--k1)"></div><div style="height:54%;background:var(--k1)"></div>
+            <div style="height:41%;background:var(--k2)"></div><div style="height:76%;background:var(--k2)"></div>
+            <div style="height:63%;background:var(--k3)"></div><div style="height:88%;background:var(--k3)"></div>
+            <div style="height:49%;background:var(--k4)"></div><div style="height:70%;background:var(--k5)"></div>
+          </div>
+          <div class="kleg">
+            <div class="i"><span class="d" style="background:var(--k1)"></span>Dine-in</div>
+            <div class="i"><span class="d" style="background:var(--k2)"></span>Takeaway</div>
+            <div class="i"><span class="d" style="background:var(--k3)"></span>Delivery</div>
+          </div>
+          <div class="alert"><div class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--bad)"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="tx">Paneer, Basmati Rice and Cooking Oil below reorder level</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 5. CHAI ============ -->
+  <div class="block">
+    <div class="bhead">
+      <div class="dots"><i style="background:#8B5A2B"></i><i style="background:#C25E3A"></i><i style="background:#D9A441"></i></div>
+      <div>
+        <h2>5 · Chai &amp; Cinnamon</h2>
+        <p>Caramel, cinnamon and roast. The gentlest of the five — café, bakery, all-day dining. Lowest visual fatigue over an eight-hour shift, but the least distinctive as a brand.</p>
+      </div>
+      <span class="pick">Calmest</span>
+    </div>
+    <div class="p chai">
+      <div class="sw">
+        <div><div class="chip" style="background:#FBF7F1"></div><div class="nm">Base · cream</div><div class="hx">#FBF7F1</div></div>
+        <div><div class="chip" style="background:#8B5A2B"></div><div class="nm">Primary · cinnamon</div><div class="hx">#8B5A2B</div></div>
+        <div><div class="chip" style="background:#C25E3A"></div><div class="nm">Roast</div><div class="hx">#C25E3A</div></div>
+        <div><div class="chip" style="background:#D9A441"></div><div class="nm">Honey</div><div class="hx">#D9A441</div></div>
+        <div><div class="chip" style="background:#5A7A4A"></div><div class="nm">Mint</div><div class="hx">#5A7A4A</div></div>
+        <div><div class="chip" style="background:#A32B18"></div><div class="nm">Danger</div><div class="hx">#A32B18</div></div>
+        <div><div class="chip" style="background:#291F17"></div><div class="nm">Ink</div><div class="hx">#291F17</div></div>
+      </div>
+      <div class="demo">
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="lb">Revenue</div><div class="vl">₹1,84,320</div><div class="dl up">↑ 12.4%</div></div>
+            <div class="kpi"><div class="lb">Average ticket</div><div class="vl">₹539</div><div class="dl dn">↓ 2.3%</div></div>
+          </div>
+          <div class="spark">
+            <svg viewBox="0 0 320 64" width="100%" height="60" preserveAspectRatio="none">
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6 L320,64 L0,64 Z"
+                    fill="var(--primary)" fill-opacity="0.10"/>
+              <path d="M0,50 L27,46 L53,52 L80,38 L107,43 L133,30 L160,35 L187,22 L213,28 L240,17 L267,20 L293,11 L320,6"
+                    fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="320" cy="6" r="3.4" fill="var(--accent)"/>
+            </svg>
+            <div class="sparklb">Revenue · last 30 days</div>
+          </div>
+          <div class="nav"><span class="on">Overview</span><span>Orders</span><span>Menu</span><span>Inventory</span></div>
+          <div class="btns"><button class="btn pri">New order</button><button class="btn acc">Mark ready</button><button class="btn sec">Export</button></div>
+        </div>
+        <div class="card">
+          <h4>Live orders</h4><div class="sub">Lifecycle · placed → paid</div>
+          <div class="chips">
+            <span class="st s1"><span class="tk"><i class="on"></i><i></i><i></i><i></i><i></i></span>Placed</span>
+            <span class="st s2"><span class="tk"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>Preparing</span>
+            <span class="st s3"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Ready</span>
+            <span class="st s4"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Served</span>
+            <span class="st s5"><span class="tk"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Paid</span>
+          </div>
+          <div class="bars">
+            <div style="height:32%;background:var(--k1)"></div><div style="height:54%;background:var(--k1)"></div>
+            <div style="height:41%;background:var(--k2)"></div><div style="height:76%;background:var(--k2)"></div>
+            <div style="height:63%;background:var(--k3)"></div><div style="height:88%;background:var(--k3)"></div>
+            <div style="height:49%;background:var(--k4)"></div><div style="height:70%;background:var(--k5)"></div>
+          </div>
+          <div class="kleg">
+            <div class="i"><span class="d" style="background:var(--k1)"></span>Dine-in</div>
+            <div class="i"><span class="d" style="background:var(--k2)"></span>Takeaway</div>
+            <div class="i"><span class="d" style="background:var(--k3)"></span>Delivery</div>
+          </div>
+          <div class="alert"><div class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color:var(--bad)"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="tx">Paneer, Basmati Rice and Cooking Oil below reorder level</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>Every primary passes 4.5:1 with white button text</b> — Tandoor 14.9:1, Masala 5.4:1, Terracotta 4.5:1, Wine 9.2:1, Chai 5.8:1 — so any of them can be dropped in without breaking contrast. Tell me which number you want and I'll rebuild <code>10-mise.html</code> and the token spec in it. Mixing is fine too: "Masala base with Tandoor's dark buttons" is a valid answer.
+  </div>
+
+</div>
+</body>
+</html>
