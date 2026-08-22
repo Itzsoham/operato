@@ -97,6 +97,26 @@ export function SignInForm() {
       <Button type="submit" className="w-full" disabled={pending} data-testid="sign-in-submit">
         {pending ? "Signing in…" : "Sign in"}
       </Button>
+
+      <div className="relative my-2 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+        <span className="relative z-10 bg-background px-2 text-muted-foreground">Or</span>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          const emailInput = document.getElementById("email") as HTMLInputElement;
+          const passwordInput = document.getElementById("password") as HTMLInputElement;
+          if (emailInput && passwordInput) {
+            emailInput.value = "owner@spicegarden.test";
+            passwordInput.value = "operato-demo-1234";
+          }
+        }}
+      >
+        Load Demo Credentials
+      </Button>
     </form>
   );
 }
