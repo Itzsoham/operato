@@ -1,0 +1,2907 @@
+<!doctype html>
+<!--
+================================================================================
+  OPERATO · THEME "LIEVITO"  —  SCREEN 2 of 8 · MENU
+  Lievito, Kala Ghoda, Mumbai.
+
+  The direction spec is the comment block at the top of lievito-dashboard.html
+  (sections 0-5.14) and it is the contract. Tokens, shell, masthead, section
+  head, card, chip, button, ledger grid, measure mark, batch tick, share rule
+  and type scale below are COPIED VERBATIM from that file. Each screen is a
+  standalone document, so the duplication is correct and deliberate.
+
+  ------------------------------------------------------------------------------
+  ADDENDA TO THE SPEC — authored on the Menu screen, per the standing
+  instruction "if it is not here, derive it in the same spirit and then WRITE IT
+  BACK INTO THIS BLOCK so the next screen inherits it." Sections 5.15 - 5.21.
+  ------------------------------------------------------------------------------
+
+  5.15 THE TESSERA — how Lievito draws food, and why it is not a photograph
+       PROBLEM: 5.13 forbids a circle (except the legal FSSAI dot), forbids a
+       gradient (except the one chart wash) and forbids a texture. A top-down
+       pizza is a circle with a gradient of char on it. Every stock way of
+       showing food is illegal in this theme.
+       ANSWER: the item image is a CROP, not a portrait. A 3:2 square-edged
+       flat-colour composition — the view you get looking straight down at
+       ten centimetres of a pizza — assembled ONLY from rectangles, rotated
+       rectangles and straight-edged polygons over a dough ground. It reads as
+       an abstracted photograph the way a mosaic tessera does, and it is
+       appetising because the palette is food-derived, not because it is detailed.
+       RULES
+         · viewBox 0 0 120 80, preserveAspectRatio="xMidYMid slice", aria-hidden
+           (the dish name is right beside it — the tile is never the only
+           carrier of what the dish is).
+         · ground: --crust-100 #F0E4CC (dough).
+         · a crust band along ONE edge in --crust-200, carrying two or three
+           rotated char squares in --terra-900 at .40-.50 opacity.
+         · a sauce or cheese field as a single straight-edged polygon.
+         · toppings as rotated rects, 4-11px, never more than 14 marks total.
+         · NO circles. NO gradients. NO strokes thinner than 1. NO blur.
+         · the ONLY per-dish variable is the composition — the palette is drawn
+           from the theme's own ramps plus three food-neutral ivories
+           (#FCF8EF, #F7EFDD, #F5EDDC) that exist ONLY inside a tessera.
+       THE OFF STATE: filter: grayscale(.82) opacity(.55) on the SVG only.
+       Never on text — dimming an image is honest, dimming a label is a
+       contrast bug. (The stock spec's "render the whole row at opacity-60" is
+       therefore overruled here: Lievito dims the tile, tints the cell ground
+       to --surface-2, and says the word "Off the card".)
+       THE THUMBNAIL FORM (.thumb): in a dense ledger table a full tessera is
+       noise. A 34px two-tone square — ground --a, an inset 14px square --b,
+       1px --line frame — stands in for it. Same idea, one twentieth the ink.
+
+  5.16 THE INDEX RULE — how Lievito does tabs (there are no tabs)
+       A printed index, not a tab strip: a horizontal row of text items sitting
+       ON a 1px --line rule, each 44px tall, tabular count trailing the name.
+       The current item is marked EXACTLY as the sidebar marks its current
+       item, rotated 90 degrees: a 2px --terra-500 segment lying on the rule for
+       the full width of the item, plus a weight step 400 -> 500 and a colour
+       step --ink-soft -> --ink. No fill, no capsule, no box. It is the tabbar
+       treatment from 4-RESPONSIVE promoted to a content control.
+       This is NOT the measure mark (5.3) — the measure mark is 64/88/28px and
+       always sits at the LEFT END of a rule. The index mark is item-width and
+       sits under the current item wherever it is.
+
+  5.17 THE COUNTER SWITCH — availability, and the death of the pill
+       There is no pill in Lievito (5.13), so a stock switch is illegal.
+       Lievito's switch is a 46 x 26 SQUARE track at --r-xs inside a 46 x 44
+       button, with a 20px square knob.
+         OFF  track --surface-2 / 1px --line-strong · knob at LEFT, --surface
+              with a 1px --line-strong · the word "Off tonight" in --ink-soft
+         ON   track --olive-100 / 1px --olive-200  · knob at RIGHT, solid --ink
+              · the word "On the card" in --ink 500
+       THREE cues, never one: knob POSITION, knob COLOUR, and the WORD. The ON
+       knob is charcoal, not terracotta and not green — ink, not fire, the same
+       rule that governs the READY chip.
+       The knob slides on the --ease curve. It does not bounce or scale.
+
+  5.18 THE PROOF SHEET — the dialog earns its place
+       An item dialog in Lievito is not a form in a box. It is a form BESIDE A
+       PROOF: the right-hand column shows the item as it will set on the
+       printed card — number, name in the display face, a 1px rule leader
+       running to the price, description underneath — with the line being
+       edited marked by a 2px --terra-500 left rule and its neighbours shown
+       above and below for context. The proof column sits on --paper (the
+       masthead surface) behind a 1px --line, so it reads as a different
+       material from the form.
+       This is the answer to "why is this screen not the dashboard with
+       different content in it": on the Menu screen the artefact IS a printed
+       page, so the editor shows you the page.
+       A rule leader is a 1px --line filler between name and price. It is NOT
+       Crema's dot leader and must never be dotted.
+
+  5.19 THE SKELETON — loading without a shimmer
+       A sweeping gradient shimmer is a gradient, and 5.13 forbids gradients.
+       Lievito's skeleton is a flat --surface-3 block at --r-xs whose OPACITY
+       breathes 1 -> .45 -> 1 over 1.6s on --ease. It collapses to a static
+       block under prefers-reduced-motion. Every skeleton region carries
+       aria-busy="true" and a visually-hidden role="status" sentence naming
+       what is loading — a skeleton that does not announce itself is decoration.
+
+  5.20 THE EMPTY STATE
+       Centred, 44px of vertical air above and below, and made of exactly three
+       things: a 44px --surface-2 square with a 1px --line frame holding a
+       24px icon; one sentence of --t-body in --ink stating the fact plainly;
+       and at most one ghost button. No illustration, no mascot, no arrow.
+       The sentence is written as a finding, not an apology: "Nothing is
+       uncategorised." not "Oops, nothing here yet!"
+
+  5.21 THE SLAB ASSIGNMENT for this screen (extends 5.4's per-screen list)
+       Menu -> CARD TAKE, LAST 30 DAYS. The Menu screen exists to change the
+       card; the one number that says whether the card is working is what the
+       card earned. Orders -> open-tickets total. Inventory -> value at risk.
+       Billing -> the plan. Never two on one screen.
+
+  5.22 FSSAI IS DECLARED, NOT TOGGLED
+       The stock spec makes "Vegetarian" a switch. It is not a preference, it
+       is a legal declaration, so in Lievito it is a two-option segmented
+       control showing the actual 14px marks, 46px tall, current option marked
+       by a 2px --terra-500 rule across its top edge. The two hexes stay
+       #1A7F3C / #8B1E1E exactly as 1.9 requires.
+================================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operato — Menu · Lievito, Kala Ghoda</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS — the full Lievito contract, declared here so this file stands
+   alone when opened straight off disk. VERBATIM from the Overview.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* raw cues */
+  --flour:#EFEDE6; --paper:#FDFCF9; --charcoal:#22211D;
+  --sanmarzano:#A65A44; --basil-ash:#8A968C; --semolina:#E8DCC0;
+
+  /* surfaces */
+  --surface:#FCFBF7; --surface-2:#F5F3EC; --surface-3:#E9E6DC;
+  --slab:#22211D; --slab-2:#2E2C27;
+
+  /* borders — decorative structure, never text */
+  --line:#E2DFD4; --line-strong:#CFCABA; --line-olive:#C7D0C6;
+  --line-terra:#E6CDC1; --line-slab:#3B3831;
+
+  /* ink ramp — charcoal, faintly warm, never brown */
+  --ink:#1B1A17; --ink-soft:#5C574E; --ink-label:#6E6759; --ink-faint:#B3AC9E;
+  --ink-invert:#FBF9F4; --ink-on-slab-soft:#C3BDB0; --ink-on-slab-label:#ABA496;
+
+  /* brand — terracotta (San Marzano) */
+  --terra-50:#FAF0EC; --terra-100:#F2DFD7; --terra-200:#E3C4B7;
+  --terra-300:#C98E78; --terra-500:#A65A44; --terra-700:#8A3F2C; --terra-900:#5E2A1D;
+
+  /* secondary — basil ash */
+  --olive-50:#F1F3EF; --olive-100:#E2E7E1; --olive-200:#C7D0C6;
+  --olive-400:#8A968C; --olive-500:#6C7A6E; --olive-600:#4E5C50; --olive-700:#3A463C;
+
+  /* warm mid — crust / semolina */
+  --crust-50:#FAF4E9; --crust-100:#F0E4CC; --crust-200:#DFCBA6;
+  --crust-400:#C09A62; --crust-600:#9A7A3E; --crust-700:#7A5518;
+
+  /* semantic states {bg,fg,line} */
+  --ok-bg:#E4E9E2;    --ok-fg:#3A463C;    --ok-line:#C7D0C6;
+  --prove-bg:#F5EAD4; --prove-fg:#7A5518; --prove-line:#E2CFA6;
+  --ready-bg:#22211D; --ready-fg:#FBF9F4;
+  --warn-bg:#F8ECE6;  --warn-fg:#8A3F2C;  --warn-line:#E6CDC1;
+  --bad-bg:#F6E4E0;   --bad-fg:#7A2A22;   --bad-line:#E3C1B9;
+  --mute-bg:#F5F3EC;  --mute-fg:#5C574E;  --mute-line:#E2DFD4;
+  --up:#4E5C50; --down:#7A2A22; --flat:#5C574E;
+
+  /* FSSAI — legally fixed, not themeable */
+  --veg:#1A7F3C; --nonveg:#8B1E1E;
+
+  /* charts */
+  --c-1:#A65A44; --c-2:#6C7A6E; --c-3:#9A7A3E; --c-grid:#E3DFD3;
+
+  /* type */
+  --font-display:Futura,"Century Gothic","Avenir Next",Avenir,"Trebuchet MS",ui-rounded,system-ui,sans-serif;
+  --font-sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-num:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --t-body:400 14px/1.65 var(--font-sans);
+  --t-small:400 12.5px/1.55 var(--font-sans);
+  --t-micro:500 11px/1.45 var(--font-sans);
+  --t-label:600 10px/1.4 var(--font-sans);
+  --label-track:.24em;
+
+  /* radii — 0 / 2 / 3. There is no pill token in this theme. */
+  --r-0:0; --r-xs:2px; --r-sm:3px; --r-in:2px;
+
+  /* shadow — none in the content area */
+  --sh-none:0 0 0 rgba(0,0,0,0);
+  --sh-pop:0 18px 44px -28px rgba(34,33,29,.30);
+  --sh-slab:0 20px 48px -30px rgba(34,33,29,.42);
+
+  /* spacing + shell */
+  --gap-hair:1px; --gap:12px; --gap-md:20px; --gap-lg:28px;
+  --pad-card:24px; --pad-cell:clamp(18px,2vw,24px);
+  --pad-page:clamp(18px,3vw,40px);
+  --sec-gap:clamp(40px,5vw,68px);
+  --tap:44px; --sidebar:244px; --rail:72px; --wrap:1180px;
+
+  /* motion */
+  --ease:cubic-bezier(.2,.8,.2,1); --dur:.18s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · RESET
+   ══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink);
+  background:var(--flour);            /* flat stone. no gradient, no texture. */
+  min-height:100dvh; -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--terra-700);outline-offset:2px;border-radius:var(--r-xs)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.004em}
+
+/* entrance — quieter than Crema's. Lievito never bounces. */
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.rise{animation:rise .42s var(--ease) both;animation-delay:calc(var(--i,0) * 45ms)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · PRIMITIVES
+   ══════════════════════════════════════════════════════════════════════════ */
+.label{
+  font:var(--t-label); letter-spacing:var(--label-track);
+  text-transform:uppercase; color:var(--ink-label);
+}
+.disp{font-family:var(--font-display);font-weight:300;letter-spacing:.02em}
+.metric{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:clamp(30px,3.5vw,42px);line-height:1.02;
+  letter-spacing:-.012em;color:var(--ink);white-space:nowrap;
+}
+.metric-sm{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:clamp(19px,2vw,24px);line-height:1.1;
+  letter-spacing:-.008em;color:var(--ink);white-space:nowrap;
+}
+.metric-xs{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:15px;line-height:1.2;letter-spacing:-.004em;color:var(--ink);
+}
+.cur{font-size:.56em;font-weight:400;color:var(--ink-soft);margin-right:2px;letter-spacing:0}
+.of{font-size:.55em;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+
+/* 5.3 THE MEASURE MARK — the theme's most repeated gesture. */
+.rule{position:relative;height:1px;background:var(--line);width:100%}
+.rule::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:64px;background:var(--terra-500)}
+.rule--mast::before{width:88px}
+.rule--card::before{width:28px}
+
+/* 5.5 THE BATCH TICK — a chalk mark on the counter edge */
+.tick{display:block;width:2px;height:12px;background:var(--terra-500);margin-bottom:10px}
+.cell--slab .tick{background:var(--terra-300)}
+
+/* 5.4 THE LEDGER GRID — hairline shows through 1px gaps */
+.ledger{
+  display:grid;gap:var(--gap-hair);background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;
+}
+.ledger>.cell{background:var(--surface);padding:var(--pad-cell);min-width:0}
+.ledger>.cell--pad0{padding:0}
+.ledger>.cell--slab,.cell--slab{background:var(--slab);color:var(--ink-invert);box-shadow:var(--sh-slab)}
+.cell--slab .label{color:var(--ink-on-slab-label)}
+.cell--slab .metric,.cell--slab .metric-sm,.cell--slab .metric-xs{color:var(--ink-invert)}
+.cell--slab .cur,.cell--slab .of{color:var(--ink-on-slab-soft)}
+.cell--slab .sub{color:var(--ink-on-slab-soft)}
+.cell--slab .delta--up{color:#A9BCA9}
+.cell--slab .delta em{color:var(--ink-on-slab-soft)}
+.cell--slab .share{background:#3B3831}
+.cell--slab .share>i{background:var(--terra-300)}
+
+/* the plain card, for modules that are not a grid of cells */
+.card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:var(--pad-card);box-shadow:var(--sh-none);
+}
+.card--flush{padding:0}
+.card--warn{background:var(--warn-bg);border-color:var(--warn-line)}
+.card--olive{background:var(--olive-50);border-color:var(--line-olive)}
+.card__title{
+  font-family:var(--font-display);font-weight:400;
+  font-size:clamp(16px,1.5vw,18px);line-height:1.3;letter-spacing:.03em;color:var(--ink);
+}
+.card__sub{font:var(--t-small);color:var(--ink-soft);margin-top:4px}
+.card__head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.card__head .card__act{margin-left:auto;display:flex;gap:8px;align-items:center}
+.card__headline{padding:var(--pad-card) var(--pad-card) 14px}
+.card__headline+.rule{margin-bottom:6px}
+
+/* 5.6 THE CHIP — a ruled margin, never a dot, never a pill */
+.chip{
+  position:relative;display:inline-flex;align-items:center;
+  min-height:24px;padding:4px 9px 4px 11px;border-radius:var(--r-xs);
+  border:1px solid transparent;
+  font:600 10px/1.2 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:currentColor;opacity:.85}
+.chip--ok{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-line)}
+.chip--prove{background:var(--prove-bg);color:var(--prove-fg);border-color:var(--prove-line)}
+.chip--warn{background:var(--warn-bg);color:var(--warn-fg);border-color:var(--warn-line)}
+.chip--bad{background:var(--bad-bg);color:var(--bad-fg);border-color:var(--bad-line)}
+.chip--mute{background:var(--mute-bg);color:var(--mute-fg);border-color:var(--mute-line)}
+/* THE ONE SOLID CHIP IN THE SYSTEM. Ink, not fire. (Not used on Menu.) */
+.chip--ready{background:var(--ready-bg);color:var(--ready-fg);border-color:transparent}
+.chip--ready::before{background:var(--terra-500);opacity:1}
+
+/* 5.7 THE BUTTON */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:46px;padding:0 20px;border-radius:var(--r-xs);
+  font:600 13px/1 var(--font-sans);letter-spacing:.04em;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.btn svg{width:17px;height:17px;flex:0 0 auto}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--slab);color:var(--ink-invert)}
+.btn--primary:hover{background:#31302A}
+.btn--ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn--ghost:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.btn--quiet{background:transparent;color:var(--ink-soft)}
+.btn--quiet:hover{background:var(--surface-2);color:var(--ink)}
+.btn--warn{background:var(--surface);color:var(--warn-fg);border:1px solid var(--warn-line)}
+.btn--warn:hover{background:var(--warn-bg)}
+.btn--sm{min-height:40px;padding:0 14px;font-size:12px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+
+/* FSSAI — 14px square outline + 6px filled dot. The colours are legal. */
+.fssai{width:14px;height:14px;flex:0 0 auto}
+.fssai--veg{color:var(--veg)}
+.fssai--nonveg{color:var(--nonveg)}
+
+/* 5.9 THE SHARE RULE — 2px, never fatter, never rounded */
+.share{height:2px;background:var(--surface-3);display:block;overflow:hidden}
+.share>i{display:block;height:100%;background:var(--terra-500)}
+.share--ok>i{background:var(--olive-500)}
+.share--warn>i{background:var(--crust-700)}
+.share--bad>i{background:var(--bad-fg)}
+.share--seg{display:flex;gap:2px;background:none;overflow:visible}
+.share--seg>i{height:100%}
+
+/* delta — arrow glyph AND signed number AND a named basis. Never colour alone */
+.delta{display:inline-flex;align-items:center;gap:6px;font:600 11.5px/1 var(--font-sans);
+  font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.delta svg{width:13px;height:13px;flex:0 0 auto}
+.delta--up{color:var(--up)} .delta--down{color:var(--down)} .delta--flat{color:var(--flat)}
+.delta em{font-style:normal;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+
+/* avatar — a square. Lievito has no circles. */
+.av{
+  width:34px;height:34px;flex:0 0 auto;border-radius:var(--r-xs);
+  display:grid;place-items:center;
+  font:600 11px/1 var(--font-sans);letter-spacing:.06em;
+  background:var(--terra-100);color:var(--terra-700);
+  box-shadow:inset 0 0 0 1px var(--terra-200);
+}
+.av--olive{background:var(--olive-100);color:var(--olive-700);box-shadow:inset 0 0 0 1px var(--olive-200)}
+.av--ink{background:var(--slab);color:var(--ink-invert);box-shadow:none}
+.av--sm{width:28px;height:28px;font-size:10px}
+
+.sub{font:var(--t-small);color:var(--ink-soft)}
+.mono-note{font:var(--t-micro);color:var(--ink-soft);letter-spacing:.02em}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE — square corners, wide caps
+   ══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:14px;right:14px;z-index:99;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:var(--r-xs);
+  background:var(--paper);border:1px solid var(--line-strong);
+  font:700 10px/1 var(--font-sans);letter-spacing:var(--label-track);text-transform:uppercase;
+  color:var(--terra-700);pointer-events:none;
+}
+.variant-badge i{display:block;width:2px;height:12px;background:var(--terra-500);flex:0 0 auto}
+.variant-badge span{color:var(--ink-label);font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · SHELL — sidebar >=1280 · rail 1080–1279 · drawer + tabbar <=1079
+   ══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+/* THE SIDEBAR IS A SHEET OF PAPER LAID ON STONE — lighter than the canvas. */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;
+  display:flex;flex-direction:column;
+  padding:24px 14px 16px;
+  background:var(--paper);border-right:1px solid var(--line);
+  overflow-y:auto;scrollbar-width:none;z-index:50;
+}
+.sidebar::-webkit-scrollbar{display:none}
+
+.brand{display:flex;align-items:center;gap:11px;padding:0 6px 20px}
+.brand-mark{
+  width:36px;height:36px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-xs);background:var(--slab);color:var(--terra-300);
+}
+.brand-mark svg{width:20px;height:20px}
+.brand-text{min-width:0;display:block}
+.brand-name{
+  display:block;font-family:var(--font-display);font-weight:300;
+  font-size:17px;line-height:1.1;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--ink);white-space:nowrap;
+}
+.brand-tag{
+  display:block;margin-top:5px;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);white-space:nowrap;
+}
+
+/* full-bleed hairline: runs edge to edge of the sidebar, past the padding */
+.side-rule{height:1px;background:var(--line);margin:0 -14px}
+
+.switcher{
+  width:100%;display:flex;align-items:center;gap:10px;
+  min-height:56px;padding:9px 10px;margin:16px 0;
+  border-radius:var(--r-xs);border:1px solid var(--line);
+  background:var(--surface);text-align:left;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.switcher:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.switcher-ico{
+  width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-xs);background:var(--terra-100);color:var(--terra-700);
+  box-shadow:inset 0 0 0 1px var(--terra-200);
+}
+.switcher-ico svg{width:16px;height:16px}
+.switcher-meta{min-width:0;flex:1;display:block}
+.switcher-name{display:block;font:600 12.5px/1.25 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.switcher-role{display:block;margin-top:3px;font:var(--t-label);
+  letter-spacing:var(--label-track);text-transform:uppercase;color:var(--ink-label)}
+.switcher>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+
+.nav-group{padding:16px 0}
+.nav-group>.label{display:block;padding:0 10px 10px}
+.nav-list{list-style:none;display:grid;gap:1px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-height:var(--tap);padding:0 12px;border-radius:var(--r-xs);
+  color:var(--ink-soft);font:400 13.5px/1 var(--font-sans);letter-spacing:.01em;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:18px;height:18px;flex:0 0 auto}
+.nav-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-link:hover{background:var(--surface-2);color:var(--ink)}
+/* the ACTIVE item: NO fill, NO card. A 2px terracotta rule and a weight step. */
+.nav-link[aria-current="page"]{color:var(--ink);font-weight:500;padding-left:15px}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--terra-500);
+}
+.nav-link[aria-current="page"] svg{color:var(--terra-700)}
+.nav-badge{
+  margin-left:auto;font:600 10px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  letter-spacing:.06em;color:var(--ink-label);
+  padding:4px 6px;border-radius:var(--r-xs);box-shadow:inset 0 0 0 1px var(--line);
+}
+.nav-badge--warn{color:var(--warn-fg);box-shadow:inset 0 0 0 1px var(--warn-line);background:var(--warn-bg)}
+
+.side-foot{margin-top:auto;padding-top:16px}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:10px;
+  min-height:var(--tap);padding:8px 10px;margin-top:14px;border-radius:var(--r-xs);
+  border:1px solid var(--line);background:var(--surface);
+  text-align:left;transition:background var(--dur) var(--ease);
+}
+.user-btn:hover{background:var(--surface-2)}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:600 12.5px/1.25 var(--font-sans);color:var(--ink)}
+.user-mail{display:block;margin-top:2px;font:400 11px/1.3 var(--font-sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-btn>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+.user-menu{
+  list-style:none;margin-top:6px;padding:5px;border-radius:var(--r-xs);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-pop);
+  display:grid;gap:1px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);
+  padding:0 10px;border-radius:var(--r-xs);font:500 12.5px/1 var(--font-sans);color:var(--ink-soft)}
+.user-menu a:hover{background:var(--surface-2);color:var(--ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu[hidden]{display:none!important}
+
+.main{min-width:0;padding-bottom:56px}
+.hamburger{display:none}
+.scrim{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · THE MASTHEAD (5.1)
+   ══════════════════════════════════════════════════════════════════════════ */
+.mast{
+  position:relative;overflow:hidden;isolation:isolate;
+  background:var(--paper);
+  padding:clamp(22px,3vw,36px) var(--pad-page) clamp(28px,3.4vw,42px);
+}
+.mast::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+.mast::before{
+  content:"";position:absolute;bottom:0;left:var(--pad-page);width:88px;height:2px;
+  background:var(--terra-500);z-index:2;
+}
+.mast-proof{
+  position:absolute;top:-128px;right:-58px;width:288px;height:288px;
+  color:var(--terra-300);opacity:.26;pointer-events:none;z-index:-1;
+}
+.mast-in{
+  position:relative;max-width:var(--wrap);margin-inline:auto;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:clamp(20px,4vw,56px);flex-wrap:wrap;
+}
+.mast-l{min-width:0;flex:1 1 440px}
+.rise-mark{width:84px;height:26px;color:var(--olive-400);opacity:.55;margin-bottom:14px}
+
+.eyebrow{
+  display:flex;align-items:center;flex-wrap:wrap;gap:12px;
+  font:var(--t-label);letter-spacing:var(--label-track);text-transform:uppercase;
+  color:var(--ink);
+}
+.eyebrow .bar{width:1px;height:12px;background:var(--line-strong);flex:0 0 auto}
+.eyebrow .live{display:inline-flex;align-items:center;gap:7px;color:var(--olive-600)}
+.eyebrow .live i{width:6px;height:6px;background:currentColor;flex:0 0 auto}
+.eyebrow .dim{color:var(--ink-label)}
+
+.mast-date{
+  font-family:var(--font-display);font-weight:200;
+  font-size:clamp(38px,5.6vw,62px);line-height:1.04;letter-spacing:.012em;
+  color:var(--ink);margin-top:16px;
+}
+.mast-greet{margin-top:16px;font:400 15px/1.5 var(--font-sans);color:var(--ink)}
+.mast-greet b{font-weight:600}
+.mast-line{
+  margin-top:8px;font:400 14px/1.7 var(--font-sans);color:var(--ink);
+  max-width:54ch;font-variant-numeric:tabular-nums;
+}
+.mast-line b{font-weight:600}
+.mast-line .warn{color:var(--warn-fg);font-weight:600}
+.mast-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+
+.readout{flex:0 0 auto;width:min(304px,100%)}
+.readout>.label{display:block;padding-bottom:10px}
+.readout-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  padding:13px 0;border-top:1px solid var(--line);
+}
+.readout-row:last-child{border-bottom:1px solid var(--line)}
+.readout-row .k{font:400 12.5px/1.4 var(--font-sans);color:var(--ink)}
+.readout-row .k small{display:block;margin-top:3px;font:var(--t-micro);color:var(--ink-soft)}
+.readout-row .v{text-align:right;flex:0 0 auto}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · PAGE COLUMN + SECTION HEAD (5.2)
+   ══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--wrap);margin-inline:auto;padding:0 var(--pad-page)}
+.sec{margin-top:var(--sec-gap)}
+.sec--tight{margin-top:clamp(24px,2.6vw,32px)}
+.sec__head{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:14px}
+.sec__titles{min-width:0}
+.sec__titles .label{display:block;margin-bottom:9px}
+.sec__title{
+  font-family:var(--font-display);font-weight:300;
+  font-size:clamp(24px,2.6vw,32px);line-height:1.18;letter-spacing:.02em;color:var(--ink);
+}
+.sec__act{flex:0 0 auto;margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.sec__body{margin-top:24px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · KPI LEDGER
+   ══════════════════════════════════════════════════════════════════════════ */
+.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:900px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:440px){.kpis{grid-template-columns:minmax(0,1fr)}}
+.kpi{display:flex;flex-direction:column;gap:0;min-height:172px}
+.kpi .label{display:block}
+.kpi .metric{margin-top:14px}
+.kpi .kpi-foot{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:9px}
+.kpi .sub{font:var(--t-micro);color:var(--ink-soft)}
+.kpi.cell--slab .sub{color:var(--ink-on-slab-soft)}
+.kpi-split{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · THE TOOLBAR — the search field and the form controls (5.18 / 5.22)
+   ══════════════════════════════════════════════════════════════════════════ */
+.fld{position:relative;display:block}
+.fld>.label{display:block;margin-bottom:8px}
+.inp{
+  width:100%;min-height:46px;padding:0 13px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-xs);
+  font:400 14px/1.4 var(--font-sans);color:var(--ink);
+  transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+textarea.inp{padding:13px;min-height:86px;line-height:1.65;resize:vertical}
+.inp::placeholder{color:var(--ink-label)}
+.inp:hover{border-color:var(--line-strong)}
+.inp:focus{outline:2px solid var(--terra-700);outline-offset:1px;border-color:var(--terra-500)}
+.inp-wrap{position:relative;display:block}
+.inp-wrap>svg{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;color:var(--ink-soft);pointer-events:none;
+}
+.inp-wrap>svg.trail{left:auto;right:13px}
+.inp-wrap--ico .inp{padding-left:38px}
+.inp-wrap--sel .inp{padding-right:38px;appearance:none;-webkit-appearance:none;-moz-appearance:none}
+.inp-pre{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  font:400 14px/1 var(--font-sans);color:var(--ink-soft);pointer-events:none;
+}
+.inp-wrap--cur .inp{padding-left:30px;font-family:var(--font-num);
+  font-variant-numeric:tabular-nums;font-weight:500}
+.inp-suf{
+  position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  font:var(--t-micro);color:var(--ink-soft);pointer-events:none;letter-spacing:.06em;
+}
+.hint{margin-top:7px;font:var(--t-micro);color:var(--ink-soft)}
+.hint b{color:var(--ink);font-weight:600}
+/* a fixed basis, not min(268px,100%): a percentage width inside an auto-sized
+   flex container resolves circularly and collapses the field. */
+.search{flex:0 0 auto;width:268px;max-width:100%}
+@media (max-width:680px){.search{flex:1 1 100%;width:100%}}
+
+/* 5.22 THE FSSAI SELECTOR — a declaration, not a preference */
+.fsel{
+  display:flex;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r-xs);overflow:hidden;
+}
+.fsel button{
+  position:relative;flex:1;min-height:46px;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  font:600 11.5px/1 var(--font-sans);letter-spacing:.06em;color:var(--ink-soft);
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.fsel button:hover{background:var(--surface-2)}
+.fsel button[aria-pressed="true"]{background:var(--surface-2);color:var(--ink)}
+.fsel button[aria-pressed="true"]::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--terra-500);
+}
+
+/* 5.17 THE COUNTER SWITCH — a square track, a square knob, and a word */
+.sw-wrap{display:inline-flex;align-items:center;gap:10px;min-height:var(--tap)}
+.sw{
+  width:46px;min-height:var(--tap);display:grid;place-items:center;flex:0 0 auto;
+  border-radius:var(--r-xs);
+}
+.sw-track{
+  position:relative;display:block;width:46px;height:26px;border-radius:var(--r-xs);
+  background:var(--surface-2);border:1px solid var(--line-strong);
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.sw-knob{
+  position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:1px;
+  background:var(--surface);border:1px solid var(--line-strong);
+  transition:left var(--dur) var(--ease),background var(--dur) var(--ease),
+             border-color var(--dur) var(--ease);
+}
+.sw[aria-checked="true"] .sw-track{background:var(--olive-100);border-color:var(--olive-200)}
+.sw[aria-checked="true"] .sw-knob{left:22px;background:var(--ink);border-color:var(--ink)}
+.sw-txt{font:400 11.5px/1.3 var(--font-sans);color:var(--ink-soft);white-space:nowrap}
+.sw-wrap.is-on .sw-txt{color:var(--ink);font-weight:500}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   10 · 5.16 THE INDEX RULE — Lievito's category control
+   ══════════════════════════════════════════════════════════════════════════ */
+.index{
+  position:relative;display:flex;align-items:stretch;gap:0;
+  border-bottom:1px solid var(--line);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.index::-webkit-scrollbar{display:none}
+.index__i{
+  position:relative;display:inline-flex;align-items:center;gap:9px;
+  min-height:var(--tap);padding:0 18px;white-space:nowrap;
+  color:var(--ink-soft);font:400 13.5px/1 var(--font-sans);letter-spacing:.01em;
+  transition:color var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.index__i:first-child{padding-left:0}
+.index__i:hover{color:var(--ink);background:var(--surface-2)}
+.index__i:first-child:hover{background:none}
+.index__i .n{
+  font:500 11px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--ink-label);letter-spacing:.02em;
+}
+.index__i[aria-current="true"]{color:var(--ink);font-weight:500}
+.index__i[aria-current="true"] .n{color:var(--terra-700)}
+/* the index mark — the sidebar's active rule, rotated 90 degrees */
+.index__i[aria-current="true"]::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--terra-500);
+}
+/* a sentence, not a flex row — a flex gap here would space every word node */
+.index-foot{
+  display:block;margin-top:14px;max-width:82ch;
+  font:var(--t-micro);color:var(--ink-soft);
+}
+.index-foot b{color:var(--ink);font-weight:600}
+/* a sub-head inside a section body — smaller than a section head, no rule */
+.grid-head{margin:30px 0 16px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.grid-head .t{min-width:0}
+.grid-head .a{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11 · 5.15 THE TESSERA + THE DISH CELL — the eight, on one sheet
+   ══════════════════════════════════════════════════════════════════════════ */
+.dishes{grid-template-columns:minmax(0,1fr)}
+@media (min-width:560px){.dishes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1140px){.dishes{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.dish{display:flex;flex-direction:column;position:relative}
+.dish--off{background:var(--surface-2)}
+/* the item currently open in the editor */
+.dish--editing::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--terra-500);z-index:2;
+}
+
+.tess{
+  display:block;width:100%;aspect-ratio:3/2;background:var(--crust-100);
+  border-bottom:1px solid var(--line);overflow:hidden;
+}
+.tess svg{width:100%;height:100%;display:block}
+.dish--off .tess svg{filter:grayscale(.82) opacity(.55)}
+
+.dish__body{padding:var(--pad-cell);display:flex;flex-direction:column;flex:1;min-width:0}
+.dish__top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dish__no{letter-spacing:.14em}
+.dish__name{
+  margin-top:10px;font-family:var(--font-display);font-weight:400;
+  font-size:19px;line-height:1.24;letter-spacing:.03em;color:var(--ink);
+}
+.dish__desc{
+  margin-top:7px;font:400 12.5px/1.5 var(--font-sans);color:var(--ink-soft);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.dish__meta{margin-top:auto;padding-top:18px}
+.dish__row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.dish__units{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:500;
+  font-size:12.5px;color:var(--ink-soft);white-space:nowrap;
+}
+.dish__meta .share{margin-top:10px}
+.dish__note{margin-top:12px;font:var(--t-micro);color:var(--ink-soft)}
+.dish__note b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.dish__note--warn b{color:var(--warn-fg)}
+.dish__foot{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.dish__foot .btn--icon{margin-left:auto}
+.dish--off .dish__foot{border-top-color:var(--line-strong)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12 · THE CARD LEDGER TABLE — everything that is not a pizza
+   ══════════════════════════════════════════════════════════════════════════ */
+.mcols{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 132px 78px 96px 152px var(--tap);
+  gap:14px;align-items:center;
+}
+.mhead{padding:0 var(--pad-card) 12px}
+.mhead span{font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label)}
+.mhead .r{text-align:right}
+
+.mgroup-head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:15px var(--pad-card);background:var(--surface-2);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.mgroup-head h4{
+  font-family:var(--font-display);font-weight:400;font-size:16px;
+  line-height:1.3;letter-spacing:.03em;color:var(--ink);
+}
+.mgroup-head .n{font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label)}
+.mgroup-head .mg-act{margin-left:auto}
+
+.mrow{min-height:66px;padding:10px var(--pad-card);border-top:1px solid var(--line)}
+.mgroup .mrow:first-of-type{border-top:0}
+.mrow:hover{background:var(--surface-2)}
+.mrow--off{background:var(--surface-2)}
+.mrow--off:hover{background:var(--surface-3)}
+
+.thumb{
+  position:relative;width:34px;height:34px;border-radius:var(--r-xs);
+  background:var(--a,var(--crust-100));border:1px solid var(--line);overflow:hidden;
+}
+.thumb::before{
+  content:"";position:absolute;left:5px;top:9px;width:15px;height:15px;
+  background:var(--b,var(--terra-300));transform:rotate(14deg);
+}
+.thumb::after{
+  content:"";position:absolute;right:4px;bottom:4px;width:9px;height:9px;
+  background:var(--c,var(--crust-200));transform:rotate(-10deg);
+}
+.mrow--off .thumb{filter:grayscale(.82) opacity(.6)}
+
+.mname{display:flex;align-items:center;gap:10px;min-width:0}
+/* .t, .n and .d MUST be block: overflow/text-overflow do nothing on an inline
+   box, and a nowrap inline name will widen the whole document instead. */
+.mname .t{display:block;min-width:0;flex:1 1 auto}
+.mname .n{display:block;font:500 13.5px/1.35 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mname .d{display:block;margin-top:3px;font:var(--t-micro);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcat{font:var(--t-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-label);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.munits{text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:12.5px;color:var(--ink-soft)}
+.mprice{text-align:right}
+.mmore{justify-self:end}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   13 · 5.19 THE SKELETON + 5.20 THE EMPTY STATE
+   ══════════════════════════════════════════════════════════════════════════ */
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.45}}
+.skel{
+  display:block;background:var(--surface-3);border-radius:var(--r-xs);height:12px;
+  animation:breathe 1.6s var(--ease) infinite;
+}
+.skel--sq{width:34px;height:34px;border-radius:var(--r-xs)}
+.skel-row{
+  display:grid;grid-template-columns:34px minmax(0,1fr) 64px;gap:14px;align-items:center;
+  min-height:62px;padding:12px var(--pad-card);border-top:1px solid var(--line);
+}
+.skel-row:first-of-type{border-top:0}
+.skel-stack{display:grid;gap:8px}
+
+.empty{
+  padding:44px var(--pad-card);display:flex;flex-direction:column;
+  align-items:center;text-align:center;gap:16px;
+}
+.empty-ico{
+  width:44px;height:44px;display:grid;place-items:center;border-radius:var(--r-xs);
+  background:var(--surface-2);border:1px solid var(--line);color:var(--ink-soft);
+}
+.empty-ico svg{width:24px;height:24px}
+.empty p{font:var(--t-body);color:var(--ink);max-width:44ch}
+.empty p small{display:block;margin-top:6px;font:var(--t-small);color:var(--ink-soft)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   14 · OFF THE CARD + THE CATEGORY INDEX
+   ══════════════════════════════════════════════════════════════════════════ */
+.off-row{
+  display:grid;grid-template-columns:34px 14px minmax(0,1fr) auto;
+  align-items:center;gap:14px;min-height:76px;padding:14px var(--pad-card);
+  border-top:1px solid var(--line);
+}
+.off-row:first-of-type{border-top:0}
+.off-name{font:500 13.5px/1.35 var(--font-sans);color:var(--ink)}
+.off-why{margin-top:5px;font:var(--t-micro);color:var(--ink-soft)}
+.off-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+
+.cats{grid-template-columns:minmax(0,1fr)}
+@media (min-width:620px){.cats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){.cats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.cat{display:flex;flex-direction:column;min-height:206px}
+.cat__name{
+  margin-top:2px;font-family:var(--font-display);font-weight:400;font-size:20px;
+  line-height:1.2;letter-spacing:.03em;color:var(--ink);
+}
+.cat__meta{margin-top:14px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.cat__foot{margin-top:auto;padding-top:18px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cat__foot .grab{margin-left:auto;color:var(--ink-soft);display:grid;place-items:center;
+  width:var(--tap);min-height:var(--tap);border-radius:var(--r-xs);cursor:grab}
+.cat__foot .grab:hover{background:var(--surface-2);color:var(--ink)}
+.cat__foot .grab svg{width:18px;height:18px}
+.cat--add{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:14px;background:var(--surface-2);
+}
+.cat--add .ic{
+  width:44px;height:44px;display:grid;place-items:center;border-radius:var(--r-xs);
+  background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);
+}
+.cat--add .ic svg{width:22px;height:22px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   15 · 5.18 THE ITEM DIALOG — a form beside a proof
+   ══════════════════════════════════════════════════════════════════════════ */
+.modal{position:fixed;inset:0;z-index:60;display:none}
+body.dlg-open .modal{display:block}
+body.dlg-open{overflow:hidden}
+.modal__scrim{position:absolute;inset:0;background:rgba(27,26,23,.34)}
+.modal__pos{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:clamp(12px,3vw,32px);overflow:auto;
+}
+/* min-width:0 down the whole chain: without it a flex item refuses to shrink
+   below its min-content width and the dialog widens the DOCUMENT at 400px,
+   which drags the fixed tab bar off-screen with it. */
+.dlg{
+  position:relative;width:min(880px,100%);max-width:100%;min-width:0;
+  max-height:calc(100dvh - 40px);
+  display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:var(--r-sm);box-shadow:var(--sh-pop);overflow:hidden;
+}
+.dlg__head{padding:22px var(--pad-card) 15px;display:flex;align-items:flex-start;gap:14px}
+.dlg__head .label{display:block;margin-bottom:9px}
+.dlg__title{
+  font-family:var(--font-display);font-weight:300;font-size:26px;line-height:1.2;
+  letter-spacing:.02em;color:var(--ink);
+}
+.dlg__x{margin-left:auto;color:var(--ink-soft)}
+.dlg__x svg{width:19px;height:19px}
+.dlg__body{overflow:auto;display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
+.dlg__body>*{min-width:0}
+@media (min-width:840px){.dlg__body{grid-template-columns:minmax(0,1fr) minmax(0,312px)}}
+.dlg__form{padding:var(--pad-card);display:grid;gap:var(--gap-md);min-width:0}
+.dlg__form>*{min-width:0}
+.dlg__two{display:grid;gap:var(--gap-md);grid-template-columns:minmax(0,1fr);min-width:0}
+.dlg__two>*{min-width:0}
+@media (min-width:520px){.dlg__two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* an <input>'s default size attribute is ~20 characters of intrinsic width */
+.inp{min-width:0}
+.fsel{min-width:0}
+.fsel button{min-width:0;padding:0 10px;text-align:center}
+.tilepick,.tilepick__opts{min-width:0}
+.proof{min-width:0;overflow-wrap:anywhere}
+.pl__top{flex-wrap:wrap}
+.dlg__foot{
+  border-top:1px solid var(--line);padding:16px var(--pad-card);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);
+}
+.dlg__foot .right{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:520px){
+  .dlg__foot .right{margin-left:0;width:100%}
+  .dlg__foot .right .btn{flex:1}
+}
+
+/* the tile picker — the tessera is chosen, not uploaded */
+.tilepick{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tilepick__now{
+  width:96px;height:64px;flex:0 0 auto;border:1px solid var(--line);
+  border-radius:var(--r-xs);overflow:hidden;background:var(--crust-100);
+}
+.tilepick__now svg{width:100%;height:100%}
+.tilepick__opts{display:flex;gap:8px;flex-wrap:wrap}
+.tilepick__opt{
+  width:var(--tap);height:var(--tap);border:1px solid var(--line);border-radius:var(--r-xs);
+  overflow:hidden;background:var(--crust-100);position:relative;
+}
+.tilepick__opt svg{width:100%;height:100%}
+.tilepick__opt[aria-pressed="true"]{border-color:var(--terra-500);border-width:2px}
+
+/* THE PROOF — the item as it sets on the printed card */
+.proof{
+  background:var(--paper);border-top:1px solid var(--line);padding:var(--pad-card);
+}
+@media (min-width:840px){.proof{border-top:0;border-left:1px solid var(--line)}}
+.proof>.label{display:block;margin-bottom:6px}
+.proof__note{font:var(--t-micro);color:var(--ink-soft);margin-bottom:18px}
+.pl{position:relative;padding:14px 0 14px 14px;border-top:1px solid var(--line)}
+.pl:first-of-type{border-top:0}
+.pl--now{background:var(--surface)}
+.pl--now::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--terra-500)}
+.pl__top{display:flex;align-items:baseline;gap:9px}
+.pl__no{font:var(--t-label);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-label);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.pl__n{font-family:var(--font-display);font-weight:400;font-size:15.5px;
+  line-height:1.2;letter-spacing:.03em;color:var(--ink);flex:0 0 auto}
+/* a RULE leader, never a dot leader (that is Crema's) */
+.pl__lead{flex:1 1 auto;height:1px;background:var(--line);position:relative;top:-4px;min-width:12px}
+.pl__p{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:500;
+  font-size:13.5px;color:var(--ink);flex:0 0 auto;letter-spacing:-.004em}
+.pl__d{margin-top:6px;padding-left:26px;font:400 11.5px/1.5 var(--font-sans);color:var(--ink-soft)}
+.pl__d .fssai{display:inline-block;vertical-align:-2px;margin-right:6px}
+.proof__foot{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+  font:var(--t-micro);color:var(--ink-soft)}
+.proof__foot b{color:var(--ink);font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   16 · RESPONSIVE — rail 1080–1279 · drawer + tabbar <=1079
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:1279px) and (min-width:1080px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:20px 10px 14px;align-items:stretch}
+  .brand{justify-content:center;padding:0 0 18px}
+  .brand-text,.switcher-meta,.switcher>svg:last-child,.user-meta,.user-btn>svg:last-child,
+  .nav-group>.label,.nav-badge,.nav-txt{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .side-rule{margin:0 -10px}
+  .switcher{justify-content:center;padding:9px 0;min-height:52px}
+  .nav-link{justify-content:center;padding:0}
+  .nav-link[aria-current="page"]{padding-left:0}
+  .user-btn{justify-content:center;padding:8px 0}
+}
+@media (max-width:1079px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;left:0;top:0;width:272px;transform:translateX(-100%);
+    transition:transform .24s var(--ease);box-shadow:var(--sh-pop);
+  }
+  body.nav-open .sidebar{transform:none}
+  body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(27,26,23,.34);z-index:40}
+  .main{padding-bottom:88px}
+  .hamburger{
+    display:inline-flex;align-items:center;gap:10px;
+    min-height:var(--tap);padding:0 12px;border-radius:var(--r-xs);
+    border:1px solid var(--line);background:var(--surface);
+    font:600 12px/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink);
+    margin-bottom:20px;
+  }
+  .hamburger svg{width:18px;height:18px}
+  .tabbar{
+    display:grid;grid-template-columns:repeat(5,1fr);
+    position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:var(--paper);border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tabbar a{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    min-height:60px;font:600 9.5px/1 var(--font-sans);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);position:relative;
+  }
+  .tabbar a svg{width:20px;height:20px}
+  .tabbar a[aria-current="page"]{color:var(--ink)}
+  .tabbar a[aria-current="page"]::before{
+    content:"";position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--terra-500);
+  }
+}
+@media (min-width:1080px){.tabbar{display:none}}
+
+/* the ledger table folds: category and units go first, then the switch drops
+   to its own line. The row action never leaves — it is the only way to edit. */
+@media (max-width:1060px){
+  .mcols{grid-template-columns:34px minmax(0,1fr) 78px 96px 152px var(--tap)}
+  .mcat,.mhead .c{display:none}
+}
+@media (max-width:860px){
+  .mcols{grid-template-columns:34px minmax(0,1fr) 96px 152px var(--tap)}
+  .munits,.mhead .u{display:none}
+}
+@media (max-width:660px){
+  .mcols{grid-template-columns:34px minmax(0,1fr) var(--tap);row-gap:6px}
+  .mprice{grid-column:2;grid-row:2;text-align:left}
+  .mavail{grid-column:2 / span 2;grid-row:3;justify-self:start}
+  .mhead .p,.mhead .a{display:none}
+  .mrow{min-height:auto;padding:14px var(--pad-card)}
+}
+@media (max-width:680px){
+  .mast-cta{flex-direction:column;align-items:stretch}
+  .mast-cta .btn{width:100%}
+  .readout{width:100%}
+  .sec__act{width:100%;margin-left:0}
+  .off-row{grid-template-columns:34px 14px minmax(0,1fr);row-gap:10px}
+  .off-right{grid-column:1 / span 3;justify-content:flex-start}
+}
+@media (min-width:900px){
+  .split{display:grid;gap:var(--gap-md);grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start}
+  .split--even{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.split{display:grid;gap:var(--gap-md)}
+.split>*{min-width:0}
+.card{min-width:0}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ORNAMENT + LEGAL SPRITE (5.12) and THE EIGHT TESSERAE (5.15).
+     One <defs>, lifted out by whoever builds this for real. Every tessera is
+     authored in a 120x80 space out of rectangles, rotated rectangles and
+     straight-edged polygons only — no circle, no gradient, no blur.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <!-- #o-proof — dough trays on a rack. Stroke only, one cell filled. -->
+    <g id="o-proof">
+      <rect x="6" y="6" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="37" y="6" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="68" y="6" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="6" y="37" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="37" y="37" width="26" height="26" fill="currentColor" opacity=".5"/>
+      <rect x="68" y="37" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="6" y="68" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="37" y="68" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="68" y="68" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+    </g>
+    <!-- #o-rise — the fermentation curve. One thin rising S. -->
+    <path id="o-rise" d="M1 25 C 14 25 18 22 24 15 C 30 8 36 3 50 3"
+          fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+    <!-- #o-fssai — LEGALLY FIXED. Square outline + filled dot. Not themeable. -->
+    <g id="o-fssai">
+      <rect x="1" y="1" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="7" cy="7" r="3" fill="currentColor"/>
+    </g>
+
+    <!-- ── 01 MARINARA — all sauce, garlic, oregano, no cheese ─────────── -->
+    <g id="t-marinara">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 108,0 88,80 0,80" fill="#C98E78"/>
+      <polygon points="0,8 72,2 58,70 0,62" fill="#A65A44"/>
+      <polygon points="100,0 120,0 120,80 80,80" fill="#DFCBA6"/>
+      <rect x="104" y="14" width="8" height="8" fill="#5E2A1D" opacity=".42" transform="rotate(16 108 18)"/>
+      <rect x="94" y="56" width="7" height="7" fill="#5E2A1D" opacity=".34" transform="rotate(-20 97 59)"/>
+      <rect x="14" y="20" width="9" height="9" fill="#F7EFDD" transform="rotate(18 18 24)"/>
+      <rect x="38" y="46" width="8" height="8" fill="#F7EFDD" transform="rotate(-12 42 50)"/>
+      <rect x="58" y="18" width="7" height="7" fill="#F7EFDD" transform="rotate(28 61 21)"/>
+      <rect x="22" y="60" width="7" height="7" fill="#FCF8EF" transform="rotate(8 25 63)"/>
+      <rect x="30" y="12" width="4" height="4" fill="#6C7A6E" transform="rotate(24 32 14)"/>
+      <rect x="66" y="40" width="4" height="4" fill="#6C7A6E" transform="rotate(-14 68 42)"/>
+      <rect x="10" y="42" width="3" height="3" fill="#4E5C50"/>
+      <rect x="50" y="66" width="4" height="4" fill="#6C7A6E" transform="rotate(30 52 68)"/>
+    </g>
+
+    <!-- ── 02 MARGHERITA DOP — sauce, fior di latte, basil ─────────────── -->
+    <g id="t-margherita">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 114,0 96,80 0,80" fill="#C98E78"/>
+      <polygon points="6,6 78,0 64,58 4,50" fill="#A65A44" opacity=".8"/>
+      <polygon points="0,66 120,58 120,80 0,80" fill="#DFCBA6"/>
+      <rect x="8" y="70" width="8" height="8" fill="#5E2A1D" opacity=".38" transform="rotate(12 12 74)"/>
+      <rect x="76" y="66" width="7" height="7" fill="#5E2A1D" opacity=".32" transform="rotate(-16 79 69)"/>
+      <rect x="12" y="10" width="22" height="19" fill="#FCF8EF" transform="rotate(-9 23 19)"/>
+      <rect x="46" y="6" width="19" height="17" fill="#F7EFDD" transform="rotate(11 55 14)"/>
+      <rect x="72" y="20" width="20" height="18" fill="#FCF8EF" transform="rotate(-6 82 29)"/>
+      <rect x="18" y="38" width="21" height="17" fill="#F7EFDD" transform="rotate(7 28 46)"/>
+      <rect x="52" y="36" width="16" height="15" fill="#FCF8EF" transform="rotate(-18 60 43)"/>
+      <rect x="86" y="46" width="15" height="13" fill="#F7EFDD" transform="rotate(14 93 52)"/>
+      <rect x="38" y="24" width="10" height="9" fill="#6C7A6E" transform="rotate(22 43 28)"/>
+      <rect x="66" y="52" width="9" height="8" fill="#4E5C50" transform="rotate(-24 70 56)"/>
+      <rect x="4" y="30" width="8" height="7" fill="#6C7A6E" transform="rotate(10 8 33)"/>
+    </g>
+
+    <!-- ── 03 BUFALA — bigger, wetter cheese, cherry tomato ────────────── -->
+    <g id="t-bufala">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 120,0 120,68 0,74" fill="#C98E78" opacity=".62"/>
+      <polygon points="0,0 24,0 16,80 0,80" fill="#DFCBA6"/>
+      <rect x="4" y="20" width="8" height="8" fill="#5E2A1D" opacity=".36" transform="rotate(18 8 24)"/>
+      <rect x="26" y="6" width="30" height="26" fill="#FCF8EF" transform="rotate(-7 41 19)"/>
+      <rect x="66" y="2" width="26" height="24" fill="#FCF8EF" transform="rotate(9 79 14)"/>
+      <rect x="30" y="40" width="28" height="24" fill="#F7EFDD" transform="rotate(6 44 52)"/>
+      <rect x="76" y="36" width="26" height="23" fill="#FCF8EF" transform="rotate(-11 89 47)"/>
+      <rect x="98" y="6" width="16" height="15" fill="#F7EFDD" transform="rotate(16 106 13)"/>
+      <rect x="60" y="28" width="13" height="12" fill="#A65A44" transform="rotate(20 66 34)"/>
+      <rect x="20" y="62" width="12" height="11" fill="#A65A44" transform="rotate(-14 26 67)"/>
+      <rect x="94" y="62" width="11" height="11" fill="#A65A44" transform="rotate(24 99 67)"/>
+      <rect x="62" y="60" width="11" height="10" fill="#4E5C50" transform="rotate(-20 67 65)"/>
+      <rect x="22" y="30" width="9" height="8" fill="#6C7A6E" transform="rotate(28 26 34)"/>
+      <rect x="100" y="28" width="9" height="8" fill="#6C7A6E" transform="rotate(-8 104 32)"/>
+    </g>
+
+    <!-- ── 04 DIAVOLA — spianata piccante, chilli ──────────────────────── -->
+    <g id="t-diavola">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 120,0 120,72 0,80" fill="#C98E78"/>
+      <polygon points="8,4 92,0 80,54 6,48" fill="#A65A44" opacity=".72"/>
+      <polygon points="0,0 120,0 120,12 0,16" fill="#DFCBA6"/>
+      <rect x="20" y="1" width="8" height="8" fill="#5E2A1D" opacity=".4" transform="rotate(14 24 5)"/>
+      <rect x="88" y="0" width="7" height="7" fill="#5E2A1D" opacity=".34" transform="rotate(-18 91 3)"/>
+      <rect x="10" y="22" width="17" height="15" fill="#F7EFDD" transform="rotate(-8 18 29)"/>
+      <rect x="58" y="18" width="15" height="14" fill="#FCF8EF" transform="rotate(12 65 25)"/>
+      <rect x="90" y="42" width="16" height="14" fill="#F7EFDD" transform="rotate(-6 98 49)"/>
+      <rect x="34" y="58" width="15" height="13" fill="#FCF8EF" transform="rotate(9 41 64)"/>
+      <rect x="32" y="20" width="20" height="18" fill="#A65A44" stroke="#8A3F2C" stroke-width="1.5" transform="rotate(-14 42 29)"/>
+      <rect x="70" y="44" width="19" height="17" fill="#A65A44" stroke="#8A3F2C" stroke-width="1.5" transform="rotate(10 79 52)"/>
+      <rect x="12" y="50" width="18" height="16" fill="#A65A44" stroke="#8A3F2C" stroke-width="1.5" transform="rotate(20 21 58)"/>
+      <rect x="86" y="14" width="17" height="15" fill="#A65A44" stroke="#8A3F2C" stroke-width="1.5" transform="rotate(-22 94 21)"/>
+      <rect x="56" y="62" width="16" height="14" fill="#A65A44" stroke="#8A3F2C" stroke-width="1.5" transform="rotate(6 64 69)"/>
+      <rect x="52" y="6" width="5" height="12" fill="#7A2A22" transform="rotate(34 54 12)"/>
+      <rect x="104" y="64" width="5" height="11" fill="#7A2A22" transform="rotate(-26 106 69)"/>
+    </g>
+
+    <!-- ── 05 SALSICCIA E FRIARIELLI — a white pizza, no sauce at all ──── -->
+    <g id="t-salsiccia">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,4 120,0 120,76 0,80" fill="#F7EFDD"/>
+      <polygon points="0,0 120,0 120,10 0,14" fill="#DFCBA6"/>
+      <polygon points="0,70 120,66 120,80 0,80" fill="#DFCBA6"/>
+      <rect x="30" y="1" width="8" height="8" fill="#5E2A1D" opacity=".36" transform="rotate(16 34 5)"/>
+      <rect x="82" y="70" width="8" height="8" fill="#5E2A1D" opacity=".3" transform="rotate(-14 86 74)"/>
+      <polygon points="6,24 34,18 40,34 20,44 4,38" fill="#4E5C50"/>
+      <polygon points="52,44 78,38 86,54 62,62 48,56" fill="#4E5C50"/>
+      <polygon points="84,16 110,14 114,30 92,36 82,28" fill="#6C7A6E"/>
+      <polygon points="14,50 36,48 40,62 22,66 12,60" fill="#6C7A6E"/>
+      <rect x="44" y="18" width="12" height="11" fill="#C09A62" transform="rotate(18 50 23)"/>
+      <rect x="64" y="24" width="11" height="10" fill="#9A7A3E" transform="rotate(-12 69 29)"/>
+      <rect x="94" y="44" width="12" height="11" fill="#C09A62" transform="rotate(24 100 49)"/>
+      <rect x="30" y="34" width="10" height="9" fill="#9A7A3E" transform="rotate(-22 35 38)"/>
+      <rect x="70" y="62" width="11" height="10" fill="#C09A62" transform="rotate(8 75 67)"/>
+      <rect x="106" y="58" width="9" height="9" fill="#9A7A3E" transform="rotate(-18 110 62)"/>
+    </g>
+
+    <!-- ── 06 ORTOLANA — the vegetable one, read as bands ──────────────── -->
+    <g id="t-ortolana">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 120,0 120,70 0,78" fill="#C98E78" opacity=".8"/>
+      <polygon points="0,64 120,58 120,80 0,80" fill="#DFCBA6"/>
+      <rect x="16" y="66" width="8" height="8" fill="#5E2A1D" opacity=".34" transform="rotate(12 20 70)"/>
+      <rect x="6" y="6" width="34" height="12" fill="#8A968C" transform="rotate(-6 23 12)"/>
+      <rect x="10" y="26" width="30" height="11" fill="#6C7A6E" transform="rotate(4 25 31)"/>
+      <rect x="48" y="4" width="30" height="13" fill="#5E2A1D" opacity=".72" transform="rotate(8 63 10)"/>
+      <rect x="52" y="26" width="28" height="12" fill="#5E2A1D" opacity=".58" transform="rotate(-5 66 32)"/>
+      <rect x="86" y="8" width="26" height="12" fill="#C09A62" transform="rotate(-9 99 14)"/>
+      <rect x="84" y="30" width="28" height="11" fill="#9A7A3E" transform="rotate(6 98 35)"/>
+      <rect x="14" y="44" width="20" height="16" fill="#FCF8EF" transform="rotate(10 24 52)"/>
+      <rect x="46" y="46" width="19" height="15" fill="#F7EFDD" transform="rotate(-8 55 53)"/>
+      <rect x="76" y="48" width="18" height="14" fill="#FCF8EF" transform="rotate(14 85 55)"/>
+      <rect x="100" y="48" width="14" height="13" fill="#F7EFDD" transform="rotate(-16 107 54)"/>
+      <rect x="40" y="66" width="8" height="7" fill="#4E5C50" transform="rotate(20 44 69)"/>
+    </g>
+
+    <!-- ── 07 QUATTRO FORMAGGI — four fields, four ivories ─────────────── -->
+    <g id="t-quattro">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 32,0 28,80 0,80" fill="#FBF5E8"/>
+      <polygon points="32,0 62,0 58,80 28,80" fill="#F0E2C4"/>
+      <polygon points="62,0 92,0 88,80 58,80" fill="#E2CFA6"/>
+      <polygon points="92,0 120,0 120,80 88,80" fill="#D3BC8E"/>
+      <polygon points="0,72 120,66 120,80 0,80" fill="#DFCBA6"/>
+      <rect x="24" y="70" width="8" height="8" fill="#5E2A1D" opacity=".32" transform="rotate(14 28 74)"/>
+      <rect x="92" y="68" width="7" height="7" fill="#5E2A1D" opacity=".28" transform="rotate(-18 95 71)"/>
+      <rect x="8" y="16" width="9" height="7" fill="#6C7A6E" transform="rotate(22 12 19)"/>
+      <rect x="14" y="42" width="8" height="7" fill="#4E5C50" transform="rotate(-14 18 45)"/>
+      <rect x="38" y="24" width="9" height="7" fill="#6C7A6E" transform="rotate(16 42 27)"/>
+      <rect x="42" y="52" width="8" height="6" fill="#4E5C50" transform="rotate(-22 46 55)"/>
+      <rect x="68" y="14" width="8" height="7" fill="#7A5518" transform="rotate(18 72 17)"/>
+      <rect x="72" y="46" width="9" height="7" fill="#9A7A3E" transform="rotate(-10 76 49)"/>
+      <rect x="98" y="22" width="9" height="7" fill="#7A5518" transform="rotate(24 102 25)"/>
+      <rect x="102" y="50" width="8" height="7" fill="#5E2A1D" transform="rotate(-16 106 53)"/>
+      <rect x="28" y="0" width="2" height="80" fill="#CFCABA"/>
+      <rect x="58" y="0" width="2" height="80" fill="#CFCABA"/>
+      <rect x="88" y="0" width="2" height="80" fill="#CFCABA"/>
+    </g>
+
+    <!-- ── 08 TARTUFO E FUNGHI — the dark one. Ink, mushroom, thyme ────── -->
+    <g id="t-tartufo">
+      <rect width="120" height="80" fill="#F0E4CC"/>
+      <polygon points="0,0 120,0 120,74 0,80" fill="#F5EDDC"/>
+      <polygon points="6,6 96,2 88,46 4,42" fill="#E8DCC0"/>
+      <polygon points="0,0 14,0 10,80 0,80" fill="#DFCBA6"/>
+      <rect x="0" y="26" width="8" height="8" fill="#5E2A1D" opacity=".34" transform="rotate(14 4 30)"/>
+      <rect x="18" y="10" width="22" height="16" fill="#8A7B6A" transform="rotate(-9 29 18)"/>
+      <rect x="52" y="6" width="20" height="15" fill="#5C574E" transform="rotate(11 62 13)"/>
+      <rect x="84" y="18" width="21" height="16" fill="#8A7B6A" transform="rotate(-6 94 26)"/>
+      <rect x="26" y="40" width="20" height="15" fill="#5C574E" transform="rotate(8 36 47)"/>
+      <rect x="60" y="46" width="19" height="14" fill="#8A7B6A" transform="rotate(-13 69 53)"/>
+      <rect x="94" y="52" width="17" height="14" fill="#5C574E" transform="rotate(16 102 59)"/>
+      <rect x="44" y="26" width="9" height="8" fill="#22211D" transform="rotate(22 48 30)"/>
+      <rect x="78" y="38" width="8" height="7" fill="#22211D" transform="rotate(-18 82 41)"/>
+      <rect x="12" y="62" width="8" height="7" fill="#22211D" transform="rotate(12 16 65)"/>
+      <rect x="66" y="68" width="7" height="6" fill="#22211D" transform="rotate(-24 69 71)"/>
+      <rect x="34" y="66" width="10" height="4" fill="#6C7A6E" transform="rotate(18 39 68)"/>
+      <rect x="88" y="6" width="9" height="4" fill="#6C7A6E" transform="rotate(-12 92 8)"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="variant-badge"><i></i>Lievito <span>&middot; Menu</span></div>
+
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       SIDEBAR — verbatim from the Overview. Only the current item moves.
+       ═════════════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="lievito-dashboard.html" aria-label="Operato — Lievito">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3h8"/><path d="M9 3v3.2a5 5 0 0 1-.6 2.4L6.6 12a5 5 0 0 0-.6 2.4V19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4.6a5 5 0 0 0-.6-2.4l-1.8-3.4a5 5 0 0 1-.6-2.4V3"/>
+          <path d="M6.2 15.2c1.6-1.4 3.2 1 4.8-.4s3.2 1 4.8-.4"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">Lievito</span>
+        <span class="brand-tag">Operato &middot; Kala Ghoda</span>
+      </span>
+    </a>
+
+    <div class="side-rule"></div>
+
+    <button class="switcher" type="button" aria-haspopup="menu" aria-expanded="false">
+      <span class="switcher-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5 4.6 4.5h14.8L21 9.5"/><path d="M3 9.5a2.5 2.5 0 0 0 4.5 1.5 2.5 2.5 0 0 0 4.5 0 2.5 2.5 0 0 0 4.5 0A2.5 2.5 0 0 0 21 9.5"/>
+          <path d="M5 12v7.5h14V12"/><path d="M9.5 19.5V15h5v4.5"/>
+        </svg>
+      </span>
+      <span class="switcher-meta">
+        <span class="switcher-name">Lievito</span>
+        <span class="switcher-role">Owner &middot; 2 rooms</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m8 9 4-4 4 4"/><path d="m16 15-4 4-4-4"/>
+      </svg>
+    </button>
+
+    <div class="side-rule"></div>
+
+    <nav class="nav-group" aria-label="Service">
+      <span class="label">Service</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="lievito-dashboard.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>
+          <span class="nav-txt">Overview</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.7 8.3 18.5 10 13.7 11.7 12 16.5 10.3 11.7 5.5 10 10.3 8.3z"/><path d="M18 16.5 18.8 18.7 21 19.5 18.8 20.3 18 22.5 17.2 20.3 15 19.5 17.2 18.7z"/></svg>
+          <span class="nav-txt">Ask AI</span><span class="nav-badge">new</span></a></li>
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h16v15H4z"/><path d="M4 8.5h16"/><path d="M8 12.5h8"/><path d="M8 15.8h5"/></svg>
+          <span class="nav-txt">Menu</span><span class="nav-badge">8</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h14v17l-2.3-1.6-2.3 1.6-2.4-1.6-2.3 1.6-2.4-1.6L5 20.5z"/><path d="M9 8.5h6"/><path d="M9 12.5h6"/></svg>
+          <span class="nav-txt">Orders</span><span class="nav-badge">4</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-rule"></div>
+
+    <nav class="nav-group" aria-label="The room">
+      <span class="label">The room</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.6l8.5-4.1"/><path d="M12 11.6v8.9"/></svg>
+          <span class="nav-txt">Inventory</span><span class="nav-badge nav-badge--warn">3</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M2.5 20.5v-1.2A4.3 4.3 0 0 1 6.8 15h4.4a4.3 4.3 0 0 1 4.3 4.3v1.2"/><path d="M16.5 5.2a3.5 3.5 0 0 1 0 6.6"/><path d="M18.5 15.2a4.3 4.3 0 0 1 3 4.1v1.2"/></svg>
+          <span class="nav-txt">Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11.5a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5z"/><path d="M4.5 20.5v-1.3A4.7 4.7 0 0 1 9.2 14.5h5.6a4.7 4.7 0 0 1 4.7 4.7v1.3"/></svg>
+          <span class="nav-txt">Customers</span><span class="nav-badge">312</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13"/><path d="M2.5 10h19"/><path d="M6 14.5h4"/></svg>
+          <span class="nav-txt">Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <div class="side-rule"></div>
+      <button class="user-btn" type="button" aria-haspopup="menu" aria-expanded="false" id="userBtn">
+        <span class="av av--ink" aria-hidden="true">AD</span>
+        <span class="user-meta">
+          <span class="user-name">Aditi Deshpande</span>
+          <span class="user-mail">aditi@lievito.in</span>
+        </span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <ul class="user-menu" id="userMenu" hidden>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7h-.2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.7-1.1V4a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.4 1z"/></svg>Settings</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9z"/></svg>Appearance</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5h3.5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H15"/><path d="m10 8-4 4 4 4"/><path d="M6 12h9"/></svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         THE MASTHEAD (5.1) — same treatment, Menu content. It still leads
+         with the DATE, because the card is a dated printed page.
+         ═══════════════════════════════════════════════════════════════════ -->
+    <header class="mast">
+      <svg class="mast-proof" viewBox="0 0 100 100" aria-hidden="true"><use href="#o-proof"/></svg>
+      <div class="mast-in">
+        <div class="mast-l">
+          <button class="hamburger" type="button" id="hamburger" aria-controls="sidebar" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16"/><path d="M4 12h16"/><path d="M4 17.5h16"/></svg>
+            Menu
+          </button>
+
+          <svg class="rise-mark" viewBox="0 0 52 28" aria-hidden="true"><use href="#o-rise"/></svg>
+
+          <p class="eyebrow">
+            <span>The card &mdash; version 14</span>
+            <span class="bar" aria-hidden="true"></span>
+            <span class="live"><i aria-hidden="true"></i>Open 19:00&ndash;23:30</span>
+            <span class="bar" aria-hidden="true"></span>
+            <span class="dim">Set 11 August</span>
+          </p>
+
+          <h1 class="mast-date">Tuesday, 25 August</h1>
+
+          <p class="mast-greet">The card as it prints tonight, <b>Aditi</b>.</p>
+          <p class="mast-line">
+            Twenty-eight lines, <b>26</b> of them live. Eight pizzas off one dough &mdash;
+            batch 108, pulled at 18:00.
+            <span class="warn">Two lines are off tonight</span> &mdash; the truffle tin lands
+            Thursday and the fryer is down for its deep clean. Nothing has been repriced
+            since <b>11 August</b>.
+          </p>
+
+          <div class="mast-cta">
+            <button class="btn btn--primary" type="button" data-edit="new">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Add an item
+            </button>
+            <a class="btn btn--ghost" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9V3.5h11V9"/><path d="M6.5 17.5H5a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-1.5"/><path d="M6.5 14h11v6.5h-11z"/></svg>
+              Print the card
+            </a>
+          </div>
+        </div>
+
+        <!-- THE LEDGER READOUT — rows on bare paper. Not a card. -->
+        <div class="readout">
+          <span class="label">The card, tonight</span>
+          <div class="readout-row">
+            <span class="k">Lines live<small>Two are off the card</small></span>
+            <span class="v"><span class="metric-sm num">26<span class="of"> / 28</span></span></span>
+          </div>
+          <div class="readout-row">
+            <span class="k">Pizze<small>One dough, eight lines</small></span>
+            <span class="v"><span class="metric-sm num">8<span class="of"> lines</span></span></span>
+          </div>
+          <div class="readout-row">
+            <span class="k">Average line<small>Across all twenty-eight</small></span>
+            <span class="v"><span class="metric-sm num"><span class="cur">&#8377;</span>692</span></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           KPI LEDGER (5.4) — one ruled slab. The single charcoal cell on
+           this screen is CARD TAKE (5.21): the Menu screen exists to change
+           the card, so the number that matters is what the card earns.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec sec--tight" aria-labelledby="kpi-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Trailing thirty days &middot; 27 July to 25 August</span>
+            <h2 class="sec__title" id="kpi-h">What the card is doing</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3.2 2"/><path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17z"/></svg>
+              Change the window
+            </a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <div class="ledger kpis">
+
+            <!-- THE ONE DARK OBJECT ON THE PAGE -->
+            <div class="cell cell--slab kpi rise" style="--i:0">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Card take, 30 days</span>
+              <span class="metric num"><span class="cur">&#8377;</span>22,36,400</span>
+              <div class="kpi-foot">
+                <span class="delta delta--up">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+                  +6.2% <em>vs the thirty days before</em>
+                </span>
+                <span class="sub">Twenty-six services. The card itself has not changed since 11 August.</span>
+              </div>
+            </div>
+
+            <div class="cell kpi rise" style="--i:1">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Live on the card</span>
+              <span class="metric num">26<span class="of"> / 28</span></span>
+              <div class="kpi-foot">
+                <div>
+                  <div class="kpi-split">
+                    <span class="sub">Available tonight</span>
+                    <span class="sub num">93%</span>
+                  </div>
+                  <span class="share share--ok" style="margin-top:8px" role="img" aria-label="26 of 28 lines live, 93 per cent"><i style="width:93%"></i></span>
+                </div>
+                <span class="sub">Off: tartufo e funghi, olive ascolane.</span>
+              </div>
+            </div>
+
+            <div class="cell kpi rise" style="--i:2">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Average line</span>
+              <span class="metric num"><span class="cur">&#8377;</span>692</span>
+              <div class="kpi-foot">
+                <span class="delta delta--up">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+                  +&#8377;24 <em>vs the July card, &#8377;668</em>
+                </span>
+                <span class="sub">Pizze average &#8377;960 across eight &middot; wine &#8377;890 a glass.</span>
+              </div>
+            </div>
+
+            <div class="cell kpi rise" style="--i:3">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Under target margin</span>
+              <span class="metric num">3<span class="of"> lines</span></span>
+              <div class="kpi-foot">
+                <span class="chip chip--warn" style="align-self:flex-start">Reprice before Friday</span>
+                <span class="sub">Bufala 61%, tartufo e funghi 58%, burrata e pomodorini 59%. Target is 72% on food.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           THE CARD — the toolbar, the index rule (5.16) and the eight.
+           This section's head is the master control for the whole screen:
+           the index and the search box filter the eight AND the ledger
+           table in the next section.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" id="card" aria-labelledby="card-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Twenty-eight lines &middot; five categories</span>
+            <h2 class="sec__title" id="card-h">The card</h2>
+          </div>
+          <div class="sec__act">
+            <label class="fld search">
+              <span class="sr-only">Search the card</span>
+              <span class="inp-wrap inp-wrap--ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.8 17.6a6.8 6.8 0 1 0 0-13.6 6.8 6.8 0 0 0 0 13.6z"/><path d="m20 20-4.4-4.4"/></svg>
+                <input class="inp" id="q" type="search" placeholder="Search the card&hellip;" autocomplete="off">
+              </span>
+            </label>
+            <a class="btn btn--ghost btn--sm" href="#cats">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h4"/><path d="M11 6h9"/><path d="M4 12h4"/><path d="M11 12h9"/><path d="M4 18h4"/><path d="M11 18h9"/></svg>
+              Manage categories
+            </a>
+            <button class="btn btn--primary btn--sm" type="button" data-edit="new">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Add an item
+            </button>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+
+          <!-- 5.16 THE INDEX RULE — Lievito's tabs, which are not tabs -->
+          <div class="index" role="tablist" aria-label="Categories">
+            <button class="index__i" type="button" role="tab" aria-current="true" data-filter="all">
+              The whole card <span class="n">28</span>
+            </button>
+            <button class="index__i" type="button" role="tab" aria-current="false" data-filter="pizze">
+              Pizze <span class="n">8</span>
+            </button>
+            <button class="index__i" type="button" role="tab" aria-current="false" data-filter="antipasti">
+              Antipasti <span class="n">6</span>
+            </button>
+            <button class="index__i" type="button" role="tab" aria-current="false" data-filter="dolci">
+              Dolci <span class="n">3</span>
+            </button>
+            <button class="index__i" type="button" role="tab" aria-current="false" data-filter="vino">
+              Vino al calice <span class="n">7</span>
+            </button>
+            <button class="index__i" type="button" role="tab" aria-current="false" data-filter="bevande">
+              Bevande <span class="n">4</span>
+            </button>
+          </div>
+          <p class="index-foot" id="indexFoot">
+            Showing <b id="shownCount">28</b> of 28 lines. Search runs on the server &mdash;
+            the term is part of the query key, so what you see below is what the database returned.
+          </p>
+
+          <!-- ─────────────────────────────────────────────────────────────
+               THE EIGHT. A ledger grid (5.4) at photo scale: eight cells,
+               1px hairline gaps, one ruled sheet — a single-page menu.
+               Each cell carries a TESSERA (5.15), a printed number, the
+               FSSAI mark, the price, seven-day units against a share rule,
+               the food margin, and a COUNTER SWITCH (5.17).
+               ───────────────────────────────────────────────────────────── -->
+          <div class="grid-head" id="pizzaHead">
+            <div class="t">
+              <h3 class="card__title">Pizze &mdash; the eight, off one dough</h3>
+              <p class="card__sub">Batch 108, seventy-two hours. Numbered as they print on the card.</p>
+            </div>
+            <div class="a">
+              <span class="sub num">360 sold in seven days</span>
+            </div>
+          </div>
+
+          <div class="ledger dishes" id="pizzaGrid">
+
+            <!-- 01 -->
+            <article class="cell cell--pad0 dish rise" data-cat="pizze" data-name="marinara" style="--i:0">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-marinara"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">01</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Marinara</h4>
+                <p class="dish__desc">San Marzano DOP, oregano, Cetara garlic. No cheese.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>680</span>
+                    <span class="dish__units">34 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share" role="img" aria-label="34 sold in seven days, 9 per cent of pizza covers"><i style="width:35%"></i></span>
+                  <p class="dish__note">Food margin <b>84%</b> &middot; target 72%</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Marinara — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Marinara" aria-label="Edit Marinara">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 02 -->
+            <article class="cell cell--pad0 dish rise" data-cat="pizze" data-name="margherita dop" style="--i:1">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-margherita"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">02</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Margherita DOP</h4>
+                <p class="dish__desc">San Marzano DOP, fior di latte, basil, Frantoia oil.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>780</span>
+                    <span class="dish__units">96 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share" role="img" aria-label="96 sold in seven days, 27 per cent of pizza covers — the best seller"><i style="width:100%"></i></span>
+                  <p class="dish__note">Food margin <b>78%</b> &middot; best seller of the eight</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Margherita DOP — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Margherita DOP" aria-label="Edit Margherita DOP">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 03 -->
+            <article class="cell cell--pad0 dish rise" data-cat="pizze" data-name="bufala" style="--i:2">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-bufala"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">03</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Bufala</h4>
+                <p class="dish__desc">Mozzarella di bufala DOP, cherry tomato, basil.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>980</span>
+                    <span class="dish__units">48 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share share--warn" role="img" aria-label="48 sold in seven days, 13 per cent of pizza covers"><i style="width:50%"></i></span>
+                  <p class="dish__note dish__note--warn">Food margin <b>61%</b> &middot; under the 72% target</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Bufala — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Bufala" aria-label="Edit Bufala">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 04 — the line currently open in the editor -->
+            <article class="cell cell--pad0 dish dish--editing rise" data-cat="pizze" data-name="diavola" style="--i:3">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-diavola"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">04</span>
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Diavola</h4>
+                <p class="dish__desc">Spianata piccante, fior di latte, Calabrian chilli.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>1,020</span>
+                    <span class="dish__units">64 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share" role="img" aria-label="64 sold in seven days, 18 per cent of pizza covers"><i style="width:67%"></i></span>
+                  <p class="dish__note"><b>Open in the editor</b> &middot; unsaved price change</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Diavola — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Diavola" aria-label="Edit Diavola">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 05 -->
+            <article class="cell cell--pad0 dish rise" data-cat="pizze" data-name="salsiccia e friarielli" style="--i:4">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-salsiccia"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">05</span>
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Salsiccia e Friarielli</h4>
+                <p class="dish__desc">Fennel sausage, friarielli, provola. No sauce.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>1,120</span>
+                    <span class="dish__units">41 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share" role="img" aria-label="41 sold in seven days, 11 per cent of pizza covers"><i style="width:43%"></i></span>
+                  <p class="dish__note">Food margin <b>73%</b> &middot; target 72%</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Salsiccia e Friarielli — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Salsiccia e Friarielli" aria-label="Edit Salsiccia e Friarielli">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 06 -->
+            <article class="cell cell--pad0 dish rise" data-cat="pizze" data-name="ortolana" style="--i:5">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-ortolana"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">06</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Ortolana</h4>
+                <p class="dish__desc">Grilled courgette, aubergine, peppers, fior di latte.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>880</span>
+                    <span class="dish__units">29 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share" role="img" aria-label="29 sold in seven days, 8 per cent of pizza covers"><i style="width:30%"></i></span>
+                  <p class="dish__note">Food margin <b>76%</b> &middot; target 72%</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Ortolana — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Ortolana" aria-label="Edit Ortolana">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 07 -->
+            <article class="cell cell--pad0 dish rise" data-cat="pizze" data-name="quattro formaggi" style="--i:6">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-quattro"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">07</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Quattro Formaggi</h4>
+                <p class="dish__desc">Fior di latte, gorgonzola, pecorino, grana. No sauce.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>1,040</span>
+                    <span class="dish__units">26 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share" role="img" aria-label="26 sold in seven days, 7 per cent of pizza covers"><i style="width:27%"></i></span>
+                  <p class="dish__note">Food margin <b>75%</b> &middot; target 72%</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap is-on">
+                    <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Quattro Formaggi — on the card">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">On the card</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Quattro Formaggi" aria-label="Edit Quattro Formaggi">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 08 — OFF THE CARD. Tile dimmed, ground stepped, word said. -->
+            <article class="cell cell--pad0 dish dish--off rise" data-cat="pizze" data-name="tartufo e funghi" style="--i:7">
+              <span class="tess"><svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-tartufo"/></svg></span>
+              <div class="dish__body">
+                <div class="dish__top">
+                  <span class="label dish__no">08</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                </div>
+                <h4 class="dish__name">Tartufo e Funghi</h4>
+                <p class="dish__desc">Porcini, black truffle cream, provola, thyme.</p>
+                <div class="dish__meta">
+                  <div class="dish__row">
+                    <span class="metric-sm num"><span class="cur">&#8377;</span>1,180</span>
+                    <span class="dish__units">22 <span class="of">in 7 days</span></span>
+                  </div>
+                  <span class="share share--warn" role="img" aria-label="22 sold in seven days, 6 per cent of pizza covers"><i style="width:23%"></i></span>
+                  <p class="dish__note dish__note--warn">Food margin <b>58%</b> &middot; truffle tin lands Thursday</p>
+                </div>
+                <div class="dish__foot">
+                  <span class="sw-wrap">
+                    <button class="sw" type="button" role="switch" aria-checked="false" aria-label="Tartufo e Funghi — off the card tonight">
+                      <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+                    </button>
+                    <span class="sw-txt">Off tonight</span>
+                  </span>
+                  <button class="btn btn--quiet btn--icon" type="button" data-edit="Tartufo e Funghi" aria-label="Edit Tartufo e Funghi">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 3.9a2.2 2.2 0 0 1 3.1 3.1L8 18.5l-4 1 1-4z"/><path d="m14.5 5.8 3.7 3.7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           THE REST OF THE CARD — the dense ledger table. Same hairline
+           discipline, one twentieth of the ink: the tessera collapses to a
+           34px two-tone .thumb (5.15), the switch stays full size because
+           it is the only control here anyone touches mid-service.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" id="rest" aria-labelledby="rest-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Twenty lines &middot; filtered by the index above</span>
+            <h2 class="sec__title" id="rest-h">The rest of the card</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v12"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M4 20.5h16"/></svg>
+              Export as CSV
+            </a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <article class="card card--flush" id="restTable">
+
+            <div class="mhead mcols" aria-hidden="true">
+              <span></span>
+              <span>Item</span>
+              <span class="c">Category</span>
+              <span class="u r">7 days</span>
+              <span class="p r">Price</span>
+              <span class="a">On the card</span>
+              <span></span>
+            </div>
+            <div class="rule rule--card" aria-hidden="true"></div>
+
+            <!-- ── ANTIPASTI ─────────────────────────────────────────── -->
+            <div class="mgroup" data-cat="antipasti">
+              <div class="mgroup-head">
+                <h4>Antipasti</h4>
+                <span class="n">6 lines &middot; 13% of card take</span>
+                <span class="mg-act"><button class="btn btn--quiet btn--sm" type="button">Rename</button></span>
+              </div>
+
+              <div class="mrow mcols" data-cat="antipasti" data-name="bruschetta al pomodoro">
+                <span class="thumb" style="--a:#C98E78;--b:#F7EFDD;--c:#DFCBA6" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Bruschetta al pomodoro</span><span class="d">Sourdough, San Marzano, Frantoia oil</span></span>
+                </div>
+                <span class="mcat">Antipasti</span>
+                <span class="munits num">74</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>380</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Bruschetta al pomodoro — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Bruschetta al pomodoro" aria-label="Actions for Bruschetta al pomodoro">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="antipasti" data-name="burrata e pomodorini">
+                <span class="thumb" style="--a:#F5EDDC;--b:#FCF8EF;--c:#A65A44" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Burrata e pomodorini</span><span class="d">Andhra burrata, confit cherry tomato, basil &middot; margin 59%</span></span>
+                </div>
+                <span class="mcat">Antipasti</span>
+                <span class="munits num">88</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>720</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Burrata e pomodorini — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Burrata e pomodorini" aria-label="Actions for Burrata e pomodorini">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols mrow--off" data-cat="antipasti" data-name="olive ascolane">
+                <span class="thumb" style="--a:#DFCBA6;--b:#C09A62;--c:#9A7A3E" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Olive Ascolane</span><span class="d">Stuffed, crumbed, fried. Four pieces.</span></span>
+                </div>
+                <span class="mcat">Antipasti</span>
+                <span class="munits num">31</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>520</span>
+                <span class="mavail"><span class="sw-wrap">
+                  <button class="sw" type="button" role="switch" aria-checked="false" aria-label="Olive Ascolane — off the card tonight"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">Off tonight</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Olive Ascolane" aria-label="Actions for Olive Ascolane">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="antipasti" data-name="insalata di finocchio">
+                <span class="thumb" style="--a:#F1F3EF;--b:#C7D0C6;--c:#C09A62" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Insalata di finocchio</span><span class="d">Shaved fennel, orange, pecorino, mint</span></span>
+                </div>
+                <span class="mcat">Antipasti</span>
+                <span class="munits num">42</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>420</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Insalata di finocchio — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Insalata di finocchio" aria-label="Actions for Insalata di finocchio">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="antipasti" data-name="polpette al sugo">
+                <span class="thumb" style="--a:#A65A44;--b:#8A3F2C;--c:#DFCBA6" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Polpette al sugo</span><span class="d">Lamb polpette, San Marzano sugo, grana</span></span>
+                </div>
+                <span class="mcat">Antipasti</span>
+                <span class="munits num">56</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>640</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Polpette al sugo — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Polpette al sugo" aria-label="Actions for Polpette al sugo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="antipasti" data-name="parmigiana di melanzane">
+                <span class="thumb" style="--a:#C98E78;--b:#5E2A1D;--c:#FCF8EF" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Parmigiana di melanzane</span><span class="d">Aubergine, sugo, fior di latte, basil</span></span>
+                </div>
+                <span class="mcat">Antipasti</span>
+                <span class="munits num">38</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>560</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Parmigiana di melanzane — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Parmigiana di melanzane" aria-label="Actions for Parmigiana di melanzane">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- ── DOLCI ─────────────────────────────────────────────── -->
+            <div class="mgroup" data-cat="dolci">
+              <div class="mgroup-head">
+                <h4>Dolci</h4>
+                <span class="n">3 lines &middot; 4% of card take</span>
+                <span class="mg-act"><button class="btn btn--quiet btn--sm" type="button">Rename</button></span>
+              </div>
+
+              <div class="mrow mcols" data-cat="dolci" data-name="tiramisu">
+                <span class="thumb" style="--a:#5C574E;--b:#F5EDDC;--c:#8A7B6A" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian, contains egg"><title>Non-vegetarian &mdash; contains egg</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Tiramis&ugrave;</span><span class="d">Mascarpone, egg, Savoiardi, espresso &middot; marked non-veg for the egg</span></span>
+                </div>
+                <span class="mcat">Dolci</span>
+                <span class="munits num">63</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>420</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Tiramisù — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Tiramis&ugrave;" aria-label="Actions for Tiramisù">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="dolci" data-name="sorbetto al limone">
+                <span class="thumb" style="--a:#FAF4E9;--b:#F0E4CC;--c:#C7D0C6" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Sorbetto al limone</span><span class="d">Amalfi lemon, made in house</span></span>
+                </div>
+                <span class="mcat">Dolci</span>
+                <span class="munits num">29</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>280</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Sorbetto al limone — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Sorbetto al limone" aria-label="Actions for Sorbetto al limone">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="dolci" data-name="torta caprese">
+                <span class="thumb" style="--a:#5E2A1D;--b:#8A7B6A;--c:#F5EDDC" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian, contains egg"><title>Non-vegetarian &mdash; contains egg</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Torta caprese</span><span class="d">Almond and dark chocolate, flourless</span></span>
+                </div>
+                <span class="mcat">Dolci</span>
+                <span class="munits num">34</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>380</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Torta caprese — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Torta caprese" aria-label="Actions for Torta caprese">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- ── VINO AL CALICE ────────────────────────────────────── -->
+            <div class="mgroup" data-cat="vino">
+              <div class="mgroup-head">
+                <h4>Vino al calice</h4>
+                <span class="n">7 lines &middot; 22% of card take &middot; all natural, all by the glass</span>
+                <span class="mg-act"><button class="btn btn--quiet btn--sm" type="button">Rename</button></span>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="fiano di avellino ciro picariello">
+                <span class="thumb" style="--a:#F5EDDC;--b:#E8DCC0;--c:#C09A62" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Fiano di Avellino</span><span class="d">Ciro Picariello, Campania &middot; white, 150 ml</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">51</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>850</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Fiano di Avellino — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Fiano di Avellino" aria-label="Actions for Fiano di Avellino">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="etna bianco i vigneri">
+                <span class="thumb" style="--a:#EFE3C9;--b:#5C574E;--c:#E8DCC0" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Etna Bianco</span><span class="d">I Vigneri, Sicilia &middot; white, 150 ml</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">38</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>950</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Etna Bianco — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Etna Bianco" aria-label="Actions for Etna Bianco">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="frappato cos">
+                <span class="thumb" style="--a:#C98E78;--b:#A65A44;--c:#E3C4B7" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Frappato</span><span class="d">COS, Vittoria &middot; light red, served cool</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">44</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>900</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Frappato — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Frappato" aria-label="Actions for Frappato">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="barbera dasti trinchero">
+                <span class="thumb" style="--a:#8A3F2C;--b:#5E2A1D;--c:#C98E78" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Barbera d&rsquo;Asti</span><span class="d">Trinchero, Piemonte &middot; red, 150 ml</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">27</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>820</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Barbera d’Asti — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Barbera d&rsquo;Asti" aria-label="Actions for Barbera d’Asti">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="lambrusco camillo donati">
+                <span class="thumb" style="--a:#7A2A22;--b:#C98E78;--c:#E3C4B7" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Lambrusco</span><span class="d">Camillo Donati, Emilia &middot; sparkling red</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">33</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>780</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Lambrusco — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Lambrusco" aria-label="Actions for Lambrusco">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="verdicchio la distesa">
+                <span class="thumb" style="--a:#E8DCC0;--b:#C7D0C6;--c:#F5EDDC" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Verdicchio</span><span class="d">La Distesa, Marche &middot; skin contact, 150 ml</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">21</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>880</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Verdicchio — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Verdicchio" aria-label="Actions for Verdicchio">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="vino" data-name="nerello mascalese le vigne di eli">
+                <span class="thumb" style="--a:#8A3F2C;--b:#A65A44;--c:#5E2A1D" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Nerello Mascalese</span><span class="d">Le Vigne di Eli, Etna &middot; red, 150 ml</span></span>
+                </div>
+                <span class="mcat">Vino al calice</span>
+                <span class="munits num">18</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>1,050</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Nerello Mascalese — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Nerello Mascalese" aria-label="Actions for Nerello Mascalese">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- ── BEVANDE ───────────────────────────────────────────── -->
+            <div class="mgroup" data-cat="bevande">
+              <div class="mgroup-head">
+                <h4>Bevande</h4>
+                <span class="n">4 lines &middot; 3% of card take</span>
+                <span class="mg-act"><button class="btn btn--quiet btn--sm" type="button">Rename</button></span>
+              </div>
+
+              <div class="mrow mcols" data-cat="bevande" data-name="caffe espresso">
+                <span class="thumb" style="--a:#22211D;--b:#5C574E;--c:#8A7B6A" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Caff&egrave; espresso</span><span class="d">Single origin, ground to order</span></span>
+                </div>
+                <span class="mcat">Bevande</span>
+                <span class="munits num">112</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>180</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Caffè espresso — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Caff&egrave; espresso" aria-label="Actions for Caffè espresso">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="bevande" data-name="chinotto">
+                <span class="thumb" style="--a:#5E2A1D;--b:#C09A62;--c:#DFCBA6" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Chinotto</span><span class="d">Lurisia, 275 ml bottle</span></span>
+                </div>
+                <span class="mcat">Bevande</span>
+                <span class="munits num">24</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>260</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Chinotto — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Chinotto" aria-label="Actions for Chinotto">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="bevande" data-name="acqua frizzante">
+                <span class="thumb" style="--a:#F1F3EF;--b:#C7D0C6;--c:#E2E7E1" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Acqua frizzante</span><span class="d">750 ml, sparkling, per table</span></span>
+                </div>
+                <span class="mcat">Bevande</span>
+                <span class="munits num">96</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>220</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Acqua frizzante — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Acqua frizzante" aria-label="Actions for Acqua frizzante">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+
+              <div class="mrow mcols" data-cat="bevande" data-name="amaro montenegro">
+                <span class="thumb" style="--a:#7A5518;--b:#9A7A3E;--c:#C09A62" aria-hidden="true"></span>
+                <div class="mname">
+                  <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                  <span class="t"><span class="n">Amaro Montenegro</span><span class="d">30 ml, poured at the counter</span></span>
+                </div>
+                <span class="mcat">Bevande</span>
+                <span class="munits num">19</span>
+                <span class="mprice metric-xs num"><span class="cur">&#8377;</span>480</span>
+                <span class="mavail"><span class="sw-wrap is-on">
+                  <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Amaro Montenegro — on the card"><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span></button>
+                  <span class="sw-txt">On the card</span></span></span>
+                <button class="btn btn--quiet btn--icon mmore" type="button" data-edit="Amaro Montenegro" aria-label="Actions for Amaro Montenegro">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12h.01"/><path d="M12 12h.01"/><path d="M18.5 12h.01"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- ── UNCATEGORISED — 5.20 THE EMPTY STATE, stated as a
+                 finding rather than an apology. ──────────────────────── -->
+            <div class="mgroup" id="uncatGroup" data-cat="uncat">
+              <div class="mgroup-head">
+                <h4>Uncategorised</h4>
+                <span class="n">0 lines</span>
+              </div>
+              <div class="empty">
+                <span class="empty-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5h6l2 3h9v12h-17z"/><path d="M3.5 11h17"/></svg>
+                </span>
+                <p>Nothing is uncategorised.
+                  <small>Every one of the twenty-eight lines has a place on the card. An item with no category still prints, but it prints last.</small></p>
+                <button class="btn btn--ghost btn--sm" type="button" data-edit="new">Add an item here</button>
+              </div>
+            </div>
+
+          </article>
+
+          <!-- the filter's own empty state, revealed when nothing matches -->
+          <article class="card card--flush" id="noMatch" hidden>
+            <div class="empty">
+              <span class="empty-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.8 17.6a6.8 6.8 0 1 0 0-13.6 6.8 6.8 0 0 0 0 13.6z"/><path d="m20 20-4.4-4.4"/></svg>
+              </span>
+              <p>No line on the card matches <b id="noMatchTerm">that</b>.
+                <small>The search ran on the server against all twenty-eight lines, live and off.</small></p>
+              <button class="btn btn--ghost btn--sm" type="button" id="clearSearch">Clear the search</button>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           OFF THE CARD + THE RECOSTING PANEL (5.19 — the skeleton).
+           A .split: the wide honest object beside the narrow one.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" aria-labelledby="off-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Two lines dark &middot; &#8377;1,700 of card value unavailable</span>
+            <h2 class="sec__title" id="off-h">Off the card tonight</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">See the history</a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <div class="split">
+
+            <article class="card card--flush">
+              <div class="card__headline">
+                <div class="card__head">
+                  <div>
+                    <h3 class="card__title">Why they are dark, and when they come back</h3>
+                    <p class="card__sub">A line switched off still prints on the card. It stops being orderable.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="rule rule--card" aria-hidden="true"></div>
+
+              <div class="off-row">
+                <span class="thumb" style="--a:#F5EDDC;--b:#5C574E;--c:#22211D" aria-hidden="true"></span>
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div>
+                  <div class="off-name">Tartufo e Funghi &middot; <span class="num">&#8377;1,180</span></div>
+                  <div class="off-why">Off since Sunday 23:00 &middot; switched by Rohan Kadam. The black truffle
+                    cream finished mid-service; the next tin is on the Thursday consignment.</div>
+                </div>
+                <div class="off-right">
+                  <span class="chip chip--mute">Back Thursday</span>
+                  <button class="btn btn--ghost btn--sm" type="button">Put it back</button>
+                </div>
+              </div>
+
+              <div class="off-row">
+                <span class="thumb" style="--a:#DFCBA6;--b:#C09A62;--c:#9A7A3E" aria-hidden="true"></span>
+                <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                <div>
+                  <div class="off-name">Olive Ascolane &middot; <span class="num">&#8377;520</span></div>
+                  <div class="off-why">Off since this morning 09:20 &middot; switched by Aditi Deshpande.
+                    The fryer is down for its quarterly deep clean and comes back on at 06:00.</div>
+                </div>
+                <div class="off-right">
+                  <span class="chip chip--warn">Back tomorrow</span>
+                  <button class="btn btn--ghost btn--sm" type="button">Put it back</button>
+                </div>
+              </div>
+
+              <div class="off-row">
+                <span class="thumb" style="--a:#E2E7E1;--b:#C7D0C6;--c:#8A968C" aria-hidden="true"></span>
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div>
+                  <div class="off-name">Fiori di zucca fritti &middot; <span class="num">&#8377;680</span></div>
+                  <div class="off-why">Archived 14 June &middot; seasonal. Courgette flowers return with the
+                    Panchgani grower in late September. Not counted in the twenty-eight.</div>
+                </div>
+                <div class="off-right">
+                  <span class="chip chip--mute">Archived</span>
+                  <button class="btn btn--quiet btn--sm" type="button">Restore</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- 5.19 THE SKELETON — flat blocks breathing on opacity. No
+                 shimmer, because a shimmer is a gradient. -->
+            <article class="card card--flush" aria-busy="true" aria-labelledby="recost-h">
+              <div class="card__headline">
+                <div class="card__head">
+                  <div>
+                    <h3 class="card__title" id="recost-h">Margin by line</h3>
+                    <p class="card__sub">Recosting every line against tonight&rsquo;s supplier prices.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="rule rule--card" aria-hidden="true"></div>
+
+              <p class="sr-only" role="status">Loading margin by line. Six lines to recost.</p>
+
+              <div class="skel-row"><span class="skel skel--sq"></span>
+                <span class="skel-stack"><span class="skel" style="width:72%"></span><span class="skel" style="width:44%;height:9px"></span></span>
+                <span class="skel" style="width:100%"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span>
+                <span class="skel-stack"><span class="skel" style="width:58%"></span><span class="skel" style="width:36%;height:9px"></span></span>
+                <span class="skel" style="width:100%"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span>
+                <span class="skel-stack"><span class="skel" style="width:81%"></span><span class="skel" style="width:52%;height:9px"></span></span>
+                <span class="skel" style="width:100%"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span>
+                <span class="skel-stack"><span class="skel" style="width:64%"></span><span class="skel" style="width:40%;height:9px"></span></span>
+                <span class="skel" style="width:100%"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span>
+                <span class="skel-stack"><span class="skel" style="width:76%"></span><span class="skel" style="width:48%;height:9px"></span></span>
+                <span class="skel" style="width:100%"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span>
+                <span class="skel-stack"><span class="skel" style="width:52%"></span><span class="skel" style="width:33%;height:9px"></span></span>
+                <span class="skel" style="width:100%"></span></div>
+
+              <div style="padding:16px var(--pad-card) var(--pad-card)">
+                <p class="mono-note">Waiting on the supplier price feed &mdash; last successful
+                  recost was this morning at 07:12.</p>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           THE CATEGORY INDEX — category management as a first-class module
+           rather than something hidden behind a dialog. A ledger of six
+           cells; the sixth is the way in.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" id="cats" aria-labelledby="cats-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Five categories &middot; printed in this order</span>
+            <h2 class="sec__title" id="cats-h">How the card is ordered</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5 12 2l4 3.5"/><path d="M12 2v9"/><path d="M4.5 13.5v6a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/></svg>
+              Reorder the card
+            </a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <div class="ledger cats">
+
+            <div class="cell cat rise" style="--i:0">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Order 01</span>
+              <h3 class="cat__name">Pizze</h3>
+              <div class="cat__meta">
+                <span class="metric-sm num">8<span class="of"> lines</span></span>
+                <span class="sub num"><span class="cur">&#8377;</span>12,97,100</span>
+              </div>
+              <span class="share" style="margin-top:12px" role="img" aria-label="Pizze, 58 per cent of card take"><i style="width:58%"></i></span>
+              <p class="sub" style="margin-top:10px;font:var(--t-micro)">58% of card take &middot; all eight off batch 108</p>
+              <div class="cat__foot">
+                <button class="btn btn--quiet btn--sm" type="button">Rename</button>
+                <span class="grab" role="button" tabindex="0" aria-label="Reorder Pizze">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="cell cat rise" style="--i:1">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Order 02</span>
+              <h3 class="cat__name">Antipasti</h3>
+              <div class="cat__meta">
+                <span class="metric-sm num">6<span class="of"> lines</span></span>
+                <span class="sub num"><span class="cur">&#8377;</span>2,90,700</span>
+              </div>
+              <span class="share share--ok" style="margin-top:12px" role="img" aria-label="Antipasti, 13 per cent of card take"><i style="width:13%"></i></span>
+              <p class="sub" style="margin-top:10px;font:var(--t-micro)">13% of card take &middot; one line off tonight</p>
+              <div class="cat__foot">
+                <button class="btn btn--quiet btn--sm" type="button">Rename</button>
+                <span class="grab" role="button" tabindex="0" aria-label="Reorder Antipasti">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="cell cat rise" style="--i:2">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Order 03</span>
+              <h3 class="cat__name">Vino al calice</h3>
+              <div class="cat__meta">
+                <span class="metric-sm num">7<span class="of"> lines</span></span>
+                <span class="sub num"><span class="cur">&#8377;</span>4,92,000</span>
+              </div>
+              <span class="share share--ok" style="margin-top:12px" role="img" aria-label="Vino al calice, 22 per cent of card take"><i style="width:22%"></i></span>
+              <p class="sub" style="margin-top:10px;font:var(--t-micro)">22% of card take &middot; wine on 19 bills in 27</p>
+              <div class="cat__foot">
+                <button class="btn btn--quiet btn--sm" type="button">Rename</button>
+                <span class="grab" role="button" tabindex="0" aria-label="Reorder Vino al calice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="cell cat rise" style="--i:3">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Order 04</span>
+              <h3 class="cat__name">Dolci</h3>
+              <div class="cat__meta">
+                <span class="metric-sm num">3<span class="of"> lines</span></span>
+                <span class="sub num"><span class="cur">&#8377;</span>89,500</span>
+              </div>
+              <span class="share share--warn" style="margin-top:12px" role="img" aria-label="Dolci, 4 per cent of card take"><i style="width:4%"></i></span>
+              <p class="sub" style="margin-top:10px;font:var(--t-micro)">4% of card take &middot; two lines carry egg</p>
+              <div class="cat__foot">
+                <button class="btn btn--quiet btn--sm" type="button">Rename</button>
+                <span class="grab" role="button" tabindex="0" aria-label="Reorder Dolci">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="cell cat rise" style="--i:4">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Order 05</span>
+              <h3 class="cat__name">Bevande</h3>
+              <div class="cat__meta">
+                <span class="metric-sm num">4<span class="of"> lines</span></span>
+                <span class="sub num"><span class="cur">&#8377;</span>67,100</span>
+              </div>
+              <span class="share share--warn" style="margin-top:12px" role="img" aria-label="Bevande, 3 per cent of card take"><i style="width:3%"></i></span>
+              <p class="sub" style="margin-top:10px;font:var(--t-micro)">3% of card take &middot; espresso is the busiest line on the card</p>
+              <div class="cat__foot">
+                <button class="btn btn--quiet btn--sm" type="button">Rename</button>
+                <span class="grab" role="button" tabindex="0" aria-label="Reorder Bevande">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="cell cat cat--add rise" style="--i:5">
+              <span class="ic" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              </span>
+              <div>
+                <h3 class="cat__name" style="font-size:18px">A sixth category</h3>
+                <p class="sub" style="margin-top:8px;max-width:30ch">Fritti has been asked for twice this month.
+                  A new category prints at the foot of the card until you move it.</p>
+              </div>
+              <button class="btn btn--ghost btn--sm" type="button">Add a category</button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /.wrap -->
+  </main>
+</div>
+
+<!-- bottom tab bar, <=1079 only. Menu lives behind "More", as the spec's
+     five-slot ladder requires — so no slot here is current on this screen. -->
+<nav class="tabbar" aria-label="Primary">
+  <a href="lievito-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>Overview</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h14v17l-2.3-1.6-2.3 1.6-2.4-1.6-2.3 1.6-2.4-1.6L5 20.5z"/><path d="M9 8.5h6"/><path d="M9 12.5h6"/></svg>Orders</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.7 8.3 18.5 10 13.7 11.7 12 16.5 10.3 11.7 5.5 10 10.3 8.3z"/><path d="M18 16.5 18.8 18.7 21 19.5 18.8 20.3 18 22.5 17.2 20.3 15 19.5 17.2 18.7z"/></svg>Ask AI</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.6l8.5-4.1"/><path d="M12 11.6v8.9"/></svg>Inventory</a>
+  <a href="#" id="moreTab" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16"/><path d="M4 12h16"/><path d="M4 17.5h16"/></svg>More</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     5.18 THE ITEM DIALOG — a form BESIDE A PROOF. Open on load, on
+     Diavola, mid-edit: the price has been changed from 1,020 to 1,080 and
+     not yet saved, which is why the grid cell behind carries the terracotta
+     edit rule and the words "unsaved price change".
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="modal__scrim" id="dlgScrim"></div>
+  <div class="modal__pos">
+    <div class="dlg">
+
+      <div class="dlg__head">
+        <div>
+          <span class="label">Line 04 &middot; Pizze &middot; last saved 11 August</span>
+          <h2 class="dlg__title" id="dlgTitle">Edit a line</h2>
+        </div>
+        <button class="btn btn--quiet btn--icon dlg__x" type="button" id="dlgClose" aria-label="Close without saving">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
+        </button>
+      </div>
+      <div class="rule rule--card" aria-hidden="true"></div>
+
+      <div class="dlg__body">
+
+        <!-- the form -->
+        <div class="dlg__form">
+
+          <label class="fld">
+            <span class="label">Name</span>
+            <input class="inp" type="text" value="Diavola" placeholder="Margherita DOP">
+          </label>
+
+          <label class="fld">
+            <span class="label">Description</span>
+            <textarea class="inp" placeholder="Optional. It prints under the name on the card.">Spianata piccante, fior di latte, Calabrian chilli.</textarea>
+            <span class="hint">54 of 72 characters. Anything past 72 wraps to a third line on the printed card.</span>
+          </label>
+
+          <div class="fld">
+            <span class="label">The tile</span>
+            <div class="tilepick">
+              <span class="tilepick__now" aria-hidden="true">
+                <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice"><use href="#t-diavola"/></svg>
+              </span>
+              <div class="tilepick__opts" role="group" aria-label="Choose a tile">
+                <button class="tilepick__opt" type="button" aria-pressed="true" aria-label="Diavola tile">
+                  <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-diavola"/></svg>
+                </button>
+                <button class="tilepick__opt" type="button" aria-pressed="false" aria-label="Marinara tile">
+                  <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-marinara"/></svg>
+                </button>
+                <button class="tilepick__opt" type="button" aria-pressed="false" aria-label="Salsiccia tile">
+                  <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-salsiccia"/></svg>
+                </button>
+                <button class="tilepick__opt" type="button" aria-pressed="false" aria-label="Quattro formaggi tile">
+                  <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#t-quattro"/></svg>
+                </button>
+              </div>
+            </div>
+            <span class="hint">Lievito prints no photographs. A tile is a drawn crop &mdash; it stays
+              legible at 34px in the ledger and it never fails to load. <b>Upload a photograph</b>
+              instead if you would rather; it will be cropped to 3:2.</span>
+          </div>
+
+          <div class="dlg__two">
+            <label class="fld">
+              <span class="label">Price</span>
+              <span class="inp-wrap inp-wrap--cur">
+                <span class="inp-pre" aria-hidden="true">&#8377;</span>
+                <input class="inp" type="text" inputmode="numeric" value="1,080" aria-label="Price in rupees">
+              </span>
+              <span class="hint">Was <b>&#8377;1,020</b>. Up 5.9% &mdash; this takes the food margin from 74% to 76%.</span>
+            </label>
+
+            <label class="fld">
+              <span class="label">Time in the oven</span>
+              <span class="inp-wrap">
+                <input class="inp" type="text" inputmode="numeric" value="90" aria-label="Time in the oven, seconds" style="padding-right:64px">
+                <span class="inp-suf">SECONDS</span>
+              </span>
+              <span class="hint">At 485&deg;C. Used to sequence the pass, not to price.</span>
+            </label>
+          </div>
+
+          <div class="dlg__two">
+            <label class="fld">
+              <span class="label">Category</span>
+              <span class="inp-wrap inp-wrap--sel">
+                <select class="inp" aria-label="Category">
+                  <option selected>Pizze</option>
+                  <option>Antipasti</option>
+                  <option>Dolci</option>
+                  <option>Vino al calice</option>
+                  <option>Bevande</option>
+                  <option>Uncategorised</option>
+                </select>
+                <svg class="trail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </label>
+
+            <div class="fld">
+              <span class="label">Position on the card</span>
+              <span class="inp-wrap inp-wrap--sel">
+                <select class="inp" aria-label="Position on the card">
+                  <option>01 &mdash; first</option>
+                  <option>02</option>
+                  <option>03</option>
+                  <option selected>04</option>
+                  <option>05</option>
+                  <option>06</option>
+                  <option>07</option>
+                  <option>08 &mdash; last</option>
+                </select>
+                <svg class="trail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- 5.22 THE FSSAI SELECTOR — a legal declaration, not a switch -->
+          <div class="fld">
+            <span class="label">FSSAI declaration</span>
+            <div class="fsel" role="group" aria-label="FSSAI declaration">
+              <button type="button" aria-pressed="false">
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" aria-hidden="true"><use href="#o-fssai"/></svg>
+                Vegetarian
+              </button>
+              <button type="button" aria-pressed="true">
+                <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" aria-hidden="true"><use href="#o-fssai"/></svg>
+                Non-vegetarian
+              </button>
+            </div>
+            <span class="hint">Legally required on every food line, and on every printed card.
+              Anything containing egg is declared non-vegetarian.</span>
+          </div>
+
+          <div class="fld">
+            <span class="label">Availability</span>
+            <span class="sw-wrap is-on" style="margin-top:2px">
+              <button class="sw" type="button" role="switch" aria-checked="true" aria-label="Diavola — on the card">
+                <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+              </button>
+              <span class="sw-txt">On the card &mdash; orderable tonight</span>
+            </span>
+            <span class="hint">Switching a line off takes it out of ordering immediately.
+              It keeps its place on the printed card.</span>
+          </div>
+
+        </div>
+
+        <!-- THE PROOF — the card as it will actually set -->
+        <aside class="proof">
+          <span class="label">How it sets on the card</span>
+          <p class="proof__note">Lines 03 to 05, as they will print. Unsaved changes shown.</p>
+
+          <div class="pl">
+            <div class="pl__top">
+              <span class="pl__no">03</span>
+              <span class="pl__n">Bufala</span>
+              <span class="pl__lead" aria-hidden="true"></span>
+              <span class="pl__p">&#8377;980</span>
+            </div>
+            <p class="pl__d">
+              <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+              Mozzarella di bufala DOP, cherry tomato, basil.
+            </p>
+          </div>
+
+          <div class="pl pl--now">
+            <div class="pl__top">
+              <span class="pl__no">04</span>
+              <span class="pl__n">Diavola</span>
+              <span class="pl__lead" aria-hidden="true"></span>
+              <span class="pl__p">&#8377;1,080</span>
+            </div>
+            <p class="pl__d">
+              <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+              Spianata piccante, fior di latte, Calabrian chilli.
+            </p>
+          </div>
+
+          <div class="pl">
+            <div class="pl__top">
+              <span class="pl__no">05</span>
+              <span class="pl__n">Salsiccia e Friarielli</span>
+              <span class="pl__lead" aria-hidden="true"></span>
+              <span class="pl__p">&#8377;1,120</span>
+            </div>
+            <p class="pl__d">
+              <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+              Fennel sausage, friarielli, provola. No sauce.
+            </p>
+          </div>
+
+          <p class="proof__foot">Saving reprints the card. The current print run is
+            <b>version 14</b>, set 11 August &mdash; this will be <b>version 15</b>.</p>
+        </aside>
+
+      </div>
+
+      <div class="dlg__foot">
+        <button class="btn btn--warn btn--sm" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16"/><path d="M9.5 6.5V4h5v2.5"/><path d="M6.5 6.5 7.4 20a1 1 0 0 0 1 .9h7.2a1 1 0 0 0 1-.9l.9-13.5"/></svg>
+          Delete this line
+        </button>
+        <div class="right">
+          <button class="btn btn--ghost" type="button" id="dlgCancel">Cancel</button>
+          <button class="btn btn--primary" type="button" id="dlgSave">Save and reprint</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ── shell: user menu, drawer, scrim — verbatim from the Overview ─────── */
+  var btn=document.getElementById('userBtn'),menu=document.getElementById('userMenu');
+  btn.addEventListener('click',function(){
+    var open=menu.hidden;menu.hidden=!open;btn.setAttribute('aria-expanded',String(open));
+  });
+  function setNav(open){
+    document.body.classList.toggle('nav-open',open);
+    var h=document.getElementById('hamburger');
+    if(h)h.setAttribute('aria-expanded',String(open));
+  }
+  var h=document.getElementById('hamburger');
+  if(h)h.addEventListener('click',function(){setNav(!document.body.classList.contains('nav-open'));});
+  var m=document.getElementById('moreTab');
+  if(m)m.addEventListener('click',function(e){e.preventDefault();setNav(true);});
+  var s=document.getElementById('scrim');
+  if(s)s.addEventListener('click',function(){setNav(false);});
+
+  /* ── 5.17 the counter switch — position, colour AND the word ──────────── */
+  document.addEventListener('click',function(e){
+    var sw=e.target.closest && e.target.closest('.sw');
+    if(!sw)return;
+    var on=sw.getAttribute('aria-checked')!=='true';
+    sw.setAttribute('aria-checked',String(on));
+    var wrap=sw.closest('.sw-wrap');
+    if(wrap){
+      wrap.classList.toggle('is-on',on);
+      var t=wrap.querySelector('.sw-txt');
+      if(t&&t.textContent.indexOf('orderable')>-1){
+        t.textContent=on?'On the card — orderable tonight':'Off the card — not orderable';
+      }else if(t){
+        t.textContent=on?'On the card':'Off tonight';
+      }
+    }
+    var dish=sw.closest('.dish');   if(dish)dish.classList.toggle('dish--off',!on);
+    var row=sw.closest('.mrow');    if(row)row.classList.toggle('mrow--off',!on);
+  });
+
+  /* ── the index rule + the server-side-shaped search ───────────────────── */
+  var cat='all', term='';
+  var tabs=[].slice.call(document.querySelectorAll('.index__i'));
+  var dishes=[].slice.call(document.querySelectorAll('.dish'));
+  var rows=[].slice.call(document.querySelectorAll('.mrow'));
+  var groups=[].slice.call(document.querySelectorAll('.mgroup'));
+  var pizzaGrid=document.getElementById('pizzaGrid');
+  var pizzaHead=document.getElementById('pizzaHead');
+  var restSec=document.getElementById('rest');
+  var restTable=document.getElementById('restTable');
+  var uncat=document.getElementById('uncatGroup');
+  var noMatch=document.getElementById('noMatch');
+  var noMatchTerm=document.getElementById('noMatchTerm');
+  var shownCount=document.getElementById('shownCount');
+  var q=document.getElementById('q');
+
+  function match(el){
+    var okCat=(cat==='all'||el.getAttribute('data-cat')===cat);
+    var okTerm=(!term||el.getAttribute('data-name').indexOf(term)>-1);
+    return okCat&&okTerm;
+  }
+  function apply(){
+    var shown=0,i;
+    for(i=0;i<dishes.length;i++){var ok=match(dishes[i]);dishes[i].hidden=!ok;if(ok)shown++;}
+    for(i=0;i<rows.length;i++){var okr=match(rows[i]);rows[i].hidden=!okr;if(okr)shown++;}
+
+    var anyPizza=dishes.some(function(d){return !d.hidden;});
+    pizzaGrid.hidden=!anyPizza; pizzaHead.hidden=!anyPizza;
+
+    groups.forEach(function(g){
+      if(g===uncat){
+        g.hidden=!(!term&&(cat==='all'||cat==='uncat'));
+        return;
+      }
+      g.hidden=!g.querySelector('.mrow:not([hidden])');
+    });
+    var anyRest=groups.some(function(g){return !g.hidden;});
+    restSec.hidden=!anyRest; restTable.hidden=!anyRest;
+
+    noMatch.hidden=(shown>0);
+    if(shown===0){
+      noMatchTerm.textContent=term?'“'+q.value.trim()+'”':'that filter';
+      restSec.hidden=false;                 /* the empty state needs its section */
+      restTable.hidden=true;
+      noMatch.hidden=false;
+    }
+    shownCount.textContent=String(shown);
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      tabs.forEach(function(o){o.setAttribute('aria-current','false');});
+      t.setAttribute('aria-current','true');
+      cat=t.getAttribute('data-filter');
+      apply();
+    });
+  });
+  q.addEventListener('input',function(){term=q.value.trim().toLowerCase();apply();});
+  var clear=document.getElementById('clearSearch');
+  if(clear)clear.addEventListener('click',function(){
+    q.value='';term='';
+    tabs.forEach(function(o){o.setAttribute('aria-current','false');});
+    tabs[0].setAttribute('aria-current','true');cat='all';
+    apply();q.focus();
+  });
+
+  /* ── the tile picker + the FSSAI declaration ──────────────────────────── */
+  function group(sel,attr){
+    var els=[].slice.call(document.querySelectorAll(sel));
+    els.forEach(function(el){
+      el.addEventListener('click',function(){
+        els.forEach(function(o){o.setAttribute(attr,'false');});
+        el.setAttribute(attr,'true');
+      });
+    });
+  }
+  group('.tilepick__opt','aria-pressed');
+  group('.fsel button','aria-pressed');
+
+  /* ── 5.18 the item dialog — open on load, on Diavola ──────────────────── */
+  var modal=document.getElementById('modal');
+  function openDlg(){
+    document.body.classList.add('dlg-open');
+    var f=modal.querySelector('.inp'); if(f)f.focus({preventScroll:true});
+  }
+  function closeDlg(){document.body.classList.remove('dlg-open');}
+  [].slice.call(document.querySelectorAll('[data-edit]')).forEach(function(b){
+    b.addEventListener('click',openDlg);
+  });
+  ['dlgClose','dlgCancel','dlgScrim','dlgSave'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.addEventListener('click',closeDlg);
+  });
+  document.body.classList.add('dlg-open');   /* ships OPEN — the edit state */
+
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape')return;
+    setNav(false);
+    menu.hidden=true;btn.setAttribute('aria-expanded','false');
+    closeDlg();
+  });
+})();
+</script>
+</body>
+</html>

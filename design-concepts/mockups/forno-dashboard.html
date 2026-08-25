@@ -1,0 +1,1977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forno — Overview · Operato</title>
+
+<!--
+================================================================================
+  OPERATO · THEME "FORNO"  —  DIRECTION SPEC  (v1.0)
+  Screen: Overview dashboard.  Business: Forno Pizzeria, Bandra West, Mumbai.
+  THIS COMMENT IS THE CONTRACT. Every other Forno screen (Menu, Orders + floor,
+  Inventory, Customers, Staff, Ask AI, Billing) must be buildable from it alone.
+  Copy the :root block verbatim — never re-derive a value, never invent a hex.
+================================================================================
+
+--------------------------------------------------------------------------------
+0. WHAT FORNO IS
+--------------------------------------------------------------------------------
+A wood-fired counter-service pizzeria at 8:40 on a Saturday night. LOUD, warm,
+fast, a bit hand-made. The visual world is: a charred black oven mouth, blistered
+tomato red, fresh basil, mozzarella cream, semolina dust on the bench, a paper
+menu taped to the wall, and a spike of receipt tickets on the pass.
+
+The three things that make it Forno and not any other dashboard:
+  (a) THE SHELL IS DARK AND THE PAGE IS CREAM. The sidebar and the hero are a
+      charred, opaque, brick-textured slab with an ember glow. The canvas is
+      semolina. There is no glass anywhere in the desktop chrome — glass is
+      calm, and Forno is not calm. (The mobile tabbar is the ONE exception.)
+  (b) SHADOWS ARE HARD OFFSETS, NOT BLURS. `4px 4px 0 var(--char-900)`. Every
+      card, chip and button is a printed sticker on a wall, not a floating pane.
+      Blur is used ONLY for ember glow and for the leopard/scorch textures.
+  (c) TYPE IS BLACK-WEIGHT AND SHOUTED. Display is Arial Black, uppercase,
+      -0.03em, at clamp() sizes up to 62px. Numbers are tabular. Order numbers,
+      table numbers and timestamps are MONOSPACE — they are kitchen tickets.
+
+Density over calm. It is fine — desirable — for a Forno screen to be busy.
+
+--------------------------------------------------------------------------------
+1. TOKENS — copy this whole block into every screen's :root
+--------------------------------------------------------------------------------
+CHAR (the oven — dark surfaces)
+  --char-900  #14100D   sidebar base, hero base, the hard-shadow colour
+  --char-800  #1C1512   raised dark panels, card--char
+  --char-700  #2A1F19   dark panel insets, ticket rail on dark
+  --char-600  #3A2B22   hairlines ON dark
+  --char-500  #4E3A2E   strong hairlines ON dark, disabled dark strokes
+  --char-ink      #FFF9F0  primary text on char          (17.7:1 on --char-900)
+  --char-ink-soft #B9A597  secondary text on char        ( 7.8:1 on --char-900)
+  --char-ink-faint #6F5A4C DECORATIVE STROKES ONLY on char. Never text.
+
+SURFACES (the bench — light)
+  --semolina   #F0E2CA   the app canvas. Always dusted (see §7 SPECKLE).
+  --semolina-2 #E7D6B8   inset wells, table stripes, meter tracks
+  --surface    #FFF9F0   mozzarella — the card face
+  --surface-2  #FBF2E3   inset panel inside a card
+  --line       #E0CDAC   default hairline on light (1.5px, never 1px)
+  --line-strong #C8B38C  strong hairline / divider on light
+  --line-char  #1C1310   the 2px "drawn" outline used on feature cards
+
+INK (on light surfaces)
+  --ink        #1C1310   headings + body        (16.2:1 on --surface)
+  --ink-soft   #6B534A   secondary + labels     ( 6.7:1 on --surface)
+  --ink-faint  #A08C80   DECORATIVE ONLY (gridlines, rules). 2.9:1. Never text.
+  --ink-invert #FFF9F0
+
+TOMATO (brand / primary / heat)
+  --tomato-50  #FFF1EC  wash          --tomato-100 #FFDCD0  chip bg
+  --tomato-300 #FF7B52  accent text ON CHAR (7.2:1) + ornament on dark
+  --tomato-500 #E23B14  GRAPHIC FILL ONLY — chart stroke, bars, swatches. Floor
+                        is 3:1. It may NOT carry text ON it (cream on it is
+                        4.1:1); anything with an inline label steps to -600.
+  --tomato-600 #C4300D  solid fill that carries --ink-invert text (5.4:1)
+  --tomato-700 #9B240A  tomato TEXT on light (7.6:1 on surface, 7.3:1 on -50)
+
+BASIL (positive / resolved / veg-adjacent but NOT the veg mark)
+  --basil-50   #EFF6E7   --basil-100 #DCEDC8   --basil-300 #A8D98A (on char)
+  --basil-500  #5C9E3B   graphic fill
+  --basil-600  #3E7A26   solid fill with --ink-invert text (5.1:1)
+  --basil-700  #2C5C1A   basil TEXT on light (7.5:1 surface, 7.1:1 on -50)
+
+AMBER (the fire — warning, "in the oven", reorder)
+  --amber-50   #FDF0D4   --amber-100 #FBE3AC   --amber-300 #F5B93F (on char)
+  --amber-500  #F0A415   graphic fill
+  --amber-700  #8A5606   amber TEXT on light (5.5:1 on --amber-50)
+  --amber-border #D99A1E the 2px stroke on the reorder notice
+
+SLATE (cold dough — "not in the oven yet": Placed / Confirmed, neutral info)
+  --slate-50 #ECEFF1  --slate-100 #DCE3E7  --slate-500 #6A7F8C
+  --slate-700 #40525E  slate TEXT (7.0:1 on --slate-50)
+
+SEMANTIC — bind these, do not reach for the ramps directly
+  --delta-up   var(--basil-700)     --delta-down var(--tomato-700)
+  (Colour is REINFORCEMENT. The arrow glyph + the signed number always carry it.)
+  --focus      #E23B14  (focus ring, 3px, offset 2px)
+
+LEGALLY FIXED — DO NOT RESTYLE, DO NOT ALIAS, DO NOT THEME
+  --veg     #0B7A34    --nonveg  #94231A
+  FSSAI mark = a filled dot inside a SQUARE OUTLINE, 14px box, 2px stroke.
+  Green = vegetarian, maroon = non-vegetarian. Always carries title + aria-label
+  so it never speaks by colour alone. These two hexes are identical in every
+  Operato theme. They are not ours.
+
+STATUS VOCABULARY — OrderStatus, encoded TWICE (colour + a 5-segment meter)
+  PENDING   "Placed"     bg --slate-50   text --slate-700  border --slate-500  meter 1
+  CONFIRMED "Confirmed"  same as PENDING                                       meter 1
+  PREPARING "Preparing"  bg --amber-50   text --amber-700  border --amber-border meter 2
+  READY     "Ready"      SOLID ember: background linear-gradient(160deg,
+            --tomato-600,--tomato-700), text --ink-invert, 2px --char-900 edge,
+            plus the `pulse-ember` ring. THE ONLY SOLID CHIP IN THE SYSTEM —
+            nothing else may compete with it.                                  meter 3
+  SERVED    "Served"     bg --basil-50   text --basil-700  border --basil-500  meter 4
+  PAID      "Paid"       bg --semolina-2 text --ink-soft   border --line-strong meter 5
+  CANCELLED "Cancelled"  as PAID + line-through, meter not rendered
+  Meter: 5 bars, 3px x 10px, radius 1px, filled bars at --tomato-600 full
+  opacity, remainder at 0.22. Sits directly under the chip or right of it.
+
+OTHER STATE COLOURS (for the screens that need them)
+  Stock: needsReorder → row tint --amber-50 + chip "reorder"; daysLeft < 3 →
+  the days cell goes --amber-700 700-weight; daysLeft null → muted em-dash.
+  Shift open → READY-adjacent but NOT the ember chip: use --basil-600 outline.
+  Plan FREE → --semolina-2 chip; PRO → --char-900 fill + --tomato-300 text.
+  Staff roles + customer tags → ONE neutral chip (--semolina-2/--ink-soft). Never
+  seven hues. Menu availability off → whole row at opacity .55, no chip.
+
+--------------------------------------------------------------------------------
+2. TYPE
+--------------------------------------------------------------------------------
+  --font-display "Arial Black","Arial Bold","Helvetica Neue",Impact,sans-serif
+      Weight 900, UPPERCASE, letter-spacing -.03em (hero) / -.02em (numbers) /
+      +.02em (small caps labels). Used for: the hero h1, every KPI figure,
+      section titles, rank numerals, button labels ≥13px, the wordmark.
+  --font-sans   ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                "Helvetica Neue", Arial, sans-serif   → all body copy, notes.
+  --font-ticket ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,
+                monospace  → ORDER NUMBERS, table numbers, clock times, SKUs,
+                docket footers, quantities on a ticket. This is the kitchen's
+                voice; using it anywhere decorative dilutes it.
+
+  SCALE (all fluid, all with tabular-nums where numeric)
+  --t-hero    900 clamp(34px, 5.4vw, 62px)/0.94   uppercase, -.03em
+  --t-display 900 clamp(26px, 3.2vw, 40px)/1.0    uppercase, -.03em
+  --t-h1      900 clamp(20px, 2.3vw, 28px)/1.05   uppercase, -.02em
+  --t-h2      900 16px/1.15  uppercase, -.01em
+  --t-num     900 clamp(28px, 3.6vw, 44px)/0.95   tabular, -.025em  (KPI figure)
+  --t-num-sm  900 clamp(19px, 2vw, 24px)/1.05     tabular, -.02em
+  --t-body    400 14px/1.55
+  --t-small   400 12.5px/1.5
+  --t-micro   600 11px/1.35
+  --t-label   900 10.5px/1.2  uppercase, letter-spacing .16em   (--font-display)
+  --t-ticket  600 12.5px/1.4  (--font-ticket), tabular
+
+  MONEY: always ₹ + Indian lakh grouping, no paise → ₹1,47,850 / ₹20,35,350.
+  Always font-variant-numeric: tabular-nums. The ₹ glyph on a big figure is set
+  at .52em, weight 900, --ink-soft, with 2px of leading space.
+
+--------------------------------------------------------------------------------
+3. RADII / SHADOW / RHYTHM
+--------------------------------------------------------------------------------
+  RADII (generous — dough, not glass)
+  --r-xs 6px · --r-sm 10px · --r 16px · --r-lg 22px · --r-xl 30px · --r-pill 999px
+  --r-arch 999px 999px 8px 8px   (the oven-mouth arch: hero ornaments, the
+                                  business-switcher tile, the AI answer card)
+
+  SHADOWS — HARD OFFSETS. No blurred card shadow exists in this theme.
+  --sh-hard-xs  2px 2px 0 var(--char-900)
+  --sh-hard-sm  3px 3px 0 var(--char-900)
+  --sh-hard     5px 5px 0 var(--char-900)
+  --sh-hard-lg  8px 8px 0 var(--char-900)
+  --sh-hard-tom 4px 4px 0 var(--tomato-600)   (on char surfaces, where black
+                                               would vanish)
+  --sh-ember    0 0 44px -6px rgba(226,59,20,.55)   glow only — never a card
+  --sh-up       0 -10px 26px -18px rgba(20,16,13,.5) (mobile tabbar only)
+  PRESS: every hard-shadowed control does
+    :active { transform: translate(2px,2px); box-shadow: 1px 1px 0 …; }
+  so it physically presses into the wall. This is the theme's motion signature.
+
+  SPACING — 4px base. gaps 8 / 12 / 16 / 20 / 28 / 40.
+  --gap 16px · --gap-lg 22px · --pad-card 18px · --pad-page clamp(14px,2.4vw,30px)
+  Content measure: max-width 1240px, centred.
+
+  BORDERS: hairlines are 1.5px (never 1px — 1px reads thin next to this type).
+  Feature cards carry a 2px --line-char "drawn" outline. Chips carry 2px.
+
+--------------------------------------------------------------------------------
+4. SHELL GEOMETRY
+--------------------------------------------------------------------------------
+  --sidebar 268px   --rail 84px   --tap 46px   (46, not 44 — tablets, flour,
+                                                gloves; every control clears it)
+  Hero band height: content-driven, padding clamp(22px,3vw,40px) top /
+  clamp(34px,4vw,56px) bottom + 18px for the crust mask. No fixed header.
+  There is NO top bar. The hero IS the header on Overview; on every other screen
+  the same charred band shrinks to a "masthead" — same background, same crust
+  edge, --t-display instead of --t-hero, one line of subcopy, actions right.
+
+  RESPONSIVE LADDER (identical on all 8 screens)
+  ≥1280  full sidebar (268px), 4-up KPIs, 2-col content grids
+  1024–1279  icon RAIL (84px). Labels are CLIPPED with .sr-only geometry, never
+             display:none — they are the accessible name of every icon button.
+  ≤1023  off-canvas DRAWER (286px, slides from left, aria-modal, body locked)
+         + a 5-slot bottom TABBAR (Overview / Orders / Ask AI / Menu / More).
+         "More" opens the drawer. The tabbar is the only glass in the theme.
+  ≤640   phone: hero row gets padding-top 34px so it clears the fixed variant
+         badge; KPI grid 2-up; hero CTAs go full-width.
+  ≤430   KPI grid 1-up; ticket meta wraps.
+
+--------------------------------------------------------------------------------
+5. SIGNATURE MOVES — a Forno screen is not Forno without these
+--------------------------------------------------------------------------------
+  A. THE CHARRED SLAB. Sidebar + hero share one recipe:
+     background: --char-900, plus (1) a .brick mortar grid at 4.5% cream,
+     (2) a .leopard blister layer — 6 offset radial ellipses tiled at 240x180 —
+     at ~.5 alpha black, and (3) an ember glow radial at the FOOT of the sidebar
+     / the BOTTOM CENTRE of the hero, animated with `flicker` (7s, opacity
+     .72↔1, scale 1↔1.04). Opaque. Never glass, never blurred.
+
+  B. THE CRUST EDGE. Every charred band ends in a bubbled crust, cut with a
+     CSS mask: a row of Ø36px circles pinned to the bottom + a body rect that
+     stops 18px short (at the circles' centres). Above the crust sits a row of
+     3 small char blisters. This replaces "a bottom border" everywhere.
+       -webkit-mask:
+         radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+         linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+
+  C. THE DOCKET (the KPI tile form). A cream receipt: a 7px full-bleed colour
+     bar across the top (tomato / amber / basil / char — the variant), a 2px
+     inset --line-char ring, a PERFORATED bottom edge (circles bitten out,
+     12x10 tile, r5), a scorch mark radiating from the top-right corner, a
+     ghosted 62px ornament glyph in that corner, --t-num figure, a note line,
+     and a foot module (meter / micro-bar-chart / mini stats). min-height 208px.
+     Hard shadow via `filter: drop-shadow(5px 5px 0 var(--char-900))` — NOT
+     box-shadow, because the mask must clip the shadow to the perforation.
+
+  D. CARD VARIANTS CARRY MEANING (never one card style):
+       .card            cream, 2px --line-char, --sh-hard         → neutral panel
+       .card--char      charred slab + leopard, cream text        → "the oven":
+                        live state, tonight's numbers, the AI answer
+       .card--tomato    --tomato-50 wash + tomato top bar         → revenue/heat
+       .card--basil     --basil-50 wash                           → resolved/good
+       .card--amber     --amber-50 + 2px --amber-border + TAPE    → needs action
+     Tint is never decorative. A cream card is a cream card because it is
+     neutral, not because we ran out of colours.
+
+  E. THE TAPE. Anything that "needs a human" is a notice TAPED to the wall:
+     transform: rotate(-.55deg), plus two ::before/::after tape strips (118x26,
+     rotate ±2.4deg, semi-transparent semolina gradient, dashed side edges).
+     Hover/focus-within straightens it to 0deg. @media (hover:none) → no tilt.
+     BUDGET: exactly ONE taped element per screen. On Overview it is the
+     reorder notice.
+
+  F. CHIPS ARE STICKERS. 2px solid border, --r-pill, --font-display 900 at
+     10.5px uppercase .1em, min-height 28px (32px if interactive → then it must
+     sit inside a 46px row), --sh-hard-xs. A 7px status dot leads. The one
+     exception is READY (see §1).
+
+  G. BUTTONS ARE PRINTED. min-height 46px, --r-sm (10px — chunky, not round),
+     --font-display 900 12.5–14px uppercase .06em, 2px --char-900 border on
+     every variant, hard shadow, press-translate.
+       .btn--primary  --char-900 fill, cream text, --sh-hard-tom (tomato shadow)
+       .btn--hot      --tomato-600 fill, cream text, --sh-hard
+       .btn--ghost    --surface fill, --ink text, --sh-hard-sm
+       .btn--onchar   transparent fill, 2px --char-500, --char-ink text
+     Primary is CHAR, not tomato, so the solid-tomato READY chip stays unique.
+
+  H. THE HEAT BAR. The theme's progress/meter form: a 2px-outlined track in
+     --semolina-2 with 9 notch hairlines, filled 0→--p with the ember gradient
+     (--tomato-500 → --amber-500), and a 3px --char-900 leading edge. Used for
+     targets, stock levels, quota, plan usage. Never a plain rounded bar.
+
+  I. ORNAMENT VOCABULARY (inline SVG symbols, defined once per file):
+     #i-flame (section mark, ember), #i-slice (menu/dish), #i-peel (the wordmark
+     paddle), #i-wheat (semolina/inventory), #i-basil (veg, fresh), #i-oven
+     (arch), #i-blister (the 3-dot char cluster).
+     BUDGET: max 3 ornament types per region. Ornament never touches a number,
+     a chip, or a data mark. The flame that crowns the chart's peak sits ABOVE
+     the plot band — every plotted night keeps an identical dot.
+
+  J. ENTRANCE. `.rise` = fire-in (opacity 0→1, translateY(14px)→0,
+     scale(.985)→1) 0.5s, staggered by inline --i at 55ms. Dies entirely under
+     prefers-reduced-motion, along with flicker and pulse-ember.
+
+--------------------------------------------------------------------------------
+6. CHARTS
+--------------------------------------------------------------------------------
+  Inline SVG only, hand-authored over real numbers, viewBox 0 0 900 300,
+  min-width 900px inside an overflow-x scroller that is tabindex="0" + labelled.
+  Line: 3.5px --tomato-500, round caps. Partial/incomplete periods are DASHED
+  (8 5) — honesty is a house rule. Area: gradient --tomato-500 .42 → --amber-500
+  .16 → transparent. Dots: r3.6, --surface fill, 2.2px --tomato-600 stroke,
+  IDENTICAL on every point including the peak. Gridlines: 1px --ink-faint at
+  .45 alpha; the zero line 1.5px --line-strong. Axis text: --font-display 900
+  10.5px, --ink-soft, tabular. "Rush night" bands (Fri/Sat) are --amber-500 at
+  .10 with a 1px dashed --amber-border outline and a legend entry — a band with
+  no legend entry is a bug. Categorical fills, fixed order, never cycled:
+  --tomato-500 / --amber-500 / --slate-500 for a mark with NO text on it;
+  --tomato-600 / --amber-500 / --slate-700 the moment a segment carries an
+  inline label (cream on -500 is 4.1:1 and on slate-500 is 4.0:1 — both fail).
+  Legend swatches always mirror whichever pair the mark actually used.
+
+--------------------------------------------------------------------------------
+7. TEXTURE RECIPES (verbatim)
+--------------------------------------------------------------------------------
+  SPECKLE (the body canvas — semolina dust). Two tiled radials:
+    radial-gradient(circle at 25% 25%, rgba(124,92,64,.13) 0 1.1px,#0000 1.7px)
+      / 26px 26px  +
+    radial-gradient(circle at 72% 66%, rgba(124,92,64,.09) 0 1.3px,#0000 1.9px)
+      / 37px 37px, both repeat, over --semolina. background-attachment: fixed.
+  BRICK (dark surfaces): two repeating-linear-gradients, 0deg every 46px and
+    90deg every 92px, 1px lines of rgba(255,249,240,.045).
+  LEOPARD (dark surfaces): 6 radial ellipses at 14%/38%/62%/78%/90%/28%,
+    rgba(0,0,0,.40–.55), tiled 240x180.
+  SCORCH (docket corner): radial-gradient(120% 120% at 100% 0,
+    rgba(28,19,16,.17), transparent 62%) over a 118x94 box.
+
+--------------------------------------------------------------------------------
+8. ACCESSIBILITY FLOOR (non-negotiable, same as every Operato theme)
+--------------------------------------------------------------------------------
+  · Body text ≥4.5:1 against the surface it ACTUALLY sits on, composited
+    textures included. Ratios above were measured, not guessed.
+  · --ink-faint and --char-ink-faint are DECORATIVE STROKES. Never text, never
+    a state-carrying affordance (a disclosure chevron is --ink-soft).
+  · Every interactive target clears 46px. Icon-only buttons are 46x46.
+  · Status is never colour-alone: chip text + a meter, or an arrow + a sign.
+  · Focus: 3px solid --focus, offset 2px, radius --r-xs.
+  · Ornament is aria-hidden + pointer-events:none, always.
+  · Charts get role="img" + a full aria-label sentence carrying the numbers.
+  · Rail labels are clipped (.sr-only geometry), never display:none.
+================================================================================
+-->
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS  (self-contained — this file opens from disk with no deps)
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* char — the oven */
+  --char-900:#14100D; --char-800:#1C1512; --char-700:#2A1F19;
+  --char-600:#3A2B22; --char-500:#4E3A2E;
+  --char-ink:#FFF9F0; --char-ink-soft:#B9A597; --char-ink-faint:#6F5A4C;
+
+  /* surfaces — the bench */
+  --semolina:#F0E2CA; --semolina-2:#E7D6B8;
+  --surface:#FFF9F0;  --surface-2:#FBF2E3;
+  --line:#E0CDAC; --line-strong:#C8B38C; --line-char:#1C1310;
+
+  /* ink */
+  --ink:#1C1310; --ink-soft:#6B534A; --ink-faint:#A08C80; --ink-invert:#FFF9F0;
+
+  /* tomato */
+  --tomato-50:#FFF1EC; --tomato-100:#FFDCD0; --tomato-300:#FF7B52;
+  --tomato-500:#E23B14; --tomato-600:#C4300D; --tomato-700:#9B240A;
+
+  /* basil */
+  --basil-50:#EFF6E7; --basil-100:#DCEDC8; --basil-300:#A8D98A;
+  --basil-500:#5C9E3B; --basil-600:#3E7A26; --basil-700:#2C5C1A;
+
+  /* amber — the fire */
+  --amber-50:#FDF0D4; --amber-100:#FBE3AC; --amber-300:#F5B93F;
+  --amber-500:#F0A415; --amber-700:#8A5606; --amber-border:#D99A1E;
+
+  /* slate — cold dough */
+  --slate-50:#ECEFF1; --slate-100:#DCE3E7; --slate-500:#6A7F8C; --slate-700:#40525E;
+
+  /* semantic */
+  --delta-up:var(--basil-700); --delta-down:var(--tomato-700); --focus:#E23B14;
+
+  /* FSSAI — legally fixed, identical in every Operato theme */
+  --veg:#0B7A34; --nonveg:#94231A;
+
+  /* type */
+  --font-display:"Arial Black","Arial Bold","Helvetica Neue",Impact,sans-serif;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-ticket:ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,monospace;
+
+  --t-hero:900 clamp(34px,5.4vw,62px)/.94 var(--font-display);
+  --t-display:900 clamp(26px,3.2vw,40px)/1 var(--font-display);
+  --t-h1:900 clamp(20px,2.3vw,28px)/1.05 var(--font-display);
+  --t-h2:900 16px/1.15 var(--font-display);
+  --t-num:900 clamp(28px,3.6vw,44px)/.95 var(--font-display);
+  --t-num-sm:900 clamp(19px,2vw,24px)/1.05 var(--font-display);
+  --t-body:400 14px/1.55 var(--font-sans);
+  --t-small:400 12.5px/1.5 var(--font-sans);
+  --t-micro:600 11px/1.35 var(--font-sans);
+  --t-label:900 10.5px/1.2 var(--font-display);
+  --t-ticket:600 12.5px/1.4 var(--font-ticket);
+
+  /* radii */
+  --r-xs:6px; --r-sm:10px; --r:16px; --r-lg:22px; --r-xl:30px; --r-pill:999px;
+  --r-arch:999px 999px 8px 8px;
+
+  /* shadows — hard offsets */
+  --sh-hard-xs:2px 2px 0 var(--char-900);
+  --sh-hard-sm:3px 3px 0 var(--char-900);
+  --sh-hard:5px 5px 0 var(--char-900);
+  --sh-hard-lg:8px 8px 0 var(--char-900);
+  --sh-hard-tom:4px 4px 0 var(--tomato-600);
+  --sh-ember:0 0 44px -6px rgba(226,59,20,.55);
+  --sh-up:0 -10px 26px -18px rgba(20,16,13,.5);
+
+  /* rhythm + shell */
+  --gap:16px; --gap-lg:22px; --pad-card:18px; --pad-page:clamp(14px,2.4vw,30px);
+  --sidebar:268px; --rail:84px; --tap:46px; --measure:1240px;
+
+  /* motion */
+  --ease:cubic-bezier(.22,1,.36,1); --dur:.2s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2 · RESET + CANVAS
+   ═══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink); min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  background-color:var(--semolina);
+  /* SPECKLE — semolina dust on the bench */
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(124,92,64,.13) 0 1.1px, #0000 1.7px),
+    radial-gradient(circle at 72% 66%, rgba(124,92,64,.09) 0 1.3px, #0000 1.9px);
+  background-size:26px 26px, 37px 37px;
+  background-attachment:fixed;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tick{font-family:var(--font-ticket);font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3 · TEXTURES  (§7 of the spec)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.brick{
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,249,240,.045) 0 1px, #0000 1px 46px),
+    repeating-linear-gradient(90deg, rgba(255,249,240,.045) 0 1px, #0000 1px 92px);
+}
+.leopard::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(ellipse 16px 11px at 14% 22%, rgba(0,0,0,.55), #0000 70%),
+    radial-gradient(ellipse 10px 7px  at 38% 68%, rgba(0,0,0,.45), #0000 70%),
+    radial-gradient(ellipse 20px 12px at 62% 18%, rgba(0,0,0,.50), #0000 70%),
+    radial-gradient(ellipse 8px 6px   at 78% 52%, rgba(0,0,0,.42), #0000 70%),
+    radial-gradient(ellipse 13px 9px  at 90% 82%, rgba(0,0,0,.50), #0000 70%),
+    radial-gradient(ellipse 9px 6px   at 28% 90%, rgba(0,0,0,.40), #0000 70%);
+  background-size:240px 180px;
+}
+@keyframes flicker{
+  0%,100%{opacity:.74;transform:scale(1)}
+  40%{opacity:1;transform:scale(1.045)}
+  62%{opacity:.86;transform:scale(1.01)}
+}
+@keyframes fire-in{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.rise{animation:fire-in .5s var(--ease) both;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes pulse-ember{
+  0%,100%{box-shadow:0 0 0 0 rgba(226,59,20,.55)}
+  70%{box-shadow:0 0 0 9px rgba(226,59,20,0)}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:10px;right:10px;z-index:99;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 13px;border-radius:var(--r-sm);
+  background:var(--char-900);color:var(--char-ink);
+  border:2px solid var(--tomato-600);box-shadow:var(--sh-hard-tom);
+  font:var(--t-label);letter-spacing:.16em;pointer-events:none;
+}
+.variant-badge svg{width:14px;height:14px;color:var(--tomato-300)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5 · SHELL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+/* ── THE CHARRED SLAB ──────────────────────────────────────────────────── */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;z-index:50;
+  display:flex;flex-direction:column;gap:16px;
+  padding:18px 12px 14px;
+  background-color:var(--char-900);
+  border-right:2px solid var(--char-900);
+  overflow-y:auto;scrollbar-width:none;
+  isolation:isolate;
+}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar > *{position:relative;z-index:1}
+/* the ember at the foot of the oven */
+.sidebar-ember{
+  position:absolute;left:0;right:0;bottom:-40px;height:230px;z-index:0;
+  background:radial-gradient(120% 62% at 50% 100%, rgba(226,59,20,.5), rgba(240,164,21,.16) 42%, transparent 72%);
+  pointer-events:none;animation:flicker 7s var(--ease) infinite;
+}
+
+/* wordmark */
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px 2px;min-height:var(--tap)}
+.brand-logo{
+  position:relative;width:42px;height:42px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);
+  background:linear-gradient(155deg,var(--tomato-500),var(--tomato-700));
+  color:var(--char-ink);border:2px solid var(--char-900);
+  box-shadow:0 0 0 1.5px var(--tomato-300), var(--sh-ember);
+}
+.brand-logo svg{width:23px;height:23px}
+.brand-text{min-width:0;display:block}
+.wordmark{display:block;font:900 17px/1 var(--font-display);letter-spacing:.14em;color:var(--char-ink)}
+.wordmark i{font-style:normal;color:var(--tomato-300)}
+.brand-tag{display:block;margin-top:4px;font:var(--t-micro);color:var(--char-ink-soft);letter-spacing:.04em;white-space:nowrap}
+
+/* business switcher */
+.switch-wrap{position:relative}
+.switcher{
+  width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
+  padding:8px 10px;border-radius:var(--r-sm);text-align:left;
+  background:var(--char-700);border:2px solid var(--char-500);
+  box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.switcher:hover{background:var(--char-600)}
+.switcher:active{transform:translate(2px,2px);box-shadow:none}
+.switch-tile{
+  width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-arch);
+  background:linear-gradient(180deg,var(--amber-500),var(--tomato-600));
+  color:var(--char-900);border:2px solid var(--char-900);
+}
+.switch-tile svg{width:18px;height:18px}
+.switch-meta{min-width:0;flex:1;display:block}
+.switch-name{display:block;font:900 12.5px/1.2 var(--font-display);letter-spacing:.02em;color:var(--char-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.switch-role{display:block;margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft)}
+.switcher > .chev{width:15px;height:15px;flex:0 0 auto;color:var(--char-ink-soft)}
+
+.outlets{
+  margin-top:6px;padding:6px;border-radius:var(--r-sm);
+  background:var(--char-800);border:2px solid var(--char-600);
+  display:grid;gap:2px;
+}
+.outlets .grp{padding:6px 8px 4px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+.outlets a{display:flex;align-items:center;gap:9px;min-height:var(--tap);padding:0 8px;border-radius:var(--r-xs);font:600 12.5px/1.3 var(--font-sans);color:var(--char-ink-soft)}
+.outlets a:hover{background:var(--char-700);color:var(--char-ink)}
+.outlets a svg{width:16px;height:16px;flex:0 0 auto}
+.outlets .cur{margin-left:auto;font:var(--t-label);letter-spacing:.1em;color:var(--tomato-300)}
+
+/* nav */
+.nav-group+.nav-group{margin-top:14px}
+.nav-group > .label{display:block;padding:0 10px 7px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+.nav-list{display:grid;gap:3px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:11px;
+  min-height:var(--tap);padding:0 11px;border-radius:var(--r-sm);
+  color:var(--char-ink-soft);font:900 12.5px/1 var(--font-display);letter-spacing:.05em;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:20px;height:20px;flex:0 0 auto}
+.nav-link:hover{background:var(--char-700);color:var(--char-ink)}
+.nav-link[aria-current="page"]{
+  background:linear-gradient(100deg,var(--tomato-600),var(--tomato-700) 70%,var(--char-700));
+  color:var(--char-ink);
+  box-shadow:inset 0 0 0 2px var(--char-900), var(--sh-hard-xs);
+}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:-12px;top:6px;bottom:6px;width:5px;
+  border-radius:0 3px 3px 0;background:var(--amber-500);
+}
+.nav-badge{
+  margin-left:auto;padding:4px 7px;border-radius:var(--r-pill);
+  font:900 10px/1 var(--font-display);letter-spacing:.04em;font-variant-numeric:tabular-nums;
+  background:var(--amber-500);color:var(--char-900);border:1.5px solid var(--char-900);
+}
+.nav-badge--hot{background:var(--tomato-300)}
+.nav-link[aria-current="page"] .nav-badge{background:var(--char-ink);color:var(--char-900)}
+
+/* user block */
+.side-foot{margin-top:auto;padding-top:12px;position:relative}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
+  padding:8px 10px;border-radius:var(--r-sm);text-align:left;
+  background:var(--char-800);border:2px solid var(--char-500);box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.user-btn:hover{background:var(--char-700)}
+.user-btn:active{transform:translate(2px,2px);box-shadow:none}
+.av{
+  width:36px;height:36px;flex:0 0 auto;border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  font:900 12px/1 var(--font-display);letter-spacing:.02em;
+  background:linear-gradient(160deg,var(--amber-300),var(--amber-500));
+  color:var(--char-900);border:2px solid var(--char-900);
+}
+.av--sm{width:30px;height:30px;font-size:10.5px;border-radius:var(--r-xs)}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:900 12.5px/1.2 var(--font-display);letter-spacing:.02em;color:var(--char-ink)}
+.user-mail{display:block;margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-btn > .chev{width:15px;height:15px;flex:0 0 auto;color:var(--char-ink-soft)}
+.user-menu{
+  margin-top:6px;padding:6px;border-radius:var(--r-sm);
+  background:var(--char-800);border:2px solid var(--char-600);display:grid;gap:2px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:0 9px;border-radius:var(--r-xs);font:600 12.5px/1 var(--font-sans);color:var(--char-ink-soft)}
+.user-menu a:hover{background:var(--char-700);color:var(--char-ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu .lbl{padding:7px 9px 4px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+
+.main{min-width:0;padding-bottom:44px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6 · HERO — the oven mouth
+   ═══════════════════════════════════════════════════════════════════════════ */
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  background-color:var(--char-900);color:var(--char-ink);
+  padding:clamp(22px,3vw,40px) var(--pad-page) calc(clamp(34px,4vw,56px) + 18px);
+  /* THE CRUST EDGE — bubbled underside, cut with a mask */
+  -webkit-mask:
+    radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+  mask:
+    radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+}
+.hero-ember{
+  position:absolute;left:0;right:0;bottom:-90px;height:330px;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 100% at 50% 100%, rgba(226,59,20,.55), rgba(240,164,21,.18) 44%, transparent 74%);
+  animation:flicker 8s var(--ease) infinite;
+}
+.hero-arch{
+  position:absolute;top:-60px;right:clamp(-90px,-4vw,-40px);z-index:0;pointer-events:none;
+  width:clamp(230px,26vw,380px);height:clamp(230px,26vw,380px);
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 60%, rgba(240,164,21,.22), rgba(226,59,20,.10) 46%, transparent 68%);
+  filter:blur(2px);
+}
+.hero-in{position:relative;z-index:2;max-width:var(--measure);margin-inline:auto}
+
+.hero-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border-radius:var(--r-pill);background:var(--char-700);
+  border:2px solid var(--char-500);
+  font:var(--t-label);letter-spacing:.16em;color:var(--char-ink);white-space:nowrap;
+}
+.hero-kicker .sep{color:var(--char-ink-faint)}
+.hero-kicker em{font-style:normal;color:var(--tomato-300)}
+.live{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border-radius:var(--r-pill);
+  background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));
+  border:2px solid var(--char-900);color:var(--ink-invert);
+  font:var(--t-label);letter-spacing:.14em;white-space:nowrap;
+  animation:pulse-ember 2.6s var(--ease) infinite;
+}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--char-ink);flex:0 0 auto}
+.hamburger{display:none}
+
+.hero-body{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,2.4vw,34px);flex-wrap:wrap}
+.hero-l{min-width:0;flex:1 1 340px}
+.greeting{font:var(--t-hero);letter-spacing:-.03em;text-transform:uppercase;color:var(--char-ink)}
+.greeting em{font-style:normal;color:var(--tomato-300)}
+.hero-rule{display:flex;align-items:center;gap:8px;margin-top:12px}
+.hero-rule i{display:block;height:6px;border-radius:3px}
+.hero-rule i:nth-child(1){width:64px;background:var(--tomato-500)}
+.hero-rule i:nth-child(2){width:30px;background:var(--amber-500)}
+.hero-rule i:nth-child(3){width:16px;background:var(--basil-500)}
+.hero-rule i:nth-child(4){width:8px;background:var(--char-500)}
+.hero-date{margin-top:14px;font:900 clamp(13px,1.5vw,16px)/1.2 var(--font-display);letter-spacing:.14em;text-transform:uppercase;color:var(--amber-300)}
+.hero-line{
+  margin-top:12px;max-width:52ch;
+  font:400 clamp(13.5px,1.4vw,15.5px)/1.65 var(--font-sans);
+  color:var(--char-ink);font-variant-numeric:tabular-nums;
+}
+.hero-line b{font-weight:900;font-family:var(--font-display);letter-spacing:-.01em}
+.hero-line .hot{color:var(--tomato-300)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;flex:0 0 auto}
+.hero-cta .btn{min-height:54px;padding:0 22px;font-size:14px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7 · PRIMITIVES — buttons, chips, cards, meters
+   ═══════════════════════════════════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:var(--tap);padding:0 17px;border-radius:var(--r-sm);
+  border:2px solid var(--char-900);
+  font:900 12.5px/1 var(--font-display);letter-spacing:.06em;text-transform:uppercase;
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.btn svg{width:18px;height:18px;flex:0 0 auto}
+.btn--primary{background:var(--char-900);color:var(--char-ink);box-shadow:var(--sh-hard-tom)}
+.btn--primary:hover{background:var(--char-800)}
+.btn--primary:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--tomato-600)}
+.btn--hot{background:var(--tomato-600);color:var(--ink-invert);box-shadow:var(--sh-hard)}
+.btn--hot:hover{background:var(--tomato-500)}
+.btn--hot:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--char-900)}
+.btn--ghost{background:var(--surface);color:var(--ink);box-shadow:var(--sh-hard-sm)}
+.btn--ghost:hover{background:var(--surface-2)}
+.btn--ghost:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--char-900)}
+.btn--onchar{background:transparent;color:var(--char-ink);border-color:var(--char-500);box-shadow:none}
+.btn--onchar:hover{background:var(--char-700);border-color:var(--char-ink-faint)}
+.btn--onchar:active{transform:translate(2px,2px)}
+.btn--sm{min-height:38px;padding:0 13px;font-size:11px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+
+/* chips are stickers */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:28px;padding:5px 11px;border-radius:var(--r-pill);
+  border:2px solid;box-shadow:var(--sh-hard-xs);
+  font:900 10.5px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.chip--placed{background:var(--slate-50);color:var(--slate-700);border-color:var(--slate-500)}
+.chip--preparing{background:var(--amber-50);color:var(--amber-700);border-color:var(--amber-border)}
+.chip--ready{
+  background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));
+  color:var(--ink-invert);border-color:var(--char-900);
+  animation:pulse-ember 2.4s var(--ease) infinite;
+}
+.chip--ready::before{background:var(--char-ink)}
+.chip--served{background:var(--basil-50);color:var(--basil-700);border-color:var(--basil-500)}
+.chip--paid{background:var(--semolina-2);color:var(--ink-soft);border-color:var(--line-strong)}
+
+/* the 5-segment status meter — status is never colour-alone */
+.meter{display:inline-flex;gap:3px;align-items:center;flex:0 0 auto}
+.meter i{display:block;width:3px;height:10px;border-radius:1px;background:var(--tomato-600);opacity:.22}
+.meter i.on{opacity:1}
+.meter--dark i{background:var(--tomato-300)}
+
+/* cards */
+.card{
+  position:relative;
+  background:var(--surface);
+  border:2px solid var(--line-char);
+  border-radius:var(--r-lg);
+  padding:var(--pad-card);
+  box-shadow:var(--sh-hard);
+}
+.card--tomato{background:var(--tomato-50)}
+.card--basil{background:var(--basil-50)}
+.card--amber{background:var(--amber-50);border-color:var(--amber-border);box-shadow:5px 5px 0 var(--amber-border)}
+.card--char{
+  background-color:var(--char-900);color:var(--char-ink);
+  border-color:var(--char-900);box-shadow:var(--sh-hard-tom);
+  overflow:hidden;isolation:isolate;
+}
+.card--char > *{position:relative;z-index:1}
+
+/* the heat bar — the theme's one meter form */
+.heat{
+  position:relative;display:block;height:16px;border-radius:var(--r-xs);
+  background:var(--semolina-2);border:2px solid var(--char-900);overflow:hidden;
+}
+.heat > i{
+  position:absolute;inset:0 auto 0 0;width:var(--p,50%);
+  background:linear-gradient(90deg,var(--tomato-600),var(--tomato-500) 55%,var(--amber-500));
+  border-right:3px solid var(--char-900);
+}
+.heat::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,#0000 0 calc(10% - 1px),rgba(28,19,16,.28) calc(10% - 1px) 10%);
+}
+.heat--dark{background:var(--char-700);border-color:var(--char-500)}
+.heat--dark > i{border-right-color:var(--char-ink)}
+.heat--dark::after{background:repeating-linear-gradient(90deg,#0000 0 calc(10% - 1px),rgba(255,249,240,.22) calc(10% - 1px) 10%)}
+
+/* FSSAI veg / non-veg mark — LEGALLY FIXED, DO NOT RESTYLE */
+.fssai{
+  width:14px;height:14px;flex:0 0 auto;border-radius:2px;
+  display:grid;place-items:center;border:2px solid var(--veg);background:var(--surface);
+}
+.fssai i{width:6px;height:6px;border-radius:50%;background:var(--veg);display:block}
+.fssai--non{border-color:var(--nonveg)}
+.fssai--non i{background:var(--nonveg)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8 · PAGE COLUMN + SECTION HEADS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--measure);margin-inline:auto;padding:clamp(20px,2.6vw,32px) var(--pad-page) 0}
+.sec{margin-top:clamp(26px,3.4vw,44px)}
+.sec__head{display:flex;align-items:flex-end;gap:10px 14px;flex-wrap:wrap;margin-bottom:14px}
+.sec__title{display:flex;align-items:center;gap:10px;font:var(--t-h1);text-transform:uppercase;letter-spacing:-.02em;color:var(--ink)}
+.sec-mark{width:22px;height:22px;flex:0 0 auto;color:var(--tomato-500)}
+.sec__sub{font:var(--t-small);color:var(--ink-soft);padding-bottom:3px}
+.sec__act{margin-left:auto;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.label{font:var(--t-label);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   9 · THE DOCKET — KPI tile form (§5C)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.kpis{display:grid;gap:clamp(12px,1.6vw,18px);grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:1000px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.docket{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:6px;
+  min-height:208px;padding:22px 16px 30px;
+  background:var(--surface);
+  box-shadow:inset 0 0 0 2px var(--line-char);
+  border-radius:var(--r-sm) var(--r-sm) 0 0;
+  /* PERFORATED tear-off bottom */
+  -webkit-mask:
+    radial-gradient(circle 5px at 6px 10px,#0000 98%,#000 100%) 0 100%/12px 10px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 10px) no-repeat;
+  mask:
+    radial-gradient(circle 5px at 6px 10px,#0000 98%,#000 100%) 0 100%/12px 10px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 10px) no-repeat;
+  /* drop-shadow, NOT box-shadow — it must trace the perforation */
+  filter:drop-shadow(5px 5px 0 var(--char-900));
+}
+/* the 7px colour bar across the top — the variant's signature */
+.docket::before{content:"";position:absolute;top:0;left:0;right:0;height:7px;z-index:2}
+.docket--rev::before{background:linear-gradient(90deg,var(--tomato-600),var(--tomato-500),var(--amber-500))}
+.docket--ord::before{background:linear-gradient(90deg,var(--amber-500),var(--amber-300))}
+.docket--tik::before{background:linear-gradient(90deg,var(--basil-600),var(--basil-500),var(--basil-300))}
+.docket--ovn::before{background:linear-gradient(90deg,var(--char-900),var(--char-500),var(--char-700))}
+/* the scorch mark in the top-right corner */
+.docket-scorch{
+  position:absolute;top:0;right:0;width:118px;height:94px;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 120% at 100% 0, rgba(28,19,16,.17), transparent 62%);
+}
+.docket-orn{position:absolute;top:12px;right:8px;width:62px;height:62px;opacity:.20;pointer-events:none;z-index:0;transform:rotate(-8deg)}
+.docket > *{position:relative;z-index:1}
+.docket .label{padding-right:52px}
+.docket__val{
+  margin-top:3px;font:var(--t-num);font-variant-numeric:tabular-nums;
+  letter-spacing:-.025em;color:var(--ink);white-space:nowrap;
+}
+.docket__val .cur{font-size:.52em;font-weight:900;color:var(--ink-soft);margin-right:2px;letter-spacing:0}
+.docket__val .unit{font-size:.44em;font-weight:900;color:var(--ink-soft);margin-left:4px;letter-spacing:.04em}
+.docket__delta{
+  display:inline-flex;align-items:center;gap:6px;margin-top:2px;
+  font:900 11.5px/1 var(--font-display);letter-spacing:.04em;font-variant-numeric:tabular-nums;
+}
+.docket__delta svg{width:15px;height:15px;flex:0 0 auto}
+.delta-up{color:var(--delta-up)}
+.delta-down{color:var(--delta-down)}
+.delta-flat{color:var(--ink-soft)}
+.docket__note{font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.docket__foot{margin-top:auto;padding-top:14px}
+.docket__scale{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font:var(--t-label);letter-spacing:.1em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+/* the hourly micro-bars in the Orders docket */
+.hours{display:flex;align-items:flex-end;gap:4px;height:44px}
+.hours span{
+  flex:1;min-width:0;border-radius:2px 2px 0 0;
+  background:linear-gradient(180deg,var(--tomato-500),var(--tomato-700));
+  border:1.5px solid var(--char-900);border-bottom:0;
+}
+.hours span.now{background:repeating-linear-gradient(135deg,var(--amber-500) 0 4px,var(--amber-300) 4px 8px)}
+.hours-ax{display:flex;justify-content:space-between;margin-top:6px;font:var(--t-label);letter-spacing:.08em;color:var(--ink-soft)}
+
+/* the three mini-splits in the Average-ticket docket */
+.splits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.splits div{
+  padding:7px 6px;border-radius:var(--r-xs);text-align:center;
+  background:var(--surface-2);border:1.5px solid var(--line);
+}
+.splits b{display:block;font:900 13px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink)}
+.splits span{display:block;margin-top:4px;font:var(--t-label);letter-spacing:.08em;color:var(--ink-soft)}
+
+/* the oven-time target strip */
+.target{position:relative;height:16px;border-radius:var(--r-xs);background:var(--semolina-2);border:2px solid var(--char-900);overflow:hidden}
+.target > i{position:absolute;inset:0 auto 0 0;width:var(--p,60%);background:linear-gradient(90deg,var(--basil-600),var(--basil-500))}
+.target > b{position:absolute;top:-3px;bottom:-3px;left:var(--t,80%);width:3px;background:var(--char-900);border-radius:2px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   10 · THE TAPED NOTICE (§5E) — exactly one per screen
+   ═══════════════════════════════════════════════════════════════════════════ */
+.notice{
+  position:relative;margin-top:clamp(20px,2.6vw,30px);
+  transform:rotate(-.55deg);transform-origin:50% 0;
+  transition:transform var(--dur) var(--ease);
+  display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;
+  padding:18px 18px 16px;
+}
+.notice:hover,.notice:focus-within{transform:rotate(0deg)}
+@media (hover:none){.notice{transform:none}}
+.notice::before,.notice::after{
+  content:"";position:absolute;top:-13px;width:118px;height:26px;
+  background:linear-gradient(180deg,rgba(255,249,240,.86),rgba(232,214,184,.78));
+  border-left:2px dashed rgba(28,19,16,.28);border-right:2px dashed rgba(28,19,16,.28);
+  box-shadow:0 1px 0 rgba(28,19,16,.18);pointer-events:none;z-index:3;
+}
+.notice::before{left:32px;transform:rotate(-2.4deg)}
+.notice::after{right:32px;transform:rotate(2.4deg)}
+.notice-ico{
+  width:52px;height:52px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--amber-500);color:var(--char-900);
+  border:2px solid var(--char-900);box-shadow:var(--sh-hard-xs);
+}
+.notice-ico svg{width:28px;height:28px}
+.notice-body{min-width:0;flex:1 1 320px}
+.notice-body h3{font:var(--t-h2);text-transform:uppercase;letter-spacing:.02em;color:var(--ink)}
+.notice-body p{margin-top:5px;font:var(--t-small);color:var(--amber-700)}
+.reorders{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.reorder{
+  display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 11px;
+  border-radius:var(--r-sm);background:var(--surface);border:2px solid var(--char-900);
+  box-shadow:var(--sh-hard-xs);font:600 12.5px/1.2 var(--font-sans);color:var(--ink);
+}
+.reorder b{font:var(--t-ticket);font-weight:700;color:var(--amber-700);font-variant-numeric:tabular-nums}
+.reorder.crit b{color:var(--tomato-700)}
+.reorder .qty{font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.notice .btn{margin-left:auto;align-self:center}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   11 · GRIDS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.duo{display:grid;gap:clamp(14px,2vw,20px);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1120px){
+  .duo{grid-template-columns:minmax(0,1.62fr) minmax(0,1fr)}
+  .duo--flip{grid-template-columns:minmax(0,1fr) minmax(0,1.62fr)}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   12 · REVENUE TREND
+   ═══════════════════════════════════════════════════════════════════════════ */
+.chart-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.chart-head .label{display:block}
+.chart-head h3{font:var(--t-h2);text-transform:uppercase;color:var(--ink);margin-top:4px}
+.chart-head p{margin-top:4px;font:var(--t-small);color:var(--ink-soft)}
+.chart-big{margin-left:auto;text-align:right;flex:0 0 auto}
+.chart-big b{display:block;font:var(--t-num-sm);font-variant-numeric:tabular-nums;color:var(--ink)}
+.chart-big span{display:block;margin-top:3px;font:var(--t-label);letter-spacing:.12em;color:var(--ink-soft)}
+.chart-wrap{margin:0 -4px;padding:0 4px}
+.chart-wrap svg{min-width:900px;width:100%;height:auto;display:block}
+.chart-legend{
+  display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;
+  margin-top:14px;padding-top:13px;border-top:2px dashed var(--line-strong);
+  font:var(--t-small);color:var(--ink-soft);
+}
+.chart-legend b{color:var(--ink);font-family:var(--font-display);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.lg{display:inline-flex;align-items:center;gap:7px}
+.lg i{width:12px;height:12px;border-radius:3px;display:block;flex:0 0 auto;border:1.5px solid var(--char-900)}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   13 · THE SPIKE — live tickets
+   ═══════════════════════════════════════════════════════════════════════════ */
+.spike{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.ticket{
+  position:relative;padding:12px 13px 18px;
+  background:var(--surface);
+  box-shadow:inset 0 0 0 2px var(--line-char);
+  border-radius:var(--r-xs) var(--r-xs) 0 0;
+  -webkit-mask:
+    radial-gradient(circle 4px at 5px 8px,#0000 98%,#000 100%) 0 100%/10px 8px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat;
+  mask:
+    radial-gradient(circle 4px at 5px 8px,#0000 98%,#000 100%) 0 100%/10px 8px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat;
+  filter:drop-shadow(3px 3px 0 var(--char-900));
+  transition:transform var(--dur) var(--ease);
+}
+.ticket:hover{transform:translate(-1px,-1px)}
+.ticket--live{background:var(--tomato-50)}
+.ticket__top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ticket__no{font:900 13px/1 var(--font-ticket);letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ticket__where{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:var(--r-xs);
+  background:var(--semolina-2);border:1.5px solid var(--line-strong);
+  font:var(--t-label);letter-spacing:.1em;color:var(--ink-soft);
+}
+.ticket__ago{margin-left:auto;font:var(--t-ticket);color:var(--ink-soft);white-space:nowrap}
+.ticket__mid{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:9px}
+.ticket__items{min-width:0;flex:1;font:var(--t-small);color:var(--ink-soft)}
+.ticket__sum{font:900 15px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+.ticket__foot{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1.5px dashed var(--line-strong)}
+.spike-more{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:var(--tap);margin-top:2px;padding:0 14px;border-radius:var(--r-sm);
+  border:2px dashed var(--char-900);background:var(--surface-2);color:var(--ink);
+  font:900 11.5px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+}
+.spike-more:hover{background:var(--semolina-2)}
+.spike-more svg{width:16px;height:16px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   14 · TOP SELLERS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sellers{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.seller{
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-height:var(--tap);padding:9px 12px;overflow:hidden;
+  border-radius:var(--r-sm);border:2px solid var(--line-char);background:var(--surface);
+  box-shadow:var(--sh-hard-xs);
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
+}
+.seller:hover{transform:translate(-1px,-1px);box-shadow:var(--sh-hard-sm)}
+/* the units bar lives BEHIND the row — the row is the chart */
+.seller__bar{position:absolute;inset:0 auto 0 0;width:var(--w,50%);background:linear-gradient(90deg,rgba(226,59,20,.16),rgba(240,164,21,.10));border-right:2px solid rgba(28,19,16,.14);pointer-events:none}
+.seller > *{position:relative;z-index:1}
+.rank{
+  width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;border-radius:var(--r-xs);
+  font:900 13px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  background:var(--semolina-2);color:var(--ink);border:2px solid var(--char-900);
+}
+.seller--1 .rank{background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));color:var(--ink-invert)}
+.seller--2 .rank{background:var(--amber-500);color:var(--char-900)}
+.seller--3 .rank{background:var(--amber-100);color:var(--ink)}
+.seller__id{min-width:0;flex:1;display:flex;align-items:center;gap:8px}
+.seller__name{min-width:0;font:900 13px/1.25 var(--font-display);letter-spacing:0;color:var(--ink);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seller__price{font:var(--t-ticket);color:var(--ink-soft);white-space:nowrap}
+.seller__units{flex:0 0 auto;padding:5px 10px;border-radius:var(--r-pill);background:var(--char-900);color:var(--char-ink);font:900 11px/1 var(--font-display);letter-spacing:.06em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.seller__rev{flex:0 0 auto;min-width:92px;text-align:right;font:900 14px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+.sellers-note{margin-top:12px;padding-top:11px;border-top:2px dashed var(--line-strong);font:var(--t-small);color:var(--ink-soft)}
+.sellers-note b{font-family:var(--font-display);font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   15 · ORDER MIX + THE OVEN (right column, row 3)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.mixbar{display:flex;gap:3px;height:44px;margin-top:12px}
+.mixbar span{
+  display:grid;place-items:center;border:2px solid var(--char-900);
+  font:900 12px/1 var(--font-display);letter-spacing:.02em;font-variant-numeric:tabular-nums;
+}
+.mixbar span:first-child{border-radius:var(--r-xs) 0 0 var(--r-xs)}
+.mixbar span:last-child{border-radius:0 var(--r-xs) var(--r-xs) 0}
+.mix-1{background:var(--tomato-600);color:var(--ink-invert)}
+.mix-2{background:var(--amber-500);color:var(--char-900)}
+.mix-3{background:var(--slate-700);color:var(--ink-invert)}
+.mixleg{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.mixleg li{display:flex;align-items:center;gap:9px;min-height:34px;font:var(--t-small);color:var(--ink-soft)}
+.mixleg i{width:12px;height:12px;border-radius:3px;flex:0 0 auto;border:1.5px solid var(--char-900)}
+.mixleg .nm{font:900 11.5px/1 var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.mixleg .vv{margin-left:auto;font-variant-numeric:tabular-nums;font-family:var(--font-display);font-weight:900;color:var(--ink);letter-spacing:-.01em;white-space:nowrap}
+
+.oven-head{display:flex;align-items:center;gap:11px}
+.oven-ico{width:44px;height:44px;flex:0 0 auto;display:grid;place-items:center;border-radius:var(--r-arch);background:linear-gradient(180deg,var(--amber-500),var(--tomato-600));color:var(--char-900);border:2px solid var(--char-900)}
+.oven-ico svg{width:24px;height:24px}
+.oven-head h3{font:var(--t-h2);text-transform:uppercase;color:var(--char-ink)}
+.oven-head p{margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft)}
+.oven-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.oven-grid div{padding:11px 9px;border-radius:var(--r-sm);background:var(--char-700);border:2px solid var(--char-500);text-align:center}
+.oven-grid b{display:block;font:900 21px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--amber-300)}
+.oven-grid span{display:block;margin-top:5px;font:var(--t-label);letter-spacing:.1em;color:var(--char-ink-soft)}
+.oven-crew{margin-top:14px;padding-top:12px;border-top:2px dashed var(--char-500)}
+.oven-crew ul{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.oven-crew li{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:4px 10px 4px 4px;border-radius:var(--r-pill);background:var(--char-700);border:2px solid var(--char-500);font:600 12px/1.2 var(--font-sans);color:var(--char-ink)}
+.oven-crew li em{font-style:normal;color:var(--char-ink-soft);font-size:11px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   16 · OFF-CANVAS CHROME
+   ═══════════════════════════════════════════════════════════════════════════ */
+.backdrop{position:fixed;inset:0;background:rgba(20,16,13,.62);z-index:45;opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
+body.nav-open .backdrop{opacity:1;pointer-events:auto}
+body.nav-open{overflow:hidden}
+.tabbar{display:none}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   17 · RESPONSIVE LADDER (§4)
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* 1024–1279 → 84px icon rail */
+@media (max-width:1279px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:16px 8px 14px;align-items:center}
+  .brand{justify-content:center;padding:4px 0}
+  .switcher{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .switch-tile{width:30px;height:30px}
+  .switcher .switch-meta,.switcher > .chev{display:none}
+  .outlets{position:absolute;left:calc(100% + 8px);top:0;width:216px;z-index:70}
+  .nav-link{justify-content:center;padding:0;width:var(--tap);margin:0 auto}
+  .nav-link[aria-current="page"]::before{left:-8px}
+  .nav-badge{position:absolute;top:2px;right:-2px;margin:0;padding:2px 5px;font-size:9px}
+  .brand-text,.brand-tag,.nav-group > .label,.nav-link span,.switch-meta{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .nav-group+.nav-group{margin-top:12px;position:relative;padding-top:12px}
+  .nav-group+.nav-group::before{content:"";position:absolute;top:0;left:16%;right:16%;height:2px;background:var(--char-600)}
+  .user-btn{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center}
+  .user-meta,.user-btn > .chev{display:none}
+  .user-menu{position:absolute;bottom:0;left:calc(100% + 8px);width:214px;margin:0;z-index:70}
+  .side-foot{position:relative}
+}
+
+/* ≤1023 → drawer + bottom tabbar */
+@media (max-width:1023px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:286px;
+    padding:20px 12px 16px;align-items:stretch;
+    border-right:0;box-shadow:8px 0 0 rgba(20,16,13,.35);
+    transform:translateX(-104%);transition:transform .26s var(--ease);z-index:60;
+  }
+  body.nav-open .sidebar{transform:none}
+  .brand{justify-content:flex-start;padding:4px 6px 2px}
+  .brand-text,.brand-tag,.nav-group > .label,.nav-link span,.switch-meta{
+    position:static;width:auto;height:auto;margin:0;overflow:visible;clip-path:none;
+  }
+  .switcher{width:100%;min-height:56px;padding:8px 10px;justify-content:flex-start}
+  .switcher .switch-meta{display:block}
+  .switcher > .chev{display:block}
+  .switch-tile{width:34px;height:34px}
+  .outlets{position:static;width:auto;margin-top:6px}
+  .nav-link{justify-content:flex-start;padding:0 11px;width:auto}
+  .nav-link[aria-current="page"]::before{left:-12px}
+  .nav-badge{position:static;margin-left:auto;padding:4px 7px;font-size:10px}
+  .nav-group+.nav-group{position:static;padding-top:0;margin-top:14px}
+  .nav-group+.nav-group::before{content:none}
+  .user-btn{width:100%;min-height:56px;padding:8px 10px;justify-content:flex-start}
+  .user-meta,.user-btn > .chev{display:block}
+  .user-menu{position:static;width:auto;margin-top:6px}
+
+  .main{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px) + 20px)}
+  .hamburger{display:inline-flex}
+
+  /* the ONE glass surface in the theme */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:55;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+    background:color-mix(in srgb, var(--char-900) 86%, transparent);
+    backdrop-filter:blur(14px) saturate(1.5);
+    border-top:2px solid var(--tomato-600);box-shadow:var(--sh-up);
+  }
+  .tab{
+    display:grid;place-items:center;gap:3px;min-height:var(--tap);padding:5px 2px;
+    border-radius:var(--r-xs);color:var(--char-ink-soft);
+    font:900 9.5px/1.2 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+  }
+  .tab svg{width:21px;height:21px}
+  .tab:hover{color:var(--char-ink);background:var(--char-700)}
+  .tab[aria-current="page"],.tab[aria-expanded="true"]{color:var(--char-ink);background:var(--tomato-700)}
+}
+
+/* phone */
+@media (max-width:640px){
+  .hero-top{padding-top:34px}
+  .hero-body{align-items:flex-start}
+  .hero-cta{width:100%}
+  .hero-cta .btn{flex:1 1 auto}
+  .greeting{font-size:clamp(30px,8.4vw,38px)}
+  .notice .btn{margin-left:0;width:100%}
+  .seller__rev{min-width:0}
+  .seller__price{display:none}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:minmax(0,1fr)}
+  .seller__units{display:none}
+  .chart-big{margin-left:0;text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ ORNAMENT SPRITE — every motif in one place, all decorative ═══════════
+     Consumers are aria-hidden + pointer-events:none without exception. ═══════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+
+  <!-- FLAME — the section mark and the ember. The signature glyph. -->
+  <symbol id="i-flame" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M13.2 1.4c.6 3.3-.6 5.2-2.3 6.9-1.9 1.9-4.2 3.6-4.2 7.1A7.3 7.3 0 0 0 14 22.5c3.9 0 6.6-3 6.6-6.9 0-4.7-3.4-7-4.6-10.4-.4 1.4-1.2 2.3-2.2 2.9.4-2.3.2-4.7-.6-6.7z"/>
+    <path fill="var(--amber-500)" opacity=".85" d="M13 12.3c.3 1.6-.3 2.5-1.1 3.4-.9.9-2 1.7-2 3.4A3.5 3.5 0 0 0 13.4 23c1.8 0 3.1-1.4 3.1-3.3 0-2.2-1.6-3.3-2.2-5-.2.7-.5 1.1-1 1.4.2-1.1 0-2.2-.3-3.2z"/>
+  </symbol>
+
+  <!-- PIZZA SLICE — menu, dishes, the sellers list -->
+  <symbol id="i-slice" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2 3.4 19.4a1.6 1.6 0 0 0 2.1 2.1L22.6 13z"/>
+    <circle cx="10" cy="10.5" r="1.6" fill="currentColor"/>
+    <circle cx="8" cy="16" r="1.4" fill="currentColor"/>
+    <circle cx="14.5" cy="14" r="1.5" fill="currentColor"/>
+  </symbol>
+
+  <!-- PEEL — the paddle. The Operato brand tile inside Forno. -->
+  <symbol id="i-peel" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15.6 2.4a5.6 5.6 0 0 1 0 7.9l-3.1 3.1-7.9-7.9 3.1-3.1a5.6 5.6 0 0 1 7.9 0z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m10.4 13.6-8 8"/>
+  </symbol>
+
+  <!-- WHEAT — semolina, flour, inventory -->
+  <symbol id="i-wheat" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 22V9"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9c0-2.4 1.4-4.2 3.4-5-.2 2.6-1.3 4.2-3.4 5zM12 9C12 6.6 10.6 4.8 8.6 4c.2 2.6 1.3 4.2 3.4 5zM12 14.5c0-2.4 1.4-4.2 3.4-5-.2 2.6-1.3 4.2-3.4 5zM12 14.5c0-2.4-1.4-4.2-3.4-5 .2 2.6 1.3 4.2 3.4 5z"/>
+  </symbol>
+
+  <!-- BASIL — fresh, veg-adjacent decoration (NOT the FSSAI mark) -->
+  <symbol id="i-basil" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M20.5 3.2c-6.6-.6-11 1.5-13.1 5-1.6 2.7-1.4 5.7.1 7.7L3.6 19.8a1 1 0 1 0 1.4 1.4l3.9-3.9c2 1.5 5 1.7 7.7.1 3.5-2.1 5.5-6.5 4.9-13.1a1 1 0 0 0-1-1.1z"/>
+  </symbol>
+
+  <!-- OVEN ARCH — the mouth -->
+  <symbol id="i-oven" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M2.5 20V11a9.5 9.5 0 0 1 19 0v9z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M7 20v-8a5 5 0 0 1 10 0v8"/>
+  </symbol>
+
+  <!-- BLISTER — the 3-dot char cluster that sits above every crust edge -->
+  <symbol id="i-blister" viewBox="0 0 44 14">
+    <ellipse cx="8" cy="7" rx="7" ry="4.4" fill="currentColor"/>
+    <ellipse cx="24" cy="6" rx="4.4" ry="3" fill="currentColor" opacity=".8"/>
+    <ellipse cx="37" cy="8" rx="5.6" ry="3.6" fill="currentColor" opacity=".65"/>
+  </symbol>
+
+  <!-- CLOCK / oven timer -->
+  <symbol id="i-timer" viewBox="0 0 24 24">
+    <circle cx="12" cy="13" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8.5V13l3 2M9.5 1.5h5"/>
+  </symbol>
+
+</defs></svg>
+
+<div class="variant-badge">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>
+  Overview · Forno
+</div>
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ══════════════════════════ SIDEBAR — the charred slab ═════════════════ -->
+  <aside class="sidebar brick leopard" id="sidebar" aria-label="Main navigation" inert>
+    <span class="sidebar-ember" aria-hidden="true"></span>
+
+    <a class="brand" href="#" title="Operato">
+      <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-peel"/></svg></span>
+      <span class="brand-text">
+        <span class="wordmark">OPERAT<i>O</i></span>
+        <span class="brand-tag">AI ops for small business</span>
+      </span>
+    </a>
+
+    <div class="switch-wrap">
+      <button class="switcher" type="button" id="switchBtn" aria-expanded="false" aria-controls="outlets">
+        <span class="switch-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-oven"/></svg></span>
+        <span class="switch-meta">
+          <span class="switch-name">Forno Pizzeria</span>
+          <span class="switch-role">Bandra West · Owner</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+      </button>
+
+      <div class="outlets" id="outlets" hidden>
+        <p class="grp">Your outlets</p>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno Pizzeria · Bandra <span class="cur">Current</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno · Khar Danda</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno Express · Andheri</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add a new outlet</a>
+      </div>
+    </div>
+
+    <nav class="nav-group" aria-label="Floor">
+      <span class="label">The floor</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+          <span>Overview</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h4"/></svg>
+          <span>Orders</span><span class="nav-badge nav-badge--hot">12</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 13.8 8 19.5 9.8 13.8 11.6 12 17.2 10.2 11.6 4.5 9.8 10.2 8z"/><path d="M18.5 15.5l.8 2.4 2.4.8-2.4.8-.8 2.4-.8-2.4-2.4-.8 2.4-.8z"/></svg>
+          <span>Ask AI</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="Kitchen">
+      <span class="label">The kitchen</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-slice"/></svg>
+          <span>Menu</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M21 8.5 12 3.5 3 8.5v7L12 20.5l9-5z"/><path d="M3 8.5 12 13.5l9-5M12 13.5v7"/></svg>
+          <span>Inventory</span><span class="nav-badge">5</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="People">
+      <span class="label">People</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.4a3 3 0 0 1 0 5.6M18.5 20a6.6 6.6 0 0 0-2.7-5"/></svg>
+          <span>Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>
+          <span>Customers</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="Account">
+      <span class="label">Account</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3"/><path d="M2.5 10h19M6 14.5h4"/></svg>
+          <span>Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <button class="user-btn" type="button" id="userBtn" aria-expanded="false" aria-controls="userMenu">
+        <span class="av" aria-hidden="true">RQ</span>
+        <span class="user-meta">
+          <span class="user-name">Rehan Qureshi</span>
+          <span class="user-mail">rehan@fornopizzeria.in</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+      </button>
+      <ul class="user-menu" id="userMenu" hidden>
+        <li class="lbl">Rehan · Owner</li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Profile</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Theme · System</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════ MAIN ═══════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ══════════ HERO — the oven mouth ══════════ -->
+    <header class="hero brick leopard">
+      <span class="hero-ember" aria-hidden="true"></span>
+      <span class="hero-arch" aria-hidden="true"></span>
+
+      <div class="hero-in">
+        <div class="hero-top">
+          <button class="btn btn--onchar btn--icon hamburger" type="button" id="navToggle"
+                  aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <span class="hero-kicker">Forno Pizzeria <span class="sep" aria-hidden="true">·</span> <em>Bandra West</em></span>
+          <span class="live"><i aria-hidden="true"></i> Service is open</span>
+        </div>
+
+        <div class="hero-body">
+          <div class="hero-l">
+            <h1 class="greeting">Good evening,<br><em>Rehan</em></h1>
+            <span class="hero-rule" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <p class="hero-date">Saturday 22 August 2026 · 8:40 pm</p>
+            <p class="hero-line">
+              <b>312</b> orders in, <b>₹1,47,850</b> through the till, and
+              <b class="hot">7 pies</b> in the deck right now. Busiest hour of the
+              week is the one you are standing in.
+            </p>
+          </div>
+
+          <div class="hero-cta">
+            <button class="btn btn--hot" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              New order
+            </button>
+            <a class="btn btn--onchar" href="#pass">
+              On the pass
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ══════════ THE DOCKETS — four headline numbers ══════════ -->
+      <section class="kpis" aria-label="Tonight's headline numbers">
+
+        <article class="docket docket--rev rise" style="--i:1" aria-labelledby="k1">
+          <span class="docket-scorch" aria-hidden="true"></span>
+          <svg class="docket-orn" viewBox="0 0 24 24" style="color:var(--tomato-500)" aria-hidden="true"><use href="#i-flame"/></svg>
+          <span class="label" id="k1">Revenue tonight</span>
+          <span class="docket__val"><span class="cur">₹</span>1,47,850</span>
+          <span class="docket__delta delta-up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            +18.2% <span style="font-weight:400;font-family:var(--font-sans);letter-spacing:0;color:var(--ink-soft)">vs last Saturday</span>
+          </span>
+          <span class="docket__note">Paid + served · counter closes 11:30 pm</span>
+          <span class="docket__foot">
+            <span class="heat" style="--p:84%" role="img" aria-label="84 percent of tonight's ₹1,75,000 target"><i></i></span>
+            <span class="docket__scale"><span>84% of target</span><span>₹1,75,000</span></span>
+          </span>
+        </article>
+
+        <article class="docket docket--ord rise" style="--i:2" aria-labelledby="k2">
+          <span class="docket-scorch" aria-hidden="true"></span>
+          <svg class="docket-orn" viewBox="0 0 24 24" style="color:var(--amber-500)" aria-hidden="true"><use href="#i-slice"/></svg>
+          <span class="label" id="k2">Orders tonight</span>
+          <span class="docket__val">312</span>
+          <span class="docket__delta delta-up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            +11.4% <span style="font-weight:400;font-family:var(--font-sans);letter-spacing:0;color:var(--ink-soft)">vs last Saturday</span>
+          </span>
+          <span class="docket__note">Peak 8 pm · 90 orders in 40 minutes</span>
+          <span class="docket__foot">
+            <span class="hours" role="img" aria-label="Orders per hour from noon: 18, 27, 16, 9, 11, 22, 41, 78, and 90 so far in the 8 pm hour.">
+              <span style="height:20%"></span><span style="height:30%"></span><span style="height:18%"></span>
+              <span style="height:10%"></span><span style="height:12%"></span><span style="height:24%"></span>
+              <span style="height:46%"></span><span style="height:87%"></span><span class="now" style="height:100%"></span>
+            </span>
+            <span class="hours-ax"><span>12 pm</span><span>8 pm · now</span></span>
+          </span>
+        </article>
+
+        <article class="docket docket--tik rise" style="--i:3" aria-labelledby="k3">
+          <span class="docket-scorch" aria-hidden="true"></span>
+          <svg class="docket-orn" viewBox="0 0 24 24" style="color:var(--basil-500)" aria-hidden="true"><use href="#i-basil"/></svg>
+          <span class="label" id="k3">Average ticket</span>
+          <span class="docket__val"><span class="cur">₹</span>474</span>
+          <span class="docket__delta delta-down">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            −3.1% <span style="font-weight:400;font-family:var(--font-sans);letter-spacing:0;color:var(--ink-soft)">vs last Saturday</span>
+          </span>
+          <span class="docket__note">Volume up, basket down — more single slices</span>
+          <span class="docket__foot">
+            <span class="splits">
+              <div><b>₹612</b><span>Dine in</span></div>
+              <div><b>₹398</b><span>Takeaway</span></div>
+              <div><b>₹441</b><span>Delivery</span></div>
+            </span>
+          </span>
+        </article>
+
+        <article class="docket docket--ovn rise" style="--i:4" aria-labelledby="k4">
+          <span class="docket-scorch" aria-hidden="true"></span>
+          <svg class="docket-orn" viewBox="0 0 24 24" style="color:var(--char-700)" aria-hidden="true"><use href="#i-timer"/></svg>
+          <span class="label" id="k4">Oven time · median</span>
+          <span class="docket__val">11:42<span class="unit">MIN</span></span>
+          <span class="docket__delta delta-up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            48s faster <span style="font-weight:400;font-family:var(--font-sans);letter-spacing:0;color:var(--ink-soft)">vs last Saturday</span>
+          </span>
+          <span class="docket__note">Order placed → out of the deck. Target 12:30.</span>
+          <span class="docket__foot">
+            <span class="target" style="--p:71%;--t:88%" role="img" aria-label="Median oven time 11 minutes 42 seconds against a 12 minute 30 second target"><i></i><b></b></span>
+            <span class="docket__scale"><span>0:00</span><span>Target 12:30</span></span>
+          </span>
+        </article>
+
+      </section>
+
+      <!-- ══════════ THE ONE TAPED NOTICE — needs attention ══════════ -->
+      <section aria-labelledby="reorder-h">
+        <div class="card card--amber notice rise" style="--i:5">
+          <span class="notice-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4.5M12 17.5h.01"/><path d="M10.3 3.4 2.3 17.5A2 2 0 0 0 4 20.5h16a2 2 0 0 0 1.7-3L13.7 3.4a2 2 0 0 0-3.4 0z"/></svg>
+          </span>
+          <div class="notice-body">
+            <h3 id="reorder-h">5 things run out before Monday</h3>
+            <p>Below the reorder line at tonight's burn rate. Basil and fior di latte will not survive the second seating.</p>
+            <div class="reorders">
+              <span class="reorder crit"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> Fresh basil <span class="qty">320 g</span> <b>0.6d</b></span>
+              <span class="reorder crit"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> Fior di latte <span class="qty">4.2 kg</span> <b>0.8d</b></span>
+              <span class="reorder"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> 00 pizza flour <span class="qty">18 kg</span> <b>1.6d</b></span>
+              <span class="reorder"><span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span> Pepperoni · cup &amp; char <span class="qty">3.1 kg</span> <b>1.9d</b></span>
+              <span class="reorder"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> San Marzano passata <span class="qty">11 tins</span> <b>2.4d</b></span>
+            </div>
+          </div>
+          <a class="btn btn--primary" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M21 8.5 12 3.5 3 8.5v7L12 20.5l9-5z"/><path d="M3 8.5 12 13.5l9-5M12 13.5v7"/></svg>
+            Open inventory
+          </a>
+        </div>
+      </section>
+
+      <!-- ══════════ TREND + THE PASS ══════════ -->
+      <section class="sec duo" id="pass" aria-label="Revenue and the pass">
+
+        <!-- ── Revenue trend, hand-drawn inline SVG over real numbers ── -->
+        <article class="card card--tomato rise" style="--i:6" aria-labelledby="trend-h">
+          <div class="chart-head">
+            <div>
+              <span class="label">Fourteen nights</span>
+              <h3 id="trend-h">Revenue</h3>
+              <p>Paid orders · Sun 9 Aug → tonight. Tonight is still running.</p>
+            </div>
+            <div class="chart-big">
+              <b class="num">₹20,35,350</b>
+              <span>Fortnight to date</span>
+            </div>
+          </div>
+
+          <div class="chart-wrap scroll-x" tabindex="0" role="group" aria-label="Revenue trend, scrollable">
+            <svg viewBox="0 0 900 300" role="img"
+                 aria-label="Line and area chart of nightly revenue at Forno Pizzeria from Sunday 9 August to Saturday 22 August 2026, in rupees. Weekday troughs near ₹84,300 on Tuesday 18 August rise to a peak of ₹2,41,600 on Saturday 15 August. Friday and Saturday rush nights are shaded. Tonight, Saturday 22 August, stands at ₹1,47,850 so far at 8:40 pm and is drawn dashed because the night is incomplete. Fortnight to date ₹20,35,350.">
+              <defs>
+                <linearGradient id="fArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="#E23B14" stop-opacity=".42"/>
+                  <stop offset="55%"  stop-color="#F0A415" stop-opacity=".16"/>
+                  <stop offset="100%" stop-color="#F0A415" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+
+              <!-- RUSH NIGHTS — Fri + Sat. Both carry a legend entry. -->
+              <rect x="353" y="28" width="119" height="204" fill="var(--amber-500)" fill-opacity=".10" stroke="var(--amber-border)" stroke-width="1" stroke-dasharray="4 4" rx="5"/>
+              <rect x="782" y="28" width="108" height="204" fill="var(--amber-500)" fill-opacity=".10" stroke="var(--amber-border)" stroke-width="1" stroke-dasharray="4 4" rx="5"/>
+              <text x="412" y="46" fill="var(--amber-700)" font-family="Arial Black, Arial, sans-serif" font-size="10" font-weight="900" letter-spacing="1.4" text-anchor="middle">RUSH</text>
+              <text x="836" y="46" fill="var(--amber-700)" font-family="Arial Black, Arial, sans-serif" font-size="10" font-weight="900" letter-spacing="1.4" text-anchor="middle">RUSH</text>
+
+              <!-- gridlines -->
+              <g stroke="var(--ink-faint)" stroke-opacity=".45" stroke-width="1">
+                <line x1="76" y1="28"    x2="884" y2="28"/>
+                <line x1="76" y1="68.8"  x2="884" y2="68.8"/>
+                <line x1="76" y1="109.6" x2="884" y2="109.6"/>
+                <line x1="76" y1="150.4" x2="884" y2="150.4"/>
+                <line x1="76" y1="191.2" x2="884" y2="191.2"/>
+              </g>
+              <line x1="76" y1="232" x2="884" y2="232" stroke="var(--line-strong)" stroke-width="1.5"/>
+
+              <!-- y axis -->
+              <g fill="var(--ink-soft)" font-family="Arial Black, Arial, sans-serif" font-size="10.5" font-weight="900" text-anchor="end" letter-spacing=".4">
+                <text x="66" y="32">₹2.5L</text>
+                <text x="66" y="72.8">₹2L</text>
+                <text x="66" y="113.6">₹1.5L</text>
+                <text x="66" y="154.4">₹1L</text>
+                <text x="66" y="195.2">₹50K</text>
+                <text x="66" y="236">0</text>
+              </g>
+
+              <!-- area under the whole fortnight -->
+              <path fill="url(#fArea)" d="M76,79.9 L137.2,153.5 L198.5,159.6 L259.7,146.7 L320.9,123.6 L382.2,62 L443.4,34.9 L504.6,85.3 L565.8,157.4 L627.1,163.2 L688.3,140 L749.5,116.8 L810.8,52.9 L872,111.4 L872,232 L76,232 Z"/>
+
+              <!-- the completed nights: solid -->
+              <path fill="none" stroke="var(--tomato-500)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                    d="M76,79.9 L137.2,153.5 L198.5,159.6 L259.7,146.7 L320.9,123.6 L382.2,62 L443.4,34.9 L504.6,85.3 L565.8,157.4 L627.1,163.2 L688.3,140 L749.5,116.8 L810.8,52.9"/>
+              <!-- tonight is INCOMPLETE, so the last leg is dashed. House rule. -->
+              <path fill="none" stroke="var(--tomato-500)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="8 5"
+                    d="M810.8,52.9 L872,111.4"/>
+
+              <!-- every plotted night carries an IDENTICAL dot, the peak included -->
+              <g fill="var(--surface)" stroke="var(--tomato-600)" stroke-width="2.2">
+                <circle cx="76" cy="79.9" r="3.6"/><circle cx="137.2" cy="153.5" r="3.6"/>
+                <circle cx="198.5" cy="159.6" r="3.6"/><circle cx="259.7" cy="146.7" r="3.6"/>
+                <circle cx="320.9" cy="123.6" r="3.6"/><circle cx="382.2" cy="62" r="3.6"/>
+                <circle cx="443.4" cy="34.9" r="3.6"/><circle cx="504.6" cy="85.3" r="3.6"/>
+                <circle cx="565.8" cy="157.4" r="3.6"/><circle cx="627.1" cy="163.2" r="3.6"/>
+                <circle cx="688.3" cy="140" r="3.6"/><circle cx="749.5" cy="116.8" r="3.6"/>
+                <circle cx="810.8" cy="52.9" r="3.6"/>
+              </g>
+
+              <!-- PEAK · Sat 15 Aug. The flame crowns the column from ABOVE the
+                   plot band; it never stands in for a data mark. -->
+              <text x="443.4" y="22" fill="var(--tomato-700)" font-family="Arial Black, Arial, sans-serif" font-size="11.5" font-weight="900" text-anchor="middle" letter-spacing="-.2">₹2,41,600</text>
+              <svg x="466" y="8" width="19" height="19" viewBox="0 0 24 24" style="color:var(--tomato-500)" overflow="visible" aria-hidden="true"><use href="#i-flame"/></svg>
+
+              <!-- tonight -->
+              <line x1="872" y1="28" x2="872" y2="232" stroke="var(--tomato-600)" stroke-width="1.8" stroke-dasharray="5 4"/>
+              <circle cx="872" cy="111.4" r="8.5" fill="var(--tomato-500)" fill-opacity=".28"/>
+              <circle cx="872" cy="111.4" r="5" fill="var(--tomato-600)" stroke="var(--char-900)" stroke-width="2"/>
+              <text x="864" y="100" fill="var(--tomato-700)" font-family="Arial Black, Arial, sans-serif" font-size="10.5" font-weight="900" text-anchor="end" letter-spacing="1">TONIGHT</text>
+
+              <!-- x axis -->
+              <g fill="var(--ink-soft)" font-family="Arial Black, Arial, sans-serif" font-size="10.5" font-weight="900" text-anchor="middle">
+                <text x="76" y="254">9</text><text x="137.2" y="254">10</text><text x="198.5" y="254">11</text>
+                <text x="259.7" y="254">12</text><text x="320.9" y="254">13</text><text x="382.2" y="254">14</text>
+                <text x="443.4" y="254">15</text><text x="504.6" y="254">16</text><text x="565.8" y="254">17</text>
+                <text x="627.1" y="254">18</text><text x="688.3" y="254">19</text><text x="749.5" y="254">20</text>
+                <text x="810.8" y="254">21</text><text x="872" y="254" fill="var(--tomato-700)">22</text>
+              </g>
+              <text x="480" y="278" fill="var(--ink-soft)" font-family="Arial Black, Arial, sans-serif" font-size="10" font-weight="900" text-anchor="middle" letter-spacing="2.4">AUGUST 2026</text>
+            </svg>
+          </div>
+
+          <p class="chart-legend">
+            <span class="lg"><i style="background:var(--tomato-500)"></i> Nightly revenue</span>
+            <span class="lg"><i style="background:var(--amber-100)"></i> Fri / Sat rush</span>
+            <span class="lg"><i style="background:repeating-linear-gradient(90deg,var(--tomato-500) 0 4px,transparent 4px 7px);border-color:var(--line-strong)"></i> Night still running</span>
+            <span>Best night <b>Sat 15 Aug — ₹2,41,600</b></span>
+            <span>Quietest <b>Tue 18 Aug — ₹84,300</b></span>
+            <span>Weekend is <b>41%</b> of the fortnight</span>
+          </p>
+        </article>
+
+        <!-- ── THE SPIKE — live tickets ── -->
+        <article class="card rise" style="--i:7" aria-labelledby="pass-h">
+          <div class="sec__head" style="margin-bottom:6px">
+            <h2 class="sec__title" style="font-size:19px" id="pass-h">
+              <svg class="sec-mark" aria-hidden="true"><use href="#i-flame"/></svg>
+              On the pass
+            </h2>
+            <span class="sec__act"><span class="chip chip--ready">3 ready</span></span>
+          </div>
+          <p class="docket__note" style="margin-bottom:4px">Last 15 minutes · newest first</p>
+
+          <ul class="spike">
+            <li class="ticket ticket--live">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2294</span>
+                <span class="ticket__where">Table 11</span>
+                <span class="ticket__ago">just now</span>
+              </div>
+              <div class="ticket__mid">
+                <span class="ticket__items">2× Margherita 8&quot;, 1× Garlic bread, 2× Masala Coke</span>
+                <span class="ticket__sum">₹1,146</span>
+              </div>
+              <div class="ticket__foot">
+                <span class="chip chip--placed">Placed</span>
+                <span class="meter" role="img" aria-label="Step 1 of 5"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                <span class="ticket__ago" style="margin-left:auto">Amruta S.</span>
+              </div>
+            </li>
+
+            <li class="ticket">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2293</span>
+                <span class="ticket__where">Takeaway</span>
+                <span class="ticket__ago">2 min</span>
+              </div>
+              <div class="ticket__mid">
+                <span class="ticket__items">1× Diavola 12&quot;, 1× Garlic bread</span>
+                <span class="ticket__sum">₹698</span>
+              </div>
+              <div class="ticket__foot">
+                <span class="chip chip--preparing">Preparing</span>
+                <span class="meter" role="img" aria-label="Step 2 of 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                <span class="ticket__ago" style="margin-left:auto">deck 2</span>
+              </div>
+            </li>
+
+            <li class="ticket">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2292</span>
+                <span class="ticket__where">Delivery · Pali Naka</span>
+                <span class="ticket__ago">4 min</span>
+              </div>
+              <div class="ticket__mid">
+                <span class="ticket__items">2× Paneer Tikka 12&quot;, 1× Peri-Peri 8&quot;, 3× soda</span>
+                <span class="ticket__sum">₹1,594</span>
+              </div>
+              <div class="ticket__foot">
+                <span class="chip chip--preparing">Preparing</span>
+                <span class="meter" role="img" aria-label="Step 2 of 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                <span class="ticket__ago" style="margin-left:auto">Farida M.</span>
+              </div>
+            </li>
+
+            <li class="ticket ticket--live">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2291</span>
+                <span class="ticket__where">Table 6</span>
+                <span class="ticket__ago">6 min</span>
+              </div>
+              <div class="ticket__mid">
+                <span class="ticket__items">1× Margherita 8&quot;, 1× Diavola 12&quot;, 1× Garlic bread</span>
+                <span class="ticket__sum">₹947</span>
+              </div>
+              <div class="ticket__foot">
+                <span class="chip chip--ready">Ready</span>
+                <span class="meter" role="img" aria-label="Step 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                <button class="btn btn--ghost btn--sm" type="button" style="margin-left:auto">Serve it</button>
+              </div>
+            </li>
+
+            <li class="ticket">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2290</span>
+                <span class="ticket__where">Table 3</span>
+                <span class="ticket__ago">11 min</span>
+              </div>
+              <div class="ticket__mid">
+                <span class="ticket__items">5 items · large table, split bill flagged</span>
+                <span class="ticket__sum">₹2,183</span>
+              </div>
+              <div class="ticket__foot">
+                <span class="chip chip--served">Served</span>
+                <span class="meter" role="img" aria-label="Step 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                <button class="btn btn--ghost btn--sm" type="button" style="margin-left:auto">Take payment</button>
+              </div>
+            </li>
+
+            <li class="ticket">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2289</span>
+                <span class="ticket__where">Takeaway</span>
+                <span class="ticket__ago">14 min</span>
+              </div>
+              <div class="ticket__mid">
+                <span class="ticket__items">1× Margherita 8&quot;, 2× Masala Coke</span>
+                <span class="ticket__sum">₹407</span>
+              </div>
+              <div class="ticket__foot">
+                <span class="chip chip--paid">Paid</span>
+                <span class="meter" role="img" aria-label="Step 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+                <span class="ticket__ago" style="margin-left:auto">UPI</span>
+              </div>
+            </li>
+          </ul>
+
+          <a class="spike-more" href="#">
+            All 312 tickets
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </a>
+        </article>
+      </section>
+
+      <!-- ══════════ TOP SELLERS + MIX / THE OVEN ══════════ -->
+      <section class="sec duo" aria-label="What sold and how it was ordered">
+
+        <article class="card rise" style="--i:8" aria-labelledby="sell-h">
+          <div class="sec__head" style="margin-bottom:8px">
+            <h2 class="sec__title" style="font-size:19px" id="sell-h">
+              <svg class="sec-mark" style="color:var(--amber-500)" aria-hidden="true"><use href="#i-slice"/></svg>
+              Top sellers
+            </h2>
+            <span class="sec__sub">Units sold · last 14 nights · ranked by units</span>
+            <span class="sec__act"><a class="btn btn--ghost btn--sm" href="#">Open menu</a></span>
+          </div>
+
+          <ol class="sellers">
+            <li class="seller seller--1">
+              <span class="seller__bar" style="--w:100%" aria-hidden="true"></span>
+              <span class="rank">01</span>
+              <span class="seller__id">
+                <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                <span class="seller__name">Margherita 8&quot;</span>
+                <span class="seller__price">₹249</span>
+              </span>
+              <span class="seller__units">1,284</span>
+              <span class="seller__rev num">₹3,19,700</span>
+            </li>
+            <li class="seller seller--2">
+              <span class="seller__bar" style="--w:75.4%" aria-hidden="true"></span>
+              <span class="rank">02</span>
+              <span class="seller__id">
+                <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                <span class="seller__name">Garlic bread · classic</span>
+                <span class="seller__price">₹149</span>
+              </span>
+              <span class="seller__units">968</span>
+              <span class="seller__rev num">₹1,44,200</span>
+            </li>
+            <li class="seller seller--3">
+              <span class="seller__bar" style="--w:57.8%" aria-hidden="true"></span>
+              <span class="rank">03</span>
+              <span class="seller__id">
+                <span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+                <span class="seller__name">Diavola 12&quot;</span>
+                <span class="seller__price">₹549</span>
+              </span>
+              <span class="seller__units">742</span>
+              <span class="seller__rev num">₹4,07,400</span>
+            </li>
+            <li class="seller">
+              <span class="seller__bar" style="--w:53.7%" aria-hidden="true"></span>
+              <span class="rank">04</span>
+              <span class="seller__id">
+                <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                <span class="seller__name">Masala Coke 300 ml</span>
+                <span class="seller__price">₹79</span>
+              </span>
+              <span class="seller__units">690</span>
+              <span class="seller__rev num">₹54,500</span>
+            </li>
+            <li class="seller">
+              <span class="seller__bar" style="--w:39.8%" aria-hidden="true"></span>
+              <span class="rank">05</span>
+              <span class="seller__id">
+                <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                <span class="seller__name">Paneer Tikka 12&quot;</span>
+                <span class="seller__price">₹499</span>
+              </span>
+              <span class="seller__units">511</span>
+              <span class="seller__rev num">₹2,55,000</span>
+            </li>
+            <li class="seller">
+              <span class="seller__bar" style="--w:36.4%" aria-hidden="true"></span>
+              <span class="rank">06</span>
+              <span class="seller__id">
+                <span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+                <span class="seller__name">Chicken Peri-Peri 8&quot;</span>
+                <span class="seller__price">₹329</span>
+              </span>
+              <span class="seller__units">468</span>
+              <span class="seller__rev num">₹1,54,000</span>
+            </li>
+          </ol>
+
+          <p class="sellers-note">
+            Ranked by units, not money — which is why <b>Diavola 12&quot;</b> sits third
+            on volume and first on revenue at <b>₹4,07,400</b>. Margherita is the
+            engine; Diavola is the margin.
+          </p>
+        </article>
+
+        <div style="display:flex;flex-direction:column;gap:clamp(14px,2vw,20px);min-width:0">
+
+          <article class="card card--basil rise" style="--i:9" aria-labelledby="mix-h">
+            <span class="label">Share of paid orders · 14 nights</span>
+            <h3 id="mix-h" style="font:var(--t-h2);text-transform:uppercase;color:var(--ink);margin-top:5px">How Bandra orders</h3>
+
+            <div class="mixbar" role="img" aria-label="Order mix: dine in 46 percent and ₹9,36,300; takeaway 38 percent and ₹7,73,400; delivery 16 percent and ₹3,25,650.">
+              <span class="mix-1" style="flex:46">46%</span>
+              <span class="mix-2" style="flex:38">38%</span>
+              <span class="mix-3" style="flex:16">16%</span>
+            </div>
+
+            <ul class="mixleg">
+              <li><i style="background:var(--tomato-600)"></i><span class="nm">Dine in</span><span class="vv num">₹9,36,300</span></li>
+              <li><i style="background:var(--amber-500)"></i><span class="nm">Takeaway</span><span class="vv num">₹7,73,400</span></li>
+              <li><i style="background:var(--slate-700)"></i><span class="nm">Delivery</span><span class="vv num">₹3,25,650</span></li>
+            </ul>
+
+            <p class="docket__note" style="margin-top:12px;padding-top:11px;border-top:2px dashed var(--line-strong)">
+              <b style="font-family:var(--font-display);font-weight:900;color:var(--ink)">58%</b>
+              of tonight's tickets carried a saved phone number. The rest are walk-ins
+              off Hill Road — real money, no CRM row.
+            </p>
+          </article>
+
+          <article class="card card--char brick leopard rise" style="--i:10" aria-labelledby="oven-h">
+            <div class="oven-head">
+              <span class="oven-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-oven"/></svg></span>
+              <div>
+                <h3 id="oven-h">In the deck</h3>
+                <p>Live · refreshed 20 seconds ago</p>
+              </div>
+            </div>
+
+            <div class="oven-grid">
+              <div><b class="num">7</b><span>Pies in</span></div>
+              <div><b class="num">4</b><span>Queued</span></div>
+              <div><b class="num">412°</b><span>Deck</span></div>
+            </div>
+
+            <p class="docket__note" style="color:var(--char-ink-soft);margin-top:14px">
+              Longest wait <b style="font-family:var(--font-ticket);color:var(--amber-300)">6m 10s</b>
+              — table 11, ordered at 8:34 pm.
+            </p>
+            <span class="heat heat--dark" style="--p:78%;margin-top:10px" role="img" aria-label="Oven at 78 percent of its capacity of 9 pies"><i></i></span>
+            <span class="docket__scale" style="color:var(--char-ink-soft)"><span>7 of 9 slots</span><span>78% loaded</span></span>
+
+            <div class="oven-crew">
+              <span class="label" style="color:var(--char-ink-soft)">On tonight</span>
+              <ul>
+                <li><span class="av av--sm" aria-hidden="true">SD</span> Salma D'Souza <em>· oven</em></li>
+                <li><span class="av av--sm" aria-hidden="true">NW</span> Nikhil Wadhwa <em>· dough</em></li>
+                <li><span class="av av--sm" aria-hidden="true">AS</span> Amruta Salvi <em>· counter</em></li>
+                <li><span class="av av--sm" aria-hidden="true">FM</span> Farida Merchant <em>· delivery</em></li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+    </div><!-- /.wrap -->
+  </main>
+</div>
+
+<!-- ═══ BOTTOM TABBAR (≤1023) — the one glass surface in the theme ═══ -->
+<nav class="tabbar" aria-label="Primary">
+  <a class="tab" href="#" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+    Overview
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h4"/></svg>
+    Orders
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 13.8 8 19.5 9.8 13.8 11.6 12 17.2 10.2 11.6 4.5 9.8 10.2 8z"/></svg>
+    Ask AI
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-slice"/></svg>
+    Menu
+  </a>
+  <button class="tab" type="button" id="tabMore" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    More
+  </button>
+</nav>
+
+<script>
+(function(){
+  'use strict';
+
+  var body = document.body;
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('backdrop');
+  var drawerMQ = window.matchMedia('(max-width: 1023px)');
+  var toggles = [document.getElementById('navToggle'), document.getElementById('tabMore')];
+  var opener = null;
+
+  function isOpen(){ return body.classList.contains('nav-open'); }
+
+  /* The drawer is a modal ONLY while it is a drawer. At >=1024 it is ordinary
+     page furniture, so role / aria-modal / inert must all come back off. */
+  function syncSidebar(){
+    if (drawerMQ.matches){
+      sidebar.setAttribute('role','dialog');
+      sidebar.setAttribute('aria-modal','true');
+      sidebar.setAttribute('aria-label','Navigation');
+      if (isOpen()) sidebar.removeAttribute('inert');
+      else sidebar.setAttribute('inert','');
+    } else {
+      sidebar.removeAttribute('role');
+      sidebar.removeAttribute('aria-modal');
+      sidebar.removeAttribute('inert');
+      sidebar.setAttribute('aria-label','Main navigation');
+    }
+  }
+
+  function expand(btn, panel, open){
+    if (!btn || !panel) return;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  }
+  var userBtn  = document.getElementById('userBtn');
+  var userMenu = document.getElementById('userMenu');
+  var switchBtn= document.getElementById('switchBtn');
+  var outlets  = document.getElementById('outlets');
+
+  function setNav(open, from){
+    var was = isOpen();
+    body.classList.toggle('nav-open', open);
+    toggles.forEach(function(t){ if(t) t.setAttribute('aria-expanded', String(open)); });
+    if (open){
+      opener = from || opener || toggles[0];
+      syncSidebar();
+      var first = sidebar.querySelector('.nav-link');
+      if (first) first.focus();
+    } else {
+      expand(userBtn, userMenu, false);
+      expand(switchBtn, outlets, false);
+      syncSidebar();
+      if (was && drawerMQ.matches && opener) opener.focus();
+      opener = null;
+    }
+  }
+
+  toggles.forEach(function(t){
+    if (!t) return;
+    t.addEventListener('click', function(){ setNav(!isOpen(), t); });
+  });
+  backdrop.addEventListener('click', function(){ setNav(false); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){
+      if (isOpen()) { setNav(false); return; }
+      if (userMenu && !userMenu.hidden) { expand(userBtn, userMenu, false); userBtn.focus(); }
+      if (outlets && !outlets.hidden) { expand(switchBtn, outlets, false); switchBtn.focus(); }
+    }
+  });
+
+  if (userBtn) userBtn.addEventListener('click', function(){
+    var open = userMenu.hidden;
+    expand(switchBtn, outlets, false);
+    expand(userBtn, userMenu, open);
+  });
+  if (switchBtn) switchBtn.addEventListener('click', function(){
+    var open = outlets.hidden;
+    expand(userBtn, userMenu, false);
+    expand(switchBtn, outlets, open);
+  });
+  document.addEventListener('click', function(e){
+    if (userMenu && !userMenu.hidden && !userMenu.contains(e.target) && !userBtn.contains(e.target)) expand(userBtn, userMenu, false);
+    if (outlets && !outlets.hidden && !outlets.contains(e.target) && !switchBtn.contains(e.target)) expand(switchBtn, outlets, false);
+  });
+
+  /* Trap focus inside the drawer while it is modal. */
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Tab' || !isOpen() || !drawerMQ.matches) return;
+    var nodes = Array.prototype.filter.call(
+      sidebar.querySelectorAll('a[href], button:not([disabled])'),
+      function(el){ return el.offsetWidth > 0 || el.offsetHeight > 0; }
+    );
+    if (!nodes.length) return;
+    var first = nodes[0], last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+
+  if (drawerMQ.addEventListener) drawerMQ.addEventListener('change', function(){ setNav(false); syncSidebar(); });
+  else if (drawerMQ.addListener) drawerMQ.addListener(function(){ setNav(false); syncSidebar(); });
+  syncSidebar();
+})();
+</script>
+</body>
+</html>

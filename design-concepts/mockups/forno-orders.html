@@ -1,0 +1,2634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forno — Orders &amp; the floor · Operato</title>
+
+<!--
+================================================================================
+  OPERATO · THEME "FORNO"  —  SCREEN 2 of 8:  ORDERS & THE FLOOR
+  Forno Pizzeria, Bandra West, Mumbai.  Saturday 22 August 2026, 8:47 pm.
+  ------------------------------------------------------------------------------
+  THE CONTRACT LIVES IN forno-dashboard.html (DIRECTION SPEC v1.0, §0–§8).
+  Everything in §1 TOKENS, §2 TYPE, §3 RADII/SHADOW, §4 SHELL, §5 SIGNATURE
+  MOVES, §7 TEXTURES and §8 ACCESSIBILITY is copied here VERBATIM — the token
+  block, the reset, the textures, the badge, the shell, the primitives
+  (.btn/.chip/.meter/.card/.heat/.fssai), the docket, the tape, .ticket, the
+  off-canvas chrome and the whole responsive ladder are byte-identical to the
+  dashboard. Each file is standalone, so duplication is correct.
+
+  THIS COMMENT ONLY RECORDS WHAT THIS SCREEN *ADDS* TO THE SPEC — v1.1 deltas.
+================================================================================
+
+--------------------------------------------------------------------------------
+D1. TABLE STATE — a NEW vocabulary (the spec only defined OrderStatus)
+--------------------------------------------------------------------------------
+A table is not an order. It has its own five states, and like OrderStatus it is
+encoded THREE ways so it survives glare, distance and colour-blindness:
+a WORD, a POSITION ("2 / 4"), and a colour. Never colour alone. Never a dot.
+
+  FREE      "Open"      cream, 2px DASHED --line-strong, no shadow, no position.
+                        Carries the seat dots hollow + the word OPEN at 20px.
+  SEATED    "Seated"    --slate-50 face, --slate-700 text, --slate-500 edge   1/4
+  ORDERED   "In the deck" --amber-50 face, --amber-700 text, --amber-border   2/4
+  READY     "Run it"    THE CHARRED TILE: --char-900 face + leopard + ember
+                        glow + pulse-ember, --char-ink text, --tomato-300
+                        accent. This is the table equivalent of the READY chip
+                        and, like it, is the ONLY solid/dark tile on the floor.  3/4
+  BILL      "Bill asked" --tomato-50 face, --tomato-700 text, --tomato-600 edge 4/4
+
+Rationale for READY being the dark tile rather than a red one: at 8pm the floor
+is scanned from the pass, ten metres away, past a hot oven. A single black tile
+in a field of cream is the fastest possible target. Red-on-cream is not.
+
+--------------------------------------------------------------------------------
+D2. THE PASS RAIL — new component, the screen's masthead device
+--------------------------------------------------------------------------------
+The five OrderStatus stages laid out left→right as five COMPACT DOCKETS
+(.docket--stage: the §5C receipt form at min-height 132px, no delta line, no
+scorch), joined by char chevrons, ending in the PAID stage. Every stage card
+carries the 5-segment meter with ITS OWN step filled — so the rail doubles as
+the legend for every meter elsewhere on the page. Under each count sits the
+oldest ticket's age in --font-ticket: the number the expo actually acts on.
+Horizontal scroller below 900px (labelled, tabindex=0), never wrapped — the
+lifecycle is a line and must read as one.
+
+--------------------------------------------------------------------------------
+D3. THE FLOOR TILE — new component (.tile)
+--------------------------------------------------------------------------------
+A <button> (so the whole 200x186 tile is the tap target; no nested controls).
+Anatomy, top to bottom:
+  · the table number in --font-ticket at 26px, in a 2px char plaque
+  · the seat dots — filled = occupied cover, hollow = empty. Occupancy is
+    therefore countable, not inferred from a colour.
+  · zone line ("Back room · 4 seats")
+  · the state row: state word + position "3 / 4" + the meter
+  · the live line: ticket number + ₹total, both --font-ticket
+  · a --heat bar for dwell against the typical turn, on occupied tiles only
+Free tiles swap the whole lower half for the word OPEN + "Tap to seat".
+
+--------------------------------------------------------------------------------
+D4. THE TICKET DRAWER — a THIRD shell column (extends §4 SHELL GEOMETRY)
+--------------------------------------------------------------------------------
+Order detail does NOT open as a centred modal on this screen. At >=1440px the
+shell becomes  sidebar | main | 404px drawer  and the drawer is sticky, opaque,
+in-flow: you keep watching the floor while you read a ticket. Below 1440 it
+becomes exactly the modal the spec expects — fixed, right-anchored, backdrop,
+role=dialog + aria-modal, focus trapped, Esc closes, focus returned.
+It carries the LIFECYCLE RAIL: a 2px char vertical rail with one node per
+status, timestamps in --font-ticket, the not-yet-reached step drawn DASHED and
+hollow (same honesty rule as the dashboard's dashed final chart leg).
+
+--------------------------------------------------------------------------------
+D5. SEGMENTED FILTER + APPLIED-FILTER STRIP — new control (.segs / .filtered)
+--------------------------------------------------------------------------------
+.segs is a row of 46px pill buttons, 2px char, hard-shadow, press-translate —
+the .btn recipe at chip scale. The selected one is char-filled with cream text.
+When a filter actually HIDES rows, a .filtered strip appears directly above the
+list stating what is hidden, how many, and a Clear control. A filter that hides
+without saying so is a bug.
+
+--------------------------------------------------------------------------------
+D6. SKELETON (.skel) + EMPTY (.empty) — the two secondary states
+--------------------------------------------------------------------------------
+.skel  — bars in --semolina-2 inside the ordinary 2px char card, breathing at
+         .55↔1 over 1.5s. The container is aria-busy="true" and carries a
+         .sr-only "Loading" line. Dead flat under prefers-reduced-motion.
+.empty — 2px DASHED char border, NO shadow (nothing is printed on the wall yet),
+         a 44px ornament at .5 opacity, one sentence, and an action. The dashed
+         border is what distinguishes "nothing here" from "something here".
+
+--------------------------------------------------------------------------------
+D7. TOKENS THE DASHBOARD RESERVED AND THIS SCREEN NOW SPENDS
+--------------------------------------------------------------------------------
+  --t-display  → the masthead title (the spec's own §4 instruction)
+  --sh-hard-lg → the ticket drawer, the only 8px-shadow surface in the product
+  --r-xl       → the drawer head plaque
+  --ink-faint  → the floor grid's decorative wall/door rules, never text
+  --gap        → the floor grid gutter
+  --tomato-100 / --basil-100 / --slate-100 → row tints in the settled list
+Nothing else was added to :root. Zero new hexes.
+
+--------------------------------------------------------------------------------
+D8. THE ONE TAPED NOTICE ON THIS SCREEN (§5E budget = exactly one)
+--------------------------------------------------------------------------------
+Table 7 has been waiting 9:04 for its bill. That is the only thing on this
+screen that needs a human rather than a tap.
+================================================================================
+-->
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS  (self-contained — this file opens from disk with no deps)
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* char — the oven */
+  --char-900:#14100D; --char-800:#1C1512; --char-700:#2A1F19;
+  --char-600:#3A2B22; --char-500:#4E3A2E;
+  --char-ink:#FFF9F0; --char-ink-soft:#B9A597; --char-ink-faint:#6F5A4C;
+
+  /* surfaces — the bench */
+  --semolina:#F0E2CA; --semolina-2:#E7D6B8;
+  --surface:#FFF9F0;  --surface-2:#FBF2E3;
+  --line:#E0CDAC; --line-strong:#C8B38C; --line-char:#1C1310;
+
+  /* ink */
+  --ink:#1C1310; --ink-soft:#6B534A; --ink-faint:#A08C80; --ink-invert:#FFF9F0;
+
+  /* tomato */
+  --tomato-50:#FFF1EC; --tomato-100:#FFDCD0; --tomato-300:#FF7B52;
+  --tomato-500:#E23B14; --tomato-600:#C4300D; --tomato-700:#9B240A;
+
+  /* basil */
+  --basil-50:#EFF6E7; --basil-100:#DCEDC8; --basil-300:#A8D98A;
+  --basil-500:#5C9E3B; --basil-600:#3E7A26; --basil-700:#2C5C1A;
+
+  /* amber — the fire */
+  --amber-50:#FDF0D4; --amber-100:#FBE3AC; --amber-300:#F5B93F;
+  --amber-500:#F0A415; --amber-700:#8A5606; --amber-border:#D99A1E;
+
+  /* slate — cold dough */
+  --slate-50:#ECEFF1; --slate-100:#DCE3E7; --slate-500:#6A7F8C; --slate-700:#40525E;
+
+  /* semantic */
+  --delta-up:var(--basil-700); --delta-down:var(--tomato-700); --focus:#E23B14;
+
+  /* FSSAI — legally fixed, identical in every Operato theme */
+  --veg:#0B7A34; --nonveg:#94231A;
+
+  /* type */
+  --font-display:"Arial Black","Arial Bold","Helvetica Neue",Impact,sans-serif;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-ticket:ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,monospace;
+
+  --t-hero:900 clamp(34px,5.4vw,62px)/.94 var(--font-display);
+  --t-display:900 clamp(26px,3.2vw,40px)/1 var(--font-display);
+  --t-h1:900 clamp(20px,2.3vw,28px)/1.05 var(--font-display);
+  --t-h2:900 16px/1.15 var(--font-display);
+  --t-num:900 clamp(28px,3.6vw,44px)/.95 var(--font-display);
+  --t-num-sm:900 clamp(19px,2vw,24px)/1.05 var(--font-display);
+  --t-body:400 14px/1.55 var(--font-sans);
+  --t-small:400 12.5px/1.5 var(--font-sans);
+  --t-micro:600 11px/1.35 var(--font-sans);
+  --t-label:900 10.5px/1.2 var(--font-display);
+  --t-ticket:600 12.5px/1.4 var(--font-ticket);
+
+  /* radii */
+  --r-xs:6px; --r-sm:10px; --r:16px; --r-lg:22px; --r-xl:30px; --r-pill:999px;
+  --r-arch:999px 999px 8px 8px;
+
+  /* shadows — hard offsets */
+  --sh-hard-xs:2px 2px 0 var(--char-900);
+  --sh-hard-sm:3px 3px 0 var(--char-900);
+  --sh-hard:5px 5px 0 var(--char-900);
+  --sh-hard-lg:8px 8px 0 var(--char-900);
+  --sh-hard-tom:4px 4px 0 var(--tomato-600);
+  --sh-ember:0 0 44px -6px rgba(226,59,20,.55);
+  --sh-up:0 -10px 26px -18px rgba(20,16,13,.5);
+
+  /* rhythm + shell */
+  --gap:16px; --gap-lg:22px; --pad-card:18px; --pad-page:clamp(14px,2.4vw,30px);
+  --sidebar:268px; --rail:84px; --tap:46px; --measure:1240px;
+
+  /* motion */
+  --ease:cubic-bezier(.22,1,.36,1); --dur:.2s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2 · RESET + CANVAS
+   ═══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink); min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  background-color:var(--semolina);
+  /* SPECKLE — semolina dust on the bench */
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(124,92,64,.13) 0 1.1px, #0000 1.7px),
+    radial-gradient(circle at 72% 66%, rgba(124,92,64,.09) 0 1.3px, #0000 1.9px);
+  background-size:26px 26px, 37px 37px;
+  background-attachment:fixed;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tick{font-family:var(--font-ticket);font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3 · TEXTURES  (§7 of the spec)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.brick{
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,249,240,.045) 0 1px, #0000 1px 46px),
+    repeating-linear-gradient(90deg, rgba(255,249,240,.045) 0 1px, #0000 1px 92px);
+}
+.leopard::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(ellipse 16px 11px at 14% 22%, rgba(0,0,0,.55), #0000 70%),
+    radial-gradient(ellipse 10px 7px  at 38% 68%, rgba(0,0,0,.45), #0000 70%),
+    radial-gradient(ellipse 20px 12px at 62% 18%, rgba(0,0,0,.50), #0000 70%),
+    radial-gradient(ellipse 8px 6px   at 78% 52%, rgba(0,0,0,.42), #0000 70%),
+    radial-gradient(ellipse 13px 9px  at 90% 82%, rgba(0,0,0,.50), #0000 70%),
+    radial-gradient(ellipse 9px 6px   at 28% 90%, rgba(0,0,0,.40), #0000 70%);
+  background-size:240px 180px;
+}
+@keyframes flicker{
+  0%,100%{opacity:.74;transform:scale(1)}
+  40%{opacity:1;transform:scale(1.045)}
+  62%{opacity:.86;transform:scale(1.01)}
+}
+@keyframes fire-in{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.rise{animation:fire-in .5s var(--ease) both;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes pulse-ember{
+  0%,100%{box-shadow:0 0 0 0 rgba(226,59,20,.55)}
+  70%{box-shadow:0 0 0 9px rgba(226,59,20,0)}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:10px;right:10px;z-index:99;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 13px;border-radius:var(--r-sm);
+  background:var(--char-900);color:var(--char-ink);
+  border:2px solid var(--tomato-600);box-shadow:var(--sh-hard-tom);
+  font:var(--t-label);letter-spacing:.16em;pointer-events:none;
+}
+.variant-badge svg{width:14px;height:14px;color:var(--tomato-300)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5 · SHELL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+/* ── THE CHARRED SLAB ──────────────────────────────────────────────────── */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;z-index:50;
+  display:flex;flex-direction:column;gap:16px;
+  padding:18px 12px 14px;
+  background-color:var(--char-900);
+  border-right:2px solid var(--char-900);
+  overflow-y:auto;scrollbar-width:none;
+  isolation:isolate;
+}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar > *{position:relative;z-index:1}
+/* the ember at the foot of the oven */
+.sidebar-ember{
+  position:absolute;left:0;right:0;bottom:-40px;height:230px;z-index:0;
+  background:radial-gradient(120% 62% at 50% 100%, rgba(226,59,20,.5), rgba(240,164,21,.16) 42%, transparent 72%);
+  pointer-events:none;animation:flicker 7s var(--ease) infinite;
+}
+
+/* wordmark */
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px 2px;min-height:var(--tap)}
+.brand-logo{
+  position:relative;width:42px;height:42px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);
+  background:linear-gradient(155deg,var(--tomato-500),var(--tomato-700));
+  color:var(--char-ink);border:2px solid var(--char-900);
+  box-shadow:0 0 0 1.5px var(--tomato-300), var(--sh-ember);
+}
+.brand-logo svg{width:23px;height:23px}
+.brand-text{min-width:0;display:block}
+.wordmark{display:block;font:900 17px/1 var(--font-display);letter-spacing:.14em;color:var(--char-ink)}
+.wordmark i{font-style:normal;color:var(--tomato-300)}
+.brand-tag{display:block;margin-top:4px;font:var(--t-micro);color:var(--char-ink-soft);letter-spacing:.04em;white-space:nowrap}
+
+/* business switcher */
+.switch-wrap{position:relative}
+.switcher{
+  width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
+  padding:8px 10px;border-radius:var(--r-sm);text-align:left;
+  background:var(--char-700);border:2px solid var(--char-500);
+  box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.switcher:hover{background:var(--char-600)}
+.switcher:active{transform:translate(2px,2px);box-shadow:none}
+.switch-tile{
+  width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-arch);
+  background:linear-gradient(180deg,var(--amber-500),var(--tomato-600));
+  color:var(--char-900);border:2px solid var(--char-900);
+}
+.switch-tile svg{width:18px;height:18px}
+.switch-meta{min-width:0;flex:1;display:block}
+.switch-name{display:block;font:900 12.5px/1.2 var(--font-display);letter-spacing:.02em;color:var(--char-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.switch-role{display:block;margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft)}
+.switcher > .chev{width:15px;height:15px;flex:0 0 auto;color:var(--char-ink-soft)}
+
+.outlets{
+  margin-top:6px;padding:6px;border-radius:var(--r-sm);
+  background:var(--char-800);border:2px solid var(--char-600);
+  display:grid;gap:2px;
+}
+.outlets .grp{padding:6px 8px 4px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+.outlets a{display:flex;align-items:center;gap:9px;min-height:var(--tap);padding:0 8px;border-radius:var(--r-xs);font:600 12.5px/1.3 var(--font-sans);color:var(--char-ink-soft)}
+.outlets a:hover{background:var(--char-700);color:var(--char-ink)}
+.outlets a svg{width:16px;height:16px;flex:0 0 auto}
+.outlets .cur{margin-left:auto;font:var(--t-label);letter-spacing:.1em;color:var(--tomato-300)}
+
+/* nav */
+.nav-group+.nav-group{margin-top:14px}
+.nav-group > .label{display:block;padding:0 10px 7px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+.nav-list{display:grid;gap:3px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:11px;
+  min-height:var(--tap);padding:0 11px;border-radius:var(--r-sm);
+  color:var(--char-ink-soft);font:900 12.5px/1 var(--font-display);letter-spacing:.05em;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:20px;height:20px;flex:0 0 auto}
+.nav-link:hover{background:var(--char-700);color:var(--char-ink)}
+.nav-link[aria-current="page"]{
+  background:linear-gradient(100deg,var(--tomato-600),var(--tomato-700) 70%,var(--char-700));
+  color:var(--char-ink);
+  box-shadow:inset 0 0 0 2px var(--char-900), var(--sh-hard-xs);
+}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:-12px;top:6px;bottom:6px;width:5px;
+  border-radius:0 3px 3px 0;background:var(--amber-500);
+}
+.nav-badge{
+  margin-left:auto;padding:4px 7px;border-radius:var(--r-pill);
+  font:900 10px/1 var(--font-display);letter-spacing:.04em;font-variant-numeric:tabular-nums;
+  background:var(--amber-500);color:var(--char-900);border:1.5px solid var(--char-900);
+}
+.nav-badge--hot{background:var(--tomato-300)}
+.nav-link[aria-current="page"] .nav-badge{background:var(--char-ink);color:var(--char-900)}
+
+/* user block */
+.side-foot{margin-top:auto;padding-top:12px;position:relative}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
+  padding:8px 10px;border-radius:var(--r-sm);text-align:left;
+  background:var(--char-800);border:2px solid var(--char-500);box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.user-btn:hover{background:var(--char-700)}
+.user-btn:active{transform:translate(2px,2px);box-shadow:none}
+.av{
+  width:36px;height:36px;flex:0 0 auto;border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  font:900 12px/1 var(--font-display);letter-spacing:.02em;
+  background:linear-gradient(160deg,var(--amber-300),var(--amber-500));
+  color:var(--char-900);border:2px solid var(--char-900);
+}
+.av--sm{width:30px;height:30px;font-size:10.5px;border-radius:var(--r-xs)}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:900 12.5px/1.2 var(--font-display);letter-spacing:.02em;color:var(--char-ink)}
+.user-mail{display:block;margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-btn > .chev{width:15px;height:15px;flex:0 0 auto;color:var(--char-ink-soft)}
+.user-menu{
+  margin-top:6px;padding:6px;border-radius:var(--r-sm);
+  background:var(--char-800);border:2px solid var(--char-600);display:grid;gap:2px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:0 9px;border-radius:var(--r-xs);font:600 12.5px/1 var(--font-sans);color:var(--char-ink-soft)}
+.user-menu a:hover{background:var(--char-700);color:var(--char-ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu .lbl{padding:7px 9px 4px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+
+.main{min-width:0;padding-bottom:44px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6 · HERO — the oven mouth
+   ═══════════════════════════════════════════════════════════════════════════ */
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  background-color:var(--char-900);color:var(--char-ink);
+  padding:clamp(22px,3vw,40px) var(--pad-page) calc(clamp(34px,4vw,56px) + 18px);
+  /* THE CRUST EDGE — bubbled underside, cut with a mask */
+  -webkit-mask:
+    radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+  mask:
+    radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+}
+.hero-ember{
+  position:absolute;left:0;right:0;bottom:-90px;height:330px;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 100% at 50% 100%, rgba(226,59,20,.55), rgba(240,164,21,.18) 44%, transparent 74%);
+  animation:flicker 8s var(--ease) infinite;
+}
+.hero-arch{
+  position:absolute;top:-60px;right:clamp(-90px,-4vw,-40px);z-index:0;pointer-events:none;
+  width:clamp(230px,26vw,380px);height:clamp(230px,26vw,380px);
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 60%, rgba(240,164,21,.22), rgba(226,59,20,.10) 46%, transparent 68%);
+  filter:blur(2px);
+}
+.hero-in{position:relative;z-index:2;max-width:var(--measure);margin-inline:auto}
+
+.hero-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border-radius:var(--r-pill);background:var(--char-700);
+  border:2px solid var(--char-500);
+  font:var(--t-label);letter-spacing:.16em;color:var(--char-ink);white-space:nowrap;
+}
+.hero-kicker .sep{color:var(--char-ink-faint)}
+.hero-kicker em{font-style:normal;color:var(--tomato-300)}
+.live{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border-radius:var(--r-pill);
+  background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));
+  border:2px solid var(--char-900);color:var(--ink-invert);
+  font:var(--t-label);letter-spacing:.14em;white-space:nowrap;
+  animation:pulse-ember 2.6s var(--ease) infinite;
+}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--char-ink);flex:0 0 auto}
+.hamburger{display:none}
+
+.hero-body{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,2.4vw,34px);flex-wrap:wrap}
+.hero-l{min-width:0;flex:1 1 340px}
+.greeting{font:var(--t-hero);letter-spacing:-.03em;text-transform:uppercase;color:var(--char-ink)}
+.greeting em{font-style:normal;color:var(--tomato-300)}
+.hero-rule{display:flex;align-items:center;gap:8px;margin-top:12px}
+.hero-rule i{display:block;height:6px;border-radius:3px}
+.hero-rule i:nth-child(1){width:64px;background:var(--tomato-500)}
+.hero-rule i:nth-child(2){width:30px;background:var(--amber-500)}
+.hero-rule i:nth-child(3){width:16px;background:var(--basil-500)}
+.hero-rule i:nth-child(4){width:8px;background:var(--char-500)}
+.hero-date{margin-top:14px;font:900 clamp(13px,1.5vw,16px)/1.2 var(--font-display);letter-spacing:.14em;text-transform:uppercase;color:var(--amber-300)}
+.hero-line{
+  margin-top:12px;max-width:52ch;
+  font:400 clamp(13.5px,1.4vw,15.5px)/1.65 var(--font-sans);
+  color:var(--char-ink);font-variant-numeric:tabular-nums;
+}
+.hero-line b{font-weight:900;font-family:var(--font-display);letter-spacing:-.01em}
+.hero-line .hot{color:var(--tomato-300)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;flex:0 0 auto}
+.hero-cta .btn{min-height:54px;padding:0 22px;font-size:14px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7 · PRIMITIVES — buttons, chips, cards, meters
+   ═══════════════════════════════════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:var(--tap);padding:0 17px;border-radius:var(--r-sm);
+  border:2px solid var(--char-900);
+  font:900 12.5px/1 var(--font-display);letter-spacing:.06em;text-transform:uppercase;
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.btn svg{width:18px;height:18px;flex:0 0 auto}
+.btn--primary{background:var(--char-900);color:var(--char-ink);box-shadow:var(--sh-hard-tom)}
+.btn--primary:hover{background:var(--char-800)}
+.btn--primary:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--tomato-600)}
+.btn--hot{background:var(--tomato-600);color:var(--ink-invert);box-shadow:var(--sh-hard)}
+.btn--hot:hover{background:var(--tomato-500)}
+.btn--hot:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--char-900)}
+.btn--ghost{background:var(--surface);color:var(--ink);box-shadow:var(--sh-hard-sm)}
+.btn--ghost:hover{background:var(--surface-2)}
+.btn--ghost:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--char-900)}
+.btn--onchar{background:transparent;color:var(--char-ink);border-color:var(--char-500);box-shadow:none}
+.btn--onchar:hover{background:var(--char-700);border-color:var(--char-ink-faint)}
+.btn--onchar:active{transform:translate(2px,2px)}
+.btn--sm{min-height:38px;padding:0 13px;font-size:11px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+
+/* chips are stickers */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:28px;padding:5px 11px;border-radius:var(--r-pill);
+  border:2px solid;box-shadow:var(--sh-hard-xs);
+  font:900 10.5px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.chip--placed{background:var(--slate-50);color:var(--slate-700);border-color:var(--slate-500)}
+.chip--preparing{background:var(--amber-50);color:var(--amber-700);border-color:var(--amber-border)}
+.chip--ready{
+  background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));
+  color:var(--ink-invert);border-color:var(--char-900);
+  animation:pulse-ember 2.4s var(--ease) infinite;
+}
+.chip--ready::before{background:var(--char-ink)}
+.chip--served{background:var(--basil-50);color:var(--basil-700);border-color:var(--basil-500)}
+.chip--paid{background:var(--semolina-2);color:var(--ink-soft);border-color:var(--line-strong)}
+
+/* the 5-segment status meter — status is never colour-alone */
+.meter{display:inline-flex;gap:3px;align-items:center;flex:0 0 auto}
+.meter i{display:block;width:3px;height:10px;border-radius:1px;background:var(--tomato-600);opacity:.22}
+.meter i.on{opacity:1}
+.meter--dark i{background:var(--tomato-300)}
+
+/* cards */
+.card{
+  position:relative;
+  background:var(--surface);
+  border:2px solid var(--line-char);
+  border-radius:var(--r-lg);
+  padding:var(--pad-card);
+  box-shadow:var(--sh-hard);
+}
+.card--tomato{background:var(--tomato-50)}
+.card--basil{background:var(--basil-50)}
+.card--amber{background:var(--amber-50);border-color:var(--amber-border);box-shadow:5px 5px 0 var(--amber-border)}
+.card--char{
+  background-color:var(--char-900);color:var(--char-ink);
+  border-color:var(--char-900);box-shadow:var(--sh-hard-tom);
+  overflow:hidden;isolation:isolate;
+}
+.card--char > *{position:relative;z-index:1}
+
+/* the heat bar — the theme's one meter form */
+.heat{
+  position:relative;display:block;height:16px;border-radius:var(--r-xs);
+  background:var(--semolina-2);border:2px solid var(--char-900);overflow:hidden;
+}
+.heat > i{
+  position:absolute;inset:0 auto 0 0;width:var(--p,50%);
+  background:linear-gradient(90deg,var(--tomato-600),var(--tomato-500) 55%,var(--amber-500));
+  border-right:3px solid var(--char-900);
+}
+.heat::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,#0000 0 calc(10% - 1px),rgba(28,19,16,.28) calc(10% - 1px) 10%);
+}
+.heat--dark{background:var(--char-700);border-color:var(--char-500)}
+.heat--dark > i{border-right-color:var(--char-ink)}
+.heat--dark::after{background:repeating-linear-gradient(90deg,#0000 0 calc(10% - 1px),rgba(255,249,240,.22) calc(10% - 1px) 10%)}
+
+/* FSSAI veg / non-veg mark — LEGALLY FIXED, DO NOT RESTYLE */
+.fssai{
+  width:14px;height:14px;flex:0 0 auto;border-radius:2px;
+  display:grid;place-items:center;border:2px solid var(--veg);background:var(--surface);
+}
+.fssai i{width:6px;height:6px;border-radius:50%;background:var(--veg);display:block}
+.fssai--non{border-color:var(--nonveg)}
+.fssai--non i{background:var(--nonveg)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8 · PAGE COLUMN + SECTION HEADS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--measure);margin-inline:auto;padding:clamp(20px,2.6vw,32px) var(--pad-page) 0}
+.sec{margin-top:clamp(26px,3.4vw,44px)}
+.sec__head{display:flex;align-items:flex-end;gap:10px 14px;flex-wrap:wrap;margin-bottom:14px}
+.sec__title{display:flex;align-items:center;gap:10px;font:var(--t-h1);text-transform:uppercase;letter-spacing:-.02em;color:var(--ink)}
+.sec-mark{width:22px;height:22px;flex:0 0 auto;color:var(--tomato-500)}
+.sec__sub{font:var(--t-small);color:var(--ink-soft);padding-bottom:3px}
+.sec__act{margin-left:auto;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.label{font:var(--t-label);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   9 · THE DOCKET — KPI tile form (§5C)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.kpis{display:grid;gap:clamp(12px,1.6vw,18px);grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:1000px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.docket{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:6px;
+  min-height:208px;padding:22px 16px 30px;
+  background:var(--surface);
+  box-shadow:inset 0 0 0 2px var(--line-char);
+  border-radius:var(--r-sm) var(--r-sm) 0 0;
+  /* PERFORATED tear-off bottom */
+  -webkit-mask:
+    radial-gradient(circle 5px at 6px 10px,#0000 98%,#000 100%) 0 100%/12px 10px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 10px) no-repeat;
+  mask:
+    radial-gradient(circle 5px at 6px 10px,#0000 98%,#000 100%) 0 100%/12px 10px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 10px) no-repeat;
+  /* drop-shadow, NOT box-shadow — it must trace the perforation */
+  filter:drop-shadow(5px 5px 0 var(--char-900));
+}
+/* the 7px colour bar across the top — the variant's signature */
+.docket::before{content:"";position:absolute;top:0;left:0;right:0;height:7px;z-index:2}
+.docket--rev::before{background:linear-gradient(90deg,var(--tomato-600),var(--tomato-500),var(--amber-500))}
+.docket--ord::before{background:linear-gradient(90deg,var(--amber-500),var(--amber-300))}
+.docket--tik::before{background:linear-gradient(90deg,var(--basil-600),var(--basil-500),var(--basil-300))}
+.docket--ovn::before{background:linear-gradient(90deg,var(--char-900),var(--char-500),var(--char-700))}
+/* the scorch mark in the top-right corner */
+.docket-scorch{
+  position:absolute;top:0;right:0;width:118px;height:94px;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 120% at 100% 0, rgba(28,19,16,.17), transparent 62%);
+}
+.docket-orn{position:absolute;top:12px;right:8px;width:62px;height:62px;opacity:.20;pointer-events:none;z-index:0;transform:rotate(-8deg)}
+.docket > *{position:relative;z-index:1}
+.docket .label{padding-right:52px}
+.docket__val{
+  margin-top:3px;font:var(--t-num);font-variant-numeric:tabular-nums;
+  letter-spacing:-.025em;color:var(--ink);white-space:nowrap;
+}
+.docket__val .cur{font-size:.52em;font-weight:900;color:var(--ink-soft);margin-right:2px;letter-spacing:0}
+.docket__val .unit{font-size:.44em;font-weight:900;color:var(--ink-soft);margin-left:4px;letter-spacing:.04em}
+.docket__delta{
+  display:inline-flex;align-items:center;gap:6px;margin-top:2px;
+  font:900 11.5px/1 var(--font-display);letter-spacing:.04em;font-variant-numeric:tabular-nums;
+}
+.docket__delta svg{width:15px;height:15px;flex:0 0 auto}
+.delta-up{color:var(--delta-up)}
+.delta-down{color:var(--delta-down)}
+.delta-flat{color:var(--ink-soft)}
+.docket__note{font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.docket__foot{margin-top:auto;padding-top:14px}
+.docket__scale{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font:var(--t-label);letter-spacing:.1em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+/* the hourly micro-bars in the Orders docket */
+.hours{display:flex;align-items:flex-end;gap:4px;height:44px}
+.hours span{
+  flex:1;min-width:0;border-radius:2px 2px 0 0;
+  background:linear-gradient(180deg,var(--tomato-500),var(--tomato-700));
+  border:1.5px solid var(--char-900);border-bottom:0;
+}
+.hours span.now{background:repeating-linear-gradient(135deg,var(--amber-500) 0 4px,var(--amber-300) 4px 8px)}
+.hours-ax{display:flex;justify-content:space-between;margin-top:6px;font:var(--t-label);letter-spacing:.08em;color:var(--ink-soft)}
+
+/* the three mini-splits in the Average-ticket docket */
+.splits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.splits div{
+  padding:7px 6px;border-radius:var(--r-xs);text-align:center;
+  background:var(--surface-2);border:1.5px solid var(--line);
+}
+.splits b{display:block;font:900 13px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink)}
+.splits span{display:block;margin-top:4px;font:var(--t-label);letter-spacing:.08em;color:var(--ink-soft)}
+
+/* the oven-time target strip */
+.target{position:relative;height:16px;border-radius:var(--r-xs);background:var(--semolina-2);border:2px solid var(--char-900);overflow:hidden}
+.target > i{position:absolute;inset:0 auto 0 0;width:var(--p,60%);background:linear-gradient(90deg,var(--basil-600),var(--basil-500))}
+.target > b{position:absolute;top:-3px;bottom:-3px;left:var(--t,80%);width:3px;background:var(--char-900);border-radius:2px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   10 · THE TAPED NOTICE (§5E) — exactly one per screen
+   ═══════════════════════════════════════════════════════════════════════════ */
+.notice{
+  position:relative;margin-top:clamp(20px,2.6vw,30px);
+  transform:rotate(-.55deg);transform-origin:50% 0;
+  transition:transform var(--dur) var(--ease);
+  display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;
+  padding:18px 18px 16px;
+}
+.notice:hover,.notice:focus-within{transform:rotate(0deg)}
+@media (hover:none){.notice{transform:none}}
+.notice::before,.notice::after{
+  content:"";position:absolute;top:-13px;width:118px;height:26px;
+  background:linear-gradient(180deg,rgba(255,249,240,.86),rgba(232,214,184,.78));
+  border-left:2px dashed rgba(28,19,16,.28);border-right:2px dashed rgba(28,19,16,.28);
+  box-shadow:0 1px 0 rgba(28,19,16,.18);pointer-events:none;z-index:3;
+}
+.notice::before{left:32px;transform:rotate(-2.4deg)}
+.notice::after{right:32px;transform:rotate(2.4deg)}
+.notice-ico{
+  width:52px;height:52px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--amber-500);color:var(--char-900);
+  border:2px solid var(--char-900);box-shadow:var(--sh-hard-xs);
+}
+.notice-ico svg{width:28px;height:28px}
+.notice-body{min-width:0;flex:1 1 320px}
+.notice-body h3{font:var(--t-h2);text-transform:uppercase;letter-spacing:.02em;color:var(--ink)}
+.notice-body p{margin-top:5px;font:var(--t-small);color:var(--amber-700)}
+.reorders{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.reorder{
+  display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 11px;
+  border-radius:var(--r-sm);background:var(--surface);border:2px solid var(--char-900);
+  box-shadow:var(--sh-hard-xs);font:600 12.5px/1.2 var(--font-sans);color:var(--ink);
+}
+.reorder b{font:var(--t-ticket);font-weight:700;color:var(--amber-700);font-variant-numeric:tabular-nums}
+.reorder.crit b{color:var(--tomato-700)}
+.reorder .qty{font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.notice .btn{margin-left:auto;align-self:center}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   11 · GRIDS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.duo{display:grid;gap:clamp(14px,2vw,20px);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1120px){
+  .duo{grid-template-columns:minmax(0,1.62fr) minmax(0,1fr)}
+  .duo--flip{grid-template-columns:minmax(0,1fr) minmax(0,1.62fr)}
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   12 · PANEL HEAD + SCROLLER  (verbatim from the dashboard, where this block
+        is section 12 "Revenue trend". .chart-head / .chart-big / .scroll-x are
+        shared furniture, so they are copied across unchanged.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.chart-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.chart-head .label{display:block}
+.chart-head h3{font:var(--t-h2);text-transform:uppercase;color:var(--ink);margin-top:4px}
+.chart-head p{margin-top:4px;font:var(--t-small);color:var(--ink-soft)}
+.chart-big{margin-left:auto;text-align:right;flex:0 0 auto}
+.chart-big b{display:block;font:var(--t-num-sm);font-variant-numeric:tabular-nums;color:var(--ink)}
+.chart-big span{display:block;margin-top:3px;font:var(--t-label);letter-spacing:.12em;color:var(--ink-soft)}
+.chart-wrap{margin:0 -4px;padding:0 4px}
+.chart-wrap svg{min-width:900px;width:100%;height:auto;display:block}
+.chart-legend{
+  display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;
+  margin-top:14px;padding-top:13px;border-top:2px dashed var(--line-strong);
+  font:var(--t-small);color:var(--ink-soft);
+}
+.chart-legend b{color:var(--ink);font-family:var(--font-display);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.lg{display:inline-flex;align-items:center;gap:7px}
+.lg i{width:12px;height:12px;border-radius:3px;display:block;flex:0 0 auto;border:1.5px solid var(--char-900)}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   13 · THE SPIKE — live tickets
+   ═══════════════════════════════════════════════════════════════════════════ */
+.spike{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.ticket{
+  position:relative;padding:12px 13px 18px;
+  background:var(--surface);
+  box-shadow:inset 0 0 0 2px var(--line-char);
+  border-radius:var(--r-xs) var(--r-xs) 0 0;
+  -webkit-mask:
+    radial-gradient(circle 4px at 5px 8px,#0000 98%,#000 100%) 0 100%/10px 8px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat;
+  mask:
+    radial-gradient(circle 4px at 5px 8px,#0000 98%,#000 100%) 0 100%/10px 8px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat;
+  filter:drop-shadow(3px 3px 0 var(--char-900));
+  transition:transform var(--dur) var(--ease);
+}
+.ticket:hover{transform:translate(-1px,-1px)}
+.ticket--live{background:var(--tomato-50)}
+.ticket__top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ticket__no{font:900 13px/1 var(--font-ticket);letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ticket__where{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:var(--r-xs);
+  background:var(--semolina-2);border:1.5px solid var(--line-strong);
+  font:var(--t-label);letter-spacing:.1em;color:var(--ink-soft);
+}
+.ticket__ago{margin-left:auto;font:var(--t-ticket);color:var(--ink-soft);white-space:nowrap}
+.ticket__mid{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:9px}
+.ticket__items{min-width:0;flex:1;font:var(--t-small);color:var(--ink-soft)}
+.ticket__sum{font:900 15px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+.ticket__foot{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1.5px dashed var(--line-strong)}
+.spike-more{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:var(--tap);margin-top:2px;padding:0 14px;border-radius:var(--r-sm);
+  border:2px dashed var(--char-900);background:var(--surface-2);color:var(--ink);
+  font:900 11.5px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+}
+.spike-more:hover{background:var(--semolina-2)}
+.spike-more svg{width:16px;height:16px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   16 · OFF-CANVAS CHROME
+   ═══════════════════════════════════════════════════════════════════════════ */
+.backdrop{position:fixed;inset:0;background:rgba(20,16,13,.62);z-index:45;opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
+body.nav-open .backdrop{opacity:1;pointer-events:auto}
+body.nav-open{overflow:hidden}
+.tabbar{display:none}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   17 · RESPONSIVE LADDER (§4)
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* 1024–1279 → 84px icon rail */
+@media (max-width:1279px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:16px 8px 14px;align-items:center}
+  .brand{justify-content:center;padding:4px 0}
+  .switcher{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .switch-tile{width:30px;height:30px}
+  .switcher .switch-meta,.switcher > .chev{display:none}
+  .outlets{position:absolute;left:calc(100% + 8px);top:0;width:216px;z-index:70}
+  .nav-link{justify-content:center;padding:0;width:var(--tap);margin:0 auto}
+  .nav-link[aria-current="page"]::before{left:-8px}
+  .nav-badge{position:absolute;top:2px;right:-2px;margin:0;padding:2px 5px;font-size:9px}
+  .brand-text,.brand-tag,.nav-group > .label,.nav-link span,.switch-meta{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .nav-group+.nav-group{margin-top:12px;position:relative;padding-top:12px}
+  .nav-group+.nav-group::before{content:"";position:absolute;top:0;left:16%;right:16%;height:2px;background:var(--char-600)}
+  .user-btn{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center}
+  .user-meta,.user-btn > .chev{display:none}
+  .user-menu{position:absolute;bottom:0;left:calc(100% + 8px);width:214px;margin:0;z-index:70}
+  .side-foot{position:relative}
+}
+
+/* ≤1023 → drawer + bottom tabbar */
+@media (max-width:1023px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:286px;
+    padding:20px 12px 16px;align-items:stretch;
+    border-right:0;box-shadow:8px 0 0 rgba(20,16,13,.35);
+    transform:translateX(-104%);transition:transform .26s var(--ease);z-index:60;
+  }
+  body.nav-open .sidebar{transform:none}
+  .brand{justify-content:flex-start;padding:4px 6px 2px}
+  .brand-text,.brand-tag,.nav-group > .label,.nav-link span,.switch-meta{
+    position:static;width:auto;height:auto;margin:0;overflow:visible;clip-path:none;
+  }
+  .switcher{width:100%;min-height:56px;padding:8px 10px;justify-content:flex-start}
+  .switcher .switch-meta{display:block}
+  .switcher > .chev{display:block}
+  .switch-tile{width:34px;height:34px}
+  .outlets{position:static;width:auto;margin-top:6px}
+  .nav-link{justify-content:flex-start;padding:0 11px;width:auto}
+  .nav-link[aria-current="page"]::before{left:-12px}
+  .nav-badge{position:static;margin-left:auto;padding:4px 7px;font-size:10px}
+  .nav-group+.nav-group{position:static;padding-top:0;margin-top:14px}
+  .nav-group+.nav-group::before{content:none}
+  .user-btn{width:100%;min-height:56px;padding:8px 10px;justify-content:flex-start}
+  .user-meta,.user-btn > .chev{display:block}
+  .user-menu{position:static;width:auto;margin-top:6px}
+
+  .main{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px) + 20px)}
+  .hamburger{display:inline-flex}
+
+  /* the ONE glass surface in the theme */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:55;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+    background:color-mix(in srgb, var(--char-900) 86%, transparent);
+    backdrop-filter:blur(14px) saturate(1.5);
+    border-top:2px solid var(--tomato-600);box-shadow:var(--sh-up);
+  }
+  .tab{
+    display:grid;place-items:center;gap:3px;min-height:var(--tap);padding:5px 2px;
+    border-radius:var(--r-xs);color:var(--char-ink-soft);
+    font:900 9.5px/1.2 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+  }
+  .tab svg{width:21px;height:21px}
+  .tab:hover{color:var(--char-ink);background:var(--char-700)}
+  .tab[aria-current="page"],.tab[aria-expanded="true"]{color:var(--char-ink);background:var(--tomato-700)}
+}
+
+/* phone */
+@media (max-width:640px){
+  .hero-top{padding-top:34px}
+  .hero-body{align-items:flex-start}
+  .hero-cta{width:100%}
+  .hero-cta .btn{flex:1 1 auto}
+  .greeting{font-size:clamp(30px,8.4vw,38px)}
+  .notice .btn{margin-left:0;width:100%}
+  .seller__rev{min-width:0}
+  .seller__price{display:none}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:minmax(0,1fr)}
+  .seller__units{display:none}
+  .chart-big{margin-left:0;text-align:left}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   18 · MASTHEAD  (§4: "on every other screen the hero shrinks to a masthead —
+        same background, same crust edge, --t-display, one line of subcopy,
+        actions right.")  Reuses .hero / .hero-top / .hero-cta verbatim.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.masthead{padding-bottom:calc(clamp(24px,3vw,38px) + 18px)}
+.mast-body{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,2.4vw,34px);flex-wrap:wrap}
+.mast-l{min-width:0;flex:1 1 320px}
+.mast-title{font:var(--t-display);letter-spacing:-.03em;text-transform:uppercase;color:var(--char-ink)}
+.mast-title em{font-style:normal;color:var(--tomato-300)}
+.mast-line{margin-top:11px;max-width:56ch;font:400 clamp(13px,1.3vw,15px)/1.6 var(--font-sans);color:var(--char-ink);font-variant-numeric:tabular-nums}
+.mast-line b{font-weight:900;font-family:var(--font-display);letter-spacing:-.01em}
+.mast-line .hot{color:var(--tomato-300)}
+.mast-cta{display:flex;flex-wrap:wrap;gap:10px;flex:0 0 auto}
+.mast-cta .btn{min-height:52px;padding:0 20px;font-size:13.5px}
+
+/* the three at-a-glance floor counters that sit inside the charred band */
+.mast-stats{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.mast-stat{
+  display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:7px 14px 7px 10px;
+  border-radius:var(--r-sm);background:var(--char-700);border:2px solid var(--char-500);
+}
+.mast-stat b{font:900 19px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--amber-300);white-space:nowrap}
+.mast-stat span{font:var(--t-label);letter-spacing:.14em;color:var(--char-ink-soft);white-space:nowrap}
+.mast-stat--warn b{color:var(--tomato-300)}
+.mast-stat svg{width:19px;height:19px;color:var(--char-ink-faint);flex:0 0 auto}
+.clock{font-family:var(--font-ticket);font-variant-numeric:tabular-nums;font-weight:700}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   19 · THE PASS RAIL (D2) — the five lifecycle stages as compact dockets
+   ═══════════════════════════════════════════════════════════════════════════ */
+.rail{display:flex;align-items:stretch;gap:6px;min-width:820px;padding:6px 6px 10px}
+.rail-scroll{margin:0 -6px}
+.rail-arrow{display:grid;place-items:center;flex:0 0 auto;width:22px;color:var(--ink-faint)}
+.rail-arrow svg{width:20px;height:20px}
+
+.docket--stage{flex:1 1 0;min-width:0;min-height:132px;padding:14px 13px 22px;gap:4px}
+.docket--stage::before{height:7px}
+.st-1::before{background:linear-gradient(90deg,var(--slate-700),var(--slate-500))}
+.st-2::before{background:linear-gradient(90deg,var(--amber-500),var(--amber-300))}
+.st-3::before{background:linear-gradient(90deg,var(--tomato-600),var(--tomato-500),var(--amber-500))}
+.st-4::before{background:linear-gradient(90deg,var(--basil-600),var(--basil-500),var(--basil-300))}
+.st-5::before{background:linear-gradient(90deg,var(--char-900),var(--char-500),var(--char-700))}
+.stage__top{display:flex;align-items:center;gap:8px}
+.stage__n{font:900 clamp(24px,2.6vw,34px)/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:var(--ink)}
+.stage__top .meter{margin-left:auto}
+.stage__lbl{font:var(--t-label);letter-spacing:.14em;color:var(--ink-soft);text-transform:uppercase}
+.stage__age{margin-top:auto;font:var(--t-ticket);color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage__age b{color:var(--ink);font-weight:700}
+.st-3 .stage__age b{color:var(--tomato-700)}
+.st-3{background:var(--tomato-50)}
+.rail-foot{
+  display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;margin-top:14px;padding-top:13px;
+  border-top:2px dashed var(--line-strong);font:var(--t-small);color:var(--ink-soft);
+}
+.rail-foot b{font-family:var(--font-display);font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.rail-foot .heat{flex:1 1 200px;min-width:160px}
+.strike{text-decoration:line-through}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   20 · THE FLOOR (D1 + D3)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.floor-key{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.key{
+  display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:5px 11px 5px 6px;
+  border-radius:var(--r-pill);background:var(--surface);border:2px solid var(--line-char);
+  box-shadow:var(--sh-hard-xs);font:var(--t-micro);color:var(--ink-soft);
+}
+.key i{width:16px;height:16px;border-radius:4px;flex:0 0 auto;border:2px solid var(--char-900);display:block}
+.key b{font:900 10.5px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.key em{font-style:normal;font-family:var(--font-ticket);font-weight:700;color:var(--ink-soft)}
+.key-free i{background:var(--surface);border-style:dashed;border-color:var(--line-strong)}
+.key-seat i{background:var(--slate-100);border-color:var(--slate-500)}
+.key-deck i{background:var(--amber-100);border-color:var(--amber-border)}
+.key-run  i{background:var(--char-900)}
+.key-bill i{background:var(--tomato-100);border-color:var(--tomato-600)}
+
+.floor{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+.tile{
+  position:relative;isolation:isolate;overflow:hidden;text-align:left;
+  display:flex;flex-direction:column;gap:8px;min-height:186px;padding:13px 13px 14px;
+  border-radius:var(--r-lg);border:2px solid var(--line-char);background:var(--surface);
+  box-shadow:var(--sh-hard);
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
+}
+.tile:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--char-900)}
+.tile:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--char-900)}
+.tile > *{position:relative;z-index:1}
+
+.tile__head{display:flex;align-items:flex-start;gap:9px}
+.plaque{
+  flex:0 0 auto;display:grid;place-items:center;min-width:52px;height:44px;padding:0 8px;
+  border-radius:var(--r-xs);background:var(--semolina-2);border:2px solid var(--char-900);
+  font:700 22px/1 var(--font-ticket);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);
+}
+.tile__zone{min-width:0;flex:1;padding-top:2px}
+.tile__zone b{display:block;font:900 11px/1.2 var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile__zone span{display:block;margin-top:4px;font:var(--t-micro);color:var(--ink-soft)}
+/* seat dots — occupancy is countable, not inferred from a colour */
+.tile__zone .seats{display:flex;gap:3px;margin-top:6px}
+.seats i{width:8px;height:8px;border-radius:50%;display:block;border:1.5px solid var(--ink-soft);background:transparent}
+.seats i.on{background:var(--ink);border-color:var(--ink)}
+
+.tile__state{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.state-word{font:900 12px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.state-pos{
+  font:700 11px/1 var(--font-ticket);font-variant-numeric:tabular-nums;
+  padding:4px 6px;border-radius:var(--r-xs);border:1.5px solid currentColor;
+}
+.tile__live{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:var(--t-ticket)}
+.tile__live .no{font-weight:700;color:var(--ink)}
+.tile__live .amt{margin-left:auto;font:900 15px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+.tile__foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.tile__note{font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+/* — the five table states — */
+.tile--free{background:var(--surface);border-style:dashed;border-color:var(--line-strong);box-shadow:none}
+.tile--free:hover{box-shadow:var(--sh-hard-sm);border-style:solid;border-color:var(--line-char)}
+.tile--free .plaque{background:var(--surface);border-color:var(--line-strong);color:var(--ink-soft)}
+.tile--free .open-word{
+  margin-top:auto;font:900 clamp(20px,2.4vw,26px)/1 var(--font-display);
+  letter-spacing:.02em;text-transform:uppercase;color:var(--ink-soft);
+}
+
+.tile--seated{background:var(--slate-50);border-color:var(--slate-500)}
+.tile--seated .state-word,.tile--seated .state-pos{color:var(--slate-700)}
+.tile--seated .plaque{background:var(--slate-100);border-color:var(--slate-700)}
+
+.tile--deck{background:var(--amber-50);border-color:var(--amber-border);box-shadow:5px 5px 0 var(--amber-border)}
+.tile--deck:hover{box-shadow:6px 6px 0 var(--amber-border)}
+.tile--deck:active{box-shadow:2px 2px 0 var(--amber-border)}
+.tile--deck .state-word,.tile--deck .state-pos{color:var(--amber-700)}
+.tile--deck .plaque{background:var(--amber-100);border-color:var(--amber-700)}
+
+/* READY — the charred tile. The only dark thing on the floor; visible at 10m. */
+.tile--run{
+  background-color:var(--char-900);border-color:var(--char-900);color:var(--char-ink);
+  box-shadow:var(--sh-hard-tom);animation:pulse-ember 2.4s var(--ease) infinite;
+}
+.tile--run:hover{box-shadow:6px 6px 0 var(--tomato-600)}
+.tile--run:active{box-shadow:2px 2px 0 var(--tomato-600)}
+.tile-ember{
+  position:absolute;left:-20%;right:-20%;bottom:-70px;height:190px;z-index:0;pointer-events:none;
+  background:radial-gradient(65% 100% at 50% 100%,rgba(226,59,20,.55),rgba(240,164,21,.16) 44%,transparent 74%);
+  animation:flicker 7s var(--ease) infinite;
+}
+.tile--run .plaque{background:var(--tomato-600);border-color:var(--char-ink);color:var(--ink-invert)}
+.tile--run .tile__zone b{color:var(--char-ink)}
+.tile--run .tile__zone span,.tile--run .tile__note{color:var(--char-ink-soft)}
+.tile--run .seats i{border-color:var(--char-ink-soft)}
+.tile--run .seats i.on{background:var(--char-ink);border-color:var(--char-ink)}
+.tile--run .state-word,.tile--run .state-pos{color:var(--amber-300)}
+.tile--run .tile__live .no,.tile--run .tile__live .amt{color:var(--char-ink)}
+
+.tile--bill{background:var(--tomato-50);border-color:var(--tomato-600);box-shadow:5px 5px 0 var(--tomato-600)}
+.tile--bill:hover{box-shadow:6px 6px 0 var(--tomato-600)}
+.tile--bill:active{box-shadow:2px 2px 0 var(--tomato-600)}
+.tile--bill .state-word,.tile--bill .state-pos{color:var(--tomato-700)}
+.tile--bill .plaque{background:var(--tomato-100);border-color:var(--tomato-700)}
+.tile--bill .tile__note{color:var(--tomato-700);font-weight:700}
+
+/* the counter — not a table, so not a tile */
+.counter-strip{
+  display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-top:var(--gap);
+  padding:14px 16px;border-radius:var(--r-lg);
+  background:var(--surface-2);border:2px dashed var(--line-strong);
+}
+.counter-strip h3{font:var(--t-h2);text-transform:uppercase;color:var(--ink)}
+.counter-strip p{font:var(--t-small);color:var(--ink-soft);flex:1 1 220px;min-width:0}
+.stools{display:flex;gap:5px}
+.stools i{width:15px;height:15px;border-radius:50%;display:block;border:2px solid var(--ink-soft);background:transparent}
+.stools i.on{background:var(--ink);border-color:var(--ink)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   21 · THE PASS LIST — segmented filter (D5) + the order tickets
+   ═══════════════════════════════════════════════════════════════════════════ */
+.segs{display:flex;flex-wrap:wrap;gap:7px}
+.seg{
+  display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:0 14px;
+  border-radius:var(--r-pill);border:2px solid var(--char-900);background:var(--surface);color:var(--ink);
+  box-shadow:var(--sh-hard-xs);
+  font:900 11.5px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.seg:hover{background:var(--surface-2)}
+.seg:active{transform:translate(2px,2px);box-shadow:none}
+.seg b{
+  padding:3px 7px;border-radius:var(--r-pill);background:var(--semolina-2);color:var(--ink);
+  font:900 10.5px/1 var(--font-display);font-variant-numeric:tabular-nums;border:1.5px solid var(--line-strong);
+}
+.seg[aria-pressed="true"]{background:var(--char-900);color:var(--char-ink)}
+.seg[aria-pressed="true"] b{background:var(--tomato-600);color:var(--ink-invert);border-color:var(--char-ink)}
+.seg svg{width:17px;height:17px;flex:0 0 auto}
+
+.filtered{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 12px;
+  padding:9px 10px 9px 13px;border-radius:var(--r-sm);
+  background:var(--amber-50);border:2px solid var(--amber-border);box-shadow:var(--sh-hard-xs);
+  font:var(--t-small);color:var(--amber-700);
+}
+.filtered svg{width:18px;height:18px;flex:0 0 auto}
+.filtered b{font-family:var(--font-display);font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+.filtered .btn{margin-left:auto}
+
+.ticket--fat{padding:14px 15px 20px}
+.ticket--run{background:var(--tomato-50)}
+.ticket--cancel{background:var(--surface-2)}
+.ticket--cancel .ticket__no,.ticket--cancel .ticket__sum{text-decoration:line-through;color:var(--ink-soft)}
+/* §1: "CANCELLED = as PAID + line-through, meter not rendered" */
+.ticket--cancel .chip--paid{text-decoration:line-through}
+.ticket__step{
+  font:700 10.5px/1 var(--font-ticket);font-variant-numeric:tabular-nums;letter-spacing:.04em;
+  color:var(--ink-soft);white-space:nowrap;
+}
+.ticket__status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lines{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.li{
+  display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:4px 9px;
+  border-radius:var(--r-xs);background:var(--surface-2);border:1.5px solid var(--line);
+  font:var(--t-small);color:var(--ink);
+}
+.li q{quotes:none;font-family:var(--font-ticket);font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.li--extra{background:transparent;border-style:dashed;color:var(--ink-soft)}
+.ticket__sums{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:11px}
+.ticket__who{min-width:0;flex:1 1 160px;font:var(--t-small);color:var(--ink-soft)}
+.ticket__who b{font-weight:700;color:var(--ink)}
+.ticket__acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   22 · RIDER BOARD · SETTLED LIST · SKELETON + EMPTY (D6)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.rider{
+  display:flex;align-items:center;gap:11px;min-height:var(--tap);padding:10px 12px;
+  border-radius:var(--r-sm);background:var(--surface);border:2px solid var(--line-char);
+  box-shadow:var(--sh-hard-xs);
+}
+.rider+.rider{margin-top:8px}
+.rider--run{background:var(--tomato-50);border-color:var(--tomato-600)}
+.rider__id{min-width:0;flex:1}
+.rider__id b{display:block;font:700 12.5px/1.2 var(--font-ticket);font-variant-numeric:tabular-nums;color:var(--ink)}
+.rider__id span{display:block;margin-top:4px;font:var(--t-micro);color:var(--ink-soft)}
+.rider__amt{font:900 13.5px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+
+.empty{
+  display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;
+  padding:26px 18px;margin-top:10px;border-radius:var(--r);
+  border:2px dashed var(--line-char);background:transparent;
+}
+.empty svg{width:44px;height:44px;opacity:.5;color:var(--ink-soft)}
+.empty b{font:var(--t-h2);text-transform:uppercase;color:var(--ink)}
+.empty p{font:var(--t-small);color:var(--ink-soft);max-width:34ch}
+
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+.skel-rows{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.skel-row{
+  display:flex;align-items:center;gap:11px;min-height:56px;padding:11px 12px;
+  border-radius:var(--r-sm);background:var(--surface);border:2px solid var(--line);
+}
+.skel{display:block;height:12px;border-radius:var(--r-xs);background:var(--semolina-2);animation:breathe 1.5s var(--ease) infinite}
+.skel--sq{width:34px;height:34px;border-radius:var(--r-xs);flex:0 0 auto}
+.skel--w1{width:64%}
+.skel--w2{width:38%;margin-top:7px}
+.skel--amt{width:56px;margin-left:auto;flex:0 0 auto}
+.skel-col{min-width:0;flex:1}
+.skel-row:nth-child(2) .skel{animation-delay:.18s}
+.skel-row:nth-child(3) .skel{animation-delay:.36s}
+.skel-row:nth-child(4) .skel{animation-delay:.54s}
+.loading-tag{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:var(--r-pill);
+  background:var(--semolina-2);border:2px solid var(--line-strong);
+  font:var(--t-label);letter-spacing:.14em;color:var(--ink-soft);
+}
+.loading-tag i{width:8px;height:8px;border-radius:50%;background:var(--amber-500);animation:breathe 1.1s var(--ease) infinite}
+@media (prefers-reduced-motion:reduce){.skel,.loading-tag i{animation:none}}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   23 · THE TICKET DRAWER (D4)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.detail-backdrop{position:fixed;inset:0;background:rgba(20,16,13,.62);z-index:56;opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
+.detail{
+  position:fixed;top:0;right:0;bottom:0;width:min(404px,100%);z-index:58;
+  display:flex;flex-direction:column;
+  background-color:var(--surface);border-left:2px solid var(--line-char);
+  box-shadow:var(--sh-hard-lg);
+  transform:translateX(104%);visibility:hidden;
+  transition:transform .26s var(--ease),visibility 0s linear .26s;
+}
+body.detail-open .detail{transform:none;visibility:visible;transition:transform .26s var(--ease)}
+body.detail-open .detail-backdrop{opacity:1;pointer-events:auto}
+@media (min-width:1440px){
+  body.detail-open .shell{grid-template-columns:var(--sidebar) minmax(0,1fr) 404px}
+  /* closed at this width the drawer must LEAVE the grid, or it would
+     conjure an implicit third column behind the main content */
+  .detail{display:none}
+  body.detail-open .detail{position:sticky;top:0;height:100dvh;width:auto;grid-column:3;transform:none;visibility:visible;box-shadow:none;z-index:40;display:flex}
+  .detail-backdrop{display:none}
+}
+@media (max-width:1439px){body.detail-open{overflow:hidden}}
+
+.detail__head{
+  position:relative;isolation:isolate;overflow:hidden;flex:0 0 auto;
+  background-color:var(--char-900);color:var(--char-ink);padding:16px 15px 15px;
+}
+.detail__head > *{position:relative;z-index:1}
+.detail__top{display:flex;align-items:center;gap:10px}
+.detail__no{
+  display:inline-grid;place-items:center;min-height:44px;padding:0 14px;border-radius:var(--r-xl);
+  background:var(--char-700);border:2px solid var(--tomato-600);
+  font:700 17px/1 var(--font-ticket);font-variant-numeric:tabular-nums;color:var(--char-ink);
+}
+.detail__close{
+  margin-left:auto;width:var(--tap);min-height:var(--tap);display:grid;place-items:center;
+  border-radius:var(--r-sm);border:2px solid var(--char-500);color:var(--char-ink);
+}
+.detail__close:hover{background:var(--char-700)}
+.detail__close svg{width:20px;height:20px}
+.detail__where{margin-top:13px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.detail__where h2{font:var(--t-h1);text-transform:uppercase;letter-spacing:-.02em;color:var(--char-ink)}
+.detail__sub{margin-top:7px;font:var(--t-small);color:var(--char-ink-soft);font-variant-numeric:tabular-nums}
+.detail__chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:13px}
+.detail__chips .ticket__step{color:var(--char-ink-soft)}
+
+.detail__body{flex:1 1 auto;overflow-y:auto;padding:16px 15px 18px;display:flex;flex-direction:column;gap:19px}
+.dsec > .label{display:block;margin-bottom:11px}
+
+/* the lifecycle rail — dashed + hollow for what has not happened yet */
+.life{position:relative;padding-left:27px}
+.life::before{content:"";position:absolute;left:7px;top:6px;bottom:14px;width:2px;background:var(--line-strong)}
+.life li{position:relative;display:flex;align-items:baseline;gap:9px;padding:0 0 14px}
+.life li::before{
+  content:"";position:absolute;left:-27px;top:3px;width:16px;height:16px;border-radius:50%;
+  background:var(--tomato-600);border:2px solid var(--char-900);
+}
+.life li.todo::before{background:var(--surface);border-style:dashed;border-color:var(--ink-soft)}
+.life li.now::before{background:var(--amber-500);box-shadow:0 0 0 4px rgba(240,164,21,.28)}
+.life b{font:900 11.5px/1.3 var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);min-width:104px}
+.life li.todo b{color:var(--ink-soft)}
+.life time{font:var(--t-ticket);color:var(--ink-soft);white-space:nowrap}
+.life span{margin-left:auto;font:var(--t-micro);color:var(--ink-soft);text-align:right}
+
+.dlines{border:2px solid var(--line-char);border-radius:var(--r-sm);overflow:hidden;background:var(--surface)}
+.dline{display:flex;align-items:center;gap:9px;min-height:46px;padding:9px 11px;border-bottom:1.5px solid var(--line)}
+.dline:last-child{border-bottom:0}
+.dline:nth-child(even){background:var(--surface-2)}
+.dline q{quotes:none;flex:0 0 auto;font:700 12.5px/1 var(--font-ticket);font-variant-numeric:tabular-nums;color:var(--ink-soft);min-width:26px}
+.dline .nm{min-width:0;flex:1;font:600 12.5px/1.35 var(--font-sans);color:var(--ink)}
+.dline .nm em{display:block;font-style:normal;font:var(--t-micro);color:var(--ink-soft)}
+.dline .amt{font:900 13px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+
+.totals{margin-top:12px;padding:13px 14px;border-radius:var(--r-sm);background:var(--surface-2);border:2px dashed var(--line-strong)}
+.totals dl{display:grid;grid-template-columns:1fr auto;gap:9px 10px;font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.totals dd{text-align:right;font-family:var(--font-ticket);font-weight:700;color:var(--ink)}
+.totals dd.off{color:var(--basil-700)}
+.totals .grand{margin-top:12px;padding-top:12px;border-top:2px solid var(--line-char);display:flex;align-items:baseline;gap:10px}
+.totals .grand dt{font:var(--t-h2);text-transform:uppercase;color:var(--ink)}
+.totals .grand dd{margin-left:auto;font:900 clamp(22px,2.6vw,28px)/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.025em;color:var(--ink)}
+.totals .grand dd .cur{font-size:.52em;color:var(--ink-soft);margin-right:2px}
+
+.detail__foot{flex:0 0 auto;padding:13px 15px calc(13px + env(safe-area-inset-bottom,0px));background:var(--surface-2);border-top:2px solid var(--line-char);display:flex;gap:9px;flex-wrap:wrap}
+.detail__foot .btn{flex:1 1 132px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   24 · SCREEN-LEVEL RESPONSIVE ADDENDA
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:640px){
+  .mast-cta{width:100%}
+  .mast-cta .btn{flex:1 1 auto}
+  .mast-title{font-size:clamp(26px,7.6vw,34px)}
+  .floor{grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:12px}
+  .ticket__acts{margin-left:0;width:100%}
+  .ticket__acts .btn{flex:1 1 auto}
+  .filtered .btn{margin-left:0;width:100%}
+  .notice .btn{margin-left:0;width:100%}
+}
+@media (max-width:430px){
+  .floor{grid-template-columns:minmax(0,1fr)}
+  .mast-stat{flex:1 1 100%}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   25 · TWO SHARED ATOMS THE DASHBOARD ONLY EVER DECLARED IN CONTEXT
+        (§2 MONEY: "the ₹ glyph is set at .52em, weight 900, --ink-soft, with
+        leading space". On the dashboard it only ever appeared inside a docket
+        figure, so it was scoped there. Nine components on this screen carry
+        money, so it is promoted to a free-standing atom — same values.)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cur{font-size:.62em;font-weight:900;color:var(--ink-soft);margin-right:1px;letter-spacing:0}
+.tile--run .cur,.detail__head .cur{color:var(--char-ink-soft)}
+.btn .cur,.chip .cur{color:inherit;font-size:.9em}
+
+/* a dashed rule that labels a break inside a list (the cancelled ticket) */
+.rule-note{
+  margin-top:8px;padding-top:11px;border-top:2px dashed var(--line-strong);
+  font:var(--t-small);color:var(--ink-soft);
+}
+.stack-gap{margin-top:16px}
+</style>
+</head>
+<body class="detail-open">
+<!-- ═══ ORNAMENT SPRITE — every motif in one place, all decorative ═══════════
+     Consumers are aria-hidden + pointer-events:none without exception. ═══════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+
+  <!-- FLAME — the section mark and the ember. The signature glyph. -->
+  <symbol id="i-flame" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M13.2 1.4c.6 3.3-.6 5.2-2.3 6.9-1.9 1.9-4.2 3.6-4.2 7.1A7.3 7.3 0 0 0 14 22.5c3.9 0 6.6-3 6.6-6.9 0-4.7-3.4-7-4.6-10.4-.4 1.4-1.2 2.3-2.2 2.9.4-2.3.2-4.7-.6-6.7z"/>
+    <path fill="var(--amber-500)" opacity=".85" d="M13 12.3c.3 1.6-.3 2.5-1.1 3.4-.9.9-2 1.7-2 3.4A3.5 3.5 0 0 0 13.4 23c1.8 0 3.1-1.4 3.1-3.3 0-2.2-1.6-3.3-2.2-5-.2.7-.5 1.1-1 1.4.2-1.1 0-2.2-.3-3.2z"/>
+  </symbol>
+
+  <!-- PIZZA SLICE — menu, dishes, the sellers list -->
+  <symbol id="i-slice" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2 3.4 19.4a1.6 1.6 0 0 0 2.1 2.1L22.6 13z"/>
+    <circle cx="10" cy="10.5" r="1.6" fill="currentColor"/>
+    <circle cx="8" cy="16" r="1.4" fill="currentColor"/>
+    <circle cx="14.5" cy="14" r="1.5" fill="currentColor"/>
+  </symbol>
+
+  <!-- PEEL — the paddle. The Operato brand tile inside Forno. -->
+  <symbol id="i-peel" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15.6 2.4a5.6 5.6 0 0 1 0 7.9l-3.1 3.1-7.9-7.9 3.1-3.1a5.6 5.6 0 0 1 7.9 0z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m10.4 13.6-8 8"/>
+  </symbol>
+
+  <!-- WHEAT — semolina, flour, inventory -->
+  <symbol id="i-wheat" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 22V9"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9c0-2.4 1.4-4.2 3.4-5-.2 2.6-1.3 4.2-3.4 5zM12 9C12 6.6 10.6 4.8 8.6 4c.2 2.6 1.3 4.2 3.4 5zM12 14.5c0-2.4 1.4-4.2 3.4-5-.2 2.6-1.3 4.2-3.4 5zM12 14.5c0-2.4-1.4-4.2-3.4-5 .2 2.6 1.3 4.2 3.4 5z"/>
+  </symbol>
+
+  <!-- BASIL — fresh, veg-adjacent decoration (NOT the FSSAI mark) -->
+  <symbol id="i-basil" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M20.5 3.2c-6.6-.6-11 1.5-13.1 5-1.6 2.7-1.4 5.7.1 7.7L3.6 19.8a1 1 0 1 0 1.4 1.4l3.9-3.9c2 1.5 5 1.7 7.7.1 3.5-2.1 5.5-6.5 4.9-13.1a1 1 0 0 0-1-1.1z"/>
+  </symbol>
+
+  <!-- OVEN ARCH — the mouth -->
+  <symbol id="i-oven" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M2.5 20V11a9.5 9.5 0 0 1 19 0v9z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M7 20v-8a5 5 0 0 1 10 0v8"/>
+  </symbol>
+
+  <!-- BLISTER — the 3-dot char cluster that sits above every crust edge -->
+  <symbol id="i-blister" viewBox="0 0 44 14">
+    <ellipse cx="8" cy="7" rx="7" ry="4.4" fill="currentColor"/>
+    <ellipse cx="24" cy="6" rx="4.4" ry="3" fill="currentColor" opacity=".8"/>
+    <ellipse cx="37" cy="8" rx="5.6" ry="3.6" fill="currentColor" opacity=".65"/>
+  </symbol>
+
+  <!-- CLOCK / oven timer -->
+  <symbol id="i-timer" viewBox="0 0 24 24">
+    <circle cx="12" cy="13" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8.5V13l3 2M9.5 1.5h5"/>
+  </symbol>
+
+
+  <!-- ── SCREEN-2 ADDITIONS to the sprite (still §5I ornament vocabulary) ── -->
+
+  <!-- TABLE — the floor. Used only in the floor legend + the empty state. -->
+  <symbol id="i-table" viewBox="0 0 24 24">
+    <ellipse cx="12" cy="8" rx="9" ry="4.2" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 12.2V19M8 21.5h8"/>
+  </symbol>
+
+  <!-- SCOOTER — the delivery rider board -->
+  <symbol id="i-scooter" viewBox="0 0 24 24">
+    <circle cx="5.5" cy="18" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="18.5" cy="18" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8.7 18h6.6M15.3 18l1.8-9.5h2.6M5.5 14.8V9.2h5.2l3.3 5.6"/>
+  </symbol>
+
+  <!-- BELL — bill requested / run it -->
+  <symbol id="i-bell" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M5 17.5V11a7 7 0 0 1 14 0v6.5l1.6 2.2H3.4z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10 22.2h4"/>
+  </symbol>
+
+</defs></svg>
+
+<div class="variant-badge">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>
+  Orders · Forno
+</div>
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+<div class="detail-backdrop" id="detailBackdrop" aria-hidden="true"></div>
+
+<div class="shell">
+  <aside class="sidebar brick leopard" id="sidebar" aria-label="Main navigation" inert>
+    <span class="sidebar-ember" aria-hidden="true"></span>
+
+    <a class="brand" href="#" title="Operato">
+      <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-peel"/></svg></span>
+      <span class="brand-text">
+        <span class="wordmark">OPERAT<i>O</i></span>
+        <span class="brand-tag">AI ops for small business</span>
+      </span>
+    </a>
+
+    <div class="switch-wrap">
+      <button class="switcher" type="button" id="switchBtn" aria-expanded="false" aria-controls="outlets">
+        <span class="switch-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-oven"/></svg></span>
+        <span class="switch-meta">
+          <span class="switch-name">Forno Pizzeria</span>
+          <span class="switch-role">Bandra West · Owner</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+      </button>
+
+      <div class="outlets" id="outlets" hidden>
+        <p class="grp">Your outlets</p>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno Pizzeria · Bandra <span class="cur">Current</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno · Khar Danda</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno Express · Andheri</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add a new outlet</a>
+      </div>
+    </div>
+
+    <nav class="nav-group" aria-label="Floor">
+      <span class="label">The floor</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="forno-dashboard.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+          <span>Overview</span></a></li>
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h4"/></svg>
+          <span>Orders</span><span class="nav-badge nav-badge--hot">12</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 13.8 8 19.5 9.8 13.8 11.6 12 17.2 10.2 11.6 4.5 9.8 10.2 8z"/><path d="M18.5 15.5l.8 2.4 2.4.8-2.4.8-.8 2.4-.8-2.4-2.4-.8 2.4-.8z"/></svg>
+          <span>Ask AI</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="Kitchen">
+      <span class="label">The kitchen</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-slice"/></svg>
+          <span>Menu</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M21 8.5 12 3.5 3 8.5v7L12 20.5l9-5z"/><path d="M3 8.5 12 13.5l9-5M12 13.5v7"/></svg>
+          <span>Inventory</span><span class="nav-badge">5</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="People">
+      <span class="label">People</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.4a3 3 0 0 1 0 5.6M18.5 20a6.6 6.6 0 0 0-2.7-5"/></svg>
+          <span>Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>
+          <span>Customers</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="Account">
+      <span class="label">Account</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3"/><path d="M2.5 10h19M6 14.5h4"/></svg>
+          <span>Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <button class="user-btn" type="button" id="userBtn" aria-expanded="false" aria-controls="userMenu">
+        <span class="av" aria-hidden="true">RQ</span>
+        <span class="user-meta">
+          <span class="user-name">Rehan Qureshi</span>
+          <span class="user-mail">rehan@fornopizzeria.in</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+      </button>
+      <ul class="user-menu" id="userMenu" hidden>
+        <li class="lbl">Rehan · Owner</li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Profile</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Theme · System</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════ MAIN ═══════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ══════════ MASTHEAD — the hero band, shrunk (§4) ══════════ -->
+    <header class="hero masthead brick leopard">
+      <span class="hero-ember" aria-hidden="true"></span>
+      <span class="hero-arch" aria-hidden="true"></span>
+
+      <div class="hero-in">
+        <div class="hero-top">
+          <button class="btn btn--onchar btn--icon hamburger" type="button" id="navToggle"
+                  aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <span class="hero-kicker">Forno Pizzeria <span class="sep" aria-hidden="true">·</span> <em>Bandra West</em></span>
+          <span class="live"><i aria-hidden="true"></i> Mid rush <span class="sep" aria-hidden="true">·</span> <span class="clock">8:47 pm</span></span>
+        </div>
+
+        <div class="mast-body">
+          <div class="mast-l">
+            <h1 class="mast-title">Orders &amp;<br>the <em>floor</em></h1>
+            <span class="hero-rule" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <p class="mast-line">
+              <b>12</b> tickets live on the pass worth <b>₹19,838</b>, <b class="hot">3 pies</b>
+              sitting under the lamp, and Table&nbsp;7 still waiting on its bill.
+              Saturday 22 August 2026.
+            </p>
+
+            <div class="mast-stats">
+              <span class="mast-stat">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg>
+                <b class="num">8 / 12</b><span>Tables working</span>
+              </span>
+              <span class="mast-stat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>
+                <b class="num">27 / 46</b><span>Covers seated</span>
+              </span>
+              <span class="mast-stat mast-stat--warn">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-timer"/></svg>
+                <b class="tick">9:04</b><span>Longest wait · T7</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="mast-cta hero-cta">
+            <button class="btn btn--hot" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              New order
+            </button>
+            <a class="btn btn--onchar" href="#pass">
+              On the pass
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ══════════ THE PASS RAIL — the five stages of a ticket (D2) ══════════ -->
+      <section aria-labelledby="rail-h">
+        <h2 class="sr-only" id="rail-h">Where tonight's tickets are in the kitchen</h2>
+
+        <div class="card rise" style="--i:1">
+          <div class="chart-head">
+            <div>
+              <span class="label">The lifecycle</span>
+              <h3>Where every ticket is</h3>
+              <p>Each stage fills one more bar of the meter you will see on every ticket and every table below.</p>
+            </div>
+            <div class="chart-big">
+              <b class="num">₹19,838</b>
+              <span>Open on the pass</span>
+            </div>
+          </div>
+
+          <div class="rail-scroll scroll-x" tabindex="0" role="group"
+               aria-label="Order lifecycle, scrollable. Placed 3, in the deck 4, on the pass 3, served 2, paid 297.">
+            <div class="rail">
+
+              <article class="docket docket--stage st-1" aria-labelledby="s1">
+                <span class="stage__top">
+                  <span class="stage__n">3</span>
+                  <span class="meter" role="img" aria-label="Step 1 of 5"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                </span>
+                <span class="stage__lbl" id="s1">Placed</span>
+                <span class="stage__age">Oldest <b>0:48</b> · not started</span>
+              </article>
+
+              <span class="rail-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+
+              <article class="docket docket--stage st-2" aria-labelledby="s2">
+                <span class="stage__top">
+                  <span class="stage__n">4</span>
+                  <span class="meter" role="img" aria-label="Step 2 of 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                </span>
+                <span class="stage__lbl" id="s2">In the deck</span>
+                <span class="stage__age">Oldest <b>6:12</b> · 7 pies</span>
+              </article>
+
+              <span class="rail-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+
+              <article class="docket docket--stage st-3" aria-labelledby="s3">
+                <span class="stage__top">
+                  <span class="stage__n">3</span>
+                  <span class="meter" role="img" aria-label="Step 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                </span>
+                <span class="stage__lbl" id="s3">On the pass</span>
+                <span class="stage__age">Oldest <b>2:40</b> · run it</span>
+              </article>
+
+              <span class="rail-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+
+              <article class="docket docket--stage st-4" aria-labelledby="s4">
+                <span class="stage__top">
+                  <span class="stage__n">2</span>
+                  <span class="meter" role="img" aria-label="Step 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                </span>
+                <span class="stage__lbl" id="s4">Served</span>
+                <span class="stage__age">Oldest <b>12:20</b> · eating</span>
+              </article>
+
+              <span class="rail-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+
+              <article class="docket docket--stage st-5" aria-labelledby="s5">
+                <span class="stage__top">
+                  <span class="stage__n">297</span>
+                  <span class="meter" role="img" aria-label="Step 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+                </span>
+                <span class="stage__lbl" id="s5">Paid</span>
+                <span class="stage__age">Tonight <b>₹1,47,850</b></span>
+              </article>
+
+            </div>
+          </div>
+
+          <div class="rail-foot">
+            <span><b>281</b> of <b>297</b> paid tickets left the deck inside the 12:30 target</span>
+            <span class="heat" style="--p:94.6%" role="img" aria-label="94.6 percent of paid tickets met the 12 minute 30 second oven target"><i></i></span>
+            <span><b>94.6%</b></span>
+            <span class="strike">3 cancelled · ₹2,180</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════ THE FLOOR ══════════ -->
+      <section class="sec" aria-labelledby="floor-h">
+        <div class="sec__head">
+          <h2 class="sec__title" id="floor-h">
+            <svg class="sec-mark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg>
+            The floor
+          </h2>
+          <p class="sec__sub">12 tables · 46 covers · tap a table to open its ticket or to seat it</p>
+          <div class="sec__act">
+            <button class="btn btn--ghost btn--sm" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v3.5L14 13v7l-4-2.4V13L4 7.5z"/></svg>
+              By zone
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2.4 5.7"/><path d="M4 20v-5h5"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- the key. Five states, each with its word, its position and its count. -->
+        <ul class="floor-key" aria-label="Table states">
+          <li class="key key-free"><i aria-hidden="true"></i><b>Open</b> <em>4</em></li>
+          <li class="key key-seat"><i aria-hidden="true"></i><b>Seated</b> <em>1 / 4</em> <em>· 2</em></li>
+          <li class="key key-deck"><i aria-hidden="true"></i><b>In the deck</b> <em>2 / 4</em> <em>· 3</em></li>
+          <li class="key key-run"><i aria-hidden="true"></i><b>Run it</b> <em>3 / 4</em> <em>· 2</em></li>
+          <li class="key key-bill"><i aria-hidden="true"></i><b>Bill asked</b> <em>4 / 4</em> <em>· 1</em></li>
+        </ul>
+
+        <div class="floor">
+
+          <!-- T1 · FREE -->
+          <button class="tile tile--free rise" style="--i:2" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">01</span>
+              <span class="tile__zone">
+                <b>Window</b>
+                <span>2 seats</span>
+                <span class="seats" role="img" aria-label="0 of 2 seats occupied"><i></i><i></i></span>
+              </span>
+            </span>
+            <span class="open-word">Open</span>
+            <span class="tile__note">Cleared 3 min ago · tap to seat</span>
+          </button>
+
+          <!-- T2 · READY — the charred tile -->
+          <button class="tile tile--run rise" style="--i:3" type="button">
+            <span class="tile-ember" aria-hidden="true"></span>
+            <span class="tile__head">
+              <span class="plaque tick">02</span>
+              <span class="tile__zone">
+                <b>Window</b>
+                <span>2 seats</span>
+                <span class="seats" role="img" aria-label="2 of 2 seats occupied"><i class="on"></i><i class="on"></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">Run it</span>
+              <span class="state-pos">3 / 4</span>
+              <span class="meter meter--dark" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2291</span> <span class="amt"><span class="cur">₹</span>1,491</span></span>
+              <span class="tile__note">2 pies under the lamp · 1:12</span>
+            </span>
+          </button>
+
+          <!-- T3 · IN THE DECK -->
+          <button class="tile tile--deck rise" style="--i:4" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">03</span>
+              <span class="tile__zone">
+                <b>Terrace</b>
+                <span>4 seats</span>
+                <span class="seats" role="img" aria-label="4 of 4 seats occupied"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">In the deck</span>
+              <span class="state-pos">2 / 4</span>
+              <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2288</span> <span class="amt"><span class="cur">₹</span>2,058</span></span>
+              <span class="heat" style="--p:83%" role="img" aria-label="6 minutes 12 seconds of the 12 minute 30 second target"><i></i></span>
+              <span class="tile__note">6:12 in · oldest in the oven</span>
+            </span>
+          </button>
+
+          <!-- T4 · SEATED, order just placed -->
+          <button class="tile tile--seated rise" style="--i:5" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">04</span>
+              <span class="tile__zone">
+                <b>Terrace</b>
+                <span>4 seats</span>
+                <span class="seats" role="img" aria-label="3 of 4 seats occupied"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">Seated</span>
+              <span class="state-pos">1 / 4</span>
+              <span class="meter" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2297</span> <span class="amt"><span class="cur">₹</span>1,628</span></span>
+              <span class="tile__note">Ordered 0:09 ago · not started</span>
+            </span>
+          </button>
+
+          <!-- T5 · FREE, reserved -->
+          <button class="tile tile--free rise" style="--i:6" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">05</span>
+              <span class="tile__zone">
+                <b>Terrace</b>
+                <span>6 seats</span>
+                <span class="seats" role="img" aria-label="0 of 6 seats occupied"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              </span>
+            </span>
+            <span class="open-word">Open</span>
+            <span class="tile__note">Held 9:15 pm · Kulkarni, 5</span>
+          </button>
+
+          <!-- T6 · IN THE DECK -->
+          <button class="tile tile--deck rise" style="--i:7" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">06</span>
+              <span class="tile__zone">
+                <b>Counter end</b>
+                <span>2 seats</span>
+                <span class="seats" role="img" aria-label="2 of 2 seats occupied"><i class="on"></i><i class="on"></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">In the deck</span>
+              <span class="state-pos">2 / 4</span>
+              <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2293</span> <span class="amt"><span class="cur">₹</span>662</span></span>
+              <span class="heat" style="--p:42%" role="img" aria-label="3 minutes 10 seconds of the 12 minute 30 second target"><i></i></span>
+              <span class="tile__note">3:10 in · one Marinara</span>
+            </span>
+          </button>
+
+          <!-- T7 · BILL ASKED — the ticket open in the drawer -->
+          <button class="tile tile--bill rise" style="--i:8" type="button" aria-describedby="t7-note">
+            <span class="tile__head">
+              <span class="plaque tick">07</span>
+              <span class="tile__zone">
+                <b>Back room</b>
+                <span>4 seats</span>
+                <span class="seats" role="img" aria-label="4 of 4 seats occupied"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">Bill asked</span>
+              <span class="state-pos">4 / 4</span>
+              <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2287</span> <span class="amt"><span class="cur">₹</span>3,352</span></span>
+              <span class="tile__note" id="t7-note">Waiting 9:04 · tap to settle</span>
+            </span>
+          </button>
+
+          <!-- T8 · FREE, dirty -->
+          <button class="tile tile--free rise" style="--i:9" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">08</span>
+              <span class="tile__zone">
+                <b>Back room</b>
+                <span>4 seats</span>
+                <span class="seats" role="img" aria-label="0 of 4 seats occupied"><i></i><i></i><i></i><i></i></span>
+              </span>
+            </span>
+            <span class="open-word">Open</span>
+            <span class="tile__note">Needs clearing · Farida is on it</span>
+          </button>
+
+          <!-- T9 · IN THE DECK -->
+          <button class="tile tile--deck rise" style="--i:10" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">09</span>
+              <span class="tile__zone">
+                <b>Back room</b>
+                <span>6 seats</span>
+                <span class="seats" role="img" aria-label="5 of 6 seats occupied"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">In the deck</span>
+              <span class="state-pos">2 / 4</span>
+              <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2290</span> <span class="amt"><span class="cur">₹</span>3,045</span></span>
+              <span class="heat" style="--p:61%" role="img" aria-label="4 minutes 35 seconds of the 12 minute 30 second target"><i></i></span>
+              <span class="tile__note">4:35 in · biggest table tonight</span>
+            </span>
+          </button>
+
+          <!-- T10 · READY — the second charred tile -->
+          <button class="tile tile--run rise" style="--i:11" type="button">
+            <span class="tile-ember" aria-hidden="true"></span>
+            <span class="tile__head">
+              <span class="plaque tick">10</span>
+              <span class="tile__zone">
+                <b>Corner booth</b>
+                <span>6 seats</span>
+                <span class="seats" role="img" aria-label="5 of 6 seats occupied"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">Run it</span>
+              <span class="state-pos">3 / 4</span>
+              <span class="meter meter--dark" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2292</span> <span class="amt"><span class="cur">₹</span>2,037</span></span>
+              <span class="tile__note">Just called · 0:26</span>
+            </span>
+          </button>
+
+          <!-- T11 · FREE -->
+          <button class="tile tile--free rise" style="--i:12" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">11</span>
+              <span class="tile__zone">
+                <b>Mezzanine</b>
+                <span>4 seats</span>
+                <span class="seats" role="img" aria-label="0 of 4 seats occupied"><i></i><i></i><i></i><i></i></span>
+              </span>
+            </span>
+            <span class="open-word">Open</span>
+            <span class="tile__note">Free since 8:02 pm · tap to seat</span>
+          </button>
+
+          <!-- T12 · SEATED, eating -->
+          <button class="tile tile--seated rise" style="--i:13" type="button">
+            <span class="tile__head">
+              <span class="plaque tick">12</span>
+              <span class="tile__zone">
+                <b>Mezzanine</b>
+                <span>2 seats</span>
+                <span class="seats" role="img" aria-label="2 of 2 seats occupied"><i class="on"></i><i class="on"></i></span>
+              </span>
+            </span>
+            <span class="tile__state">
+              <span class="state-word">Seated</span>
+              <span class="state-pos">1 / 4</span>
+              <span class="meter" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+            </span>
+            <span class="tile__foot">
+              <span class="tile__live"><span class="no">#F-2294</span> <span class="amt"><span class="cur">₹</span>819</span></span>
+              <span class="tile__note">Eating · served 8:41 pm</span>
+            </span>
+          </button>
+
+        </div>
+
+        <!-- the counter is not a table, so it is not a tile -->
+        <div class="counter-strip rise" style="--i:14">
+          <h3>The counter</h3>
+          <p>Six stools for walk-up slices and takeaway waits. Not bookable, not billed to a table.</p>
+          <span class="stools" role="img" aria-label="4 of 6 counter stools occupied"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+          <span class="chip chip--placed">4 of 6</span>
+        </div>
+      </section>
+
+      <!-- ══════════ THE ONE TAPED NOTICE (§5E budget = 1) ══════════ -->
+      <section aria-labelledby="bill-h">
+        <div class="card card--amber notice rise" style="--i:15">
+          <span class="notice-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><use href="#i-bell"/></svg>
+          </span>
+          <div class="notice-body">
+            <h3 id="bill-h">Table 7 has waited 9:04 for the bill</h3>
+            <p>Anand Kelkar, 4 covers in the back room, asked at 8:38 pm. Served at 8:19 pm, so they are twenty minutes past finishing and the table is the only six-cover turn you have left before 10.</p>
+            <div class="reorders">
+              <span class="reorder crit"><span class="tick">#F-2287</span> Back room <b>9:04</b></span>
+              <span class="reorder"><span class="tick">₹3,352</span> <span class="qty">6 lines · 5% regular discount applied</span></span>
+              <span class="reorder"><span class="tick">8:38 pm</span> <span class="qty">Asked by Amruta Salvi</span></span>
+            </div>
+          </div>
+          <button class="btn btn--primary" type="button" id="openT7">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3"/><path d="M2.5 10h19M6 14.5h4"/></svg>
+            Take payment
+          </button>
+        </div>
+      </section>
+
+      <!-- ══════════ THE PASS + THE RIDER BOARD ══════════ -->
+      <section class="sec duo" id="pass" aria-label="Live orders and deliveries">
+
+        <!-- ── the pass: every open ticket ── -->
+        <div>
+          <div class="sec__head">
+            <h2 class="sec__title" id="pass-h">
+              <svg class="sec-mark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>
+              On the pass
+            </h2>
+            <p class="sec__sub">12 open tickets · newest at the bottom</p>
+          </div>
+
+          <!-- segmented filter (D5) -->
+          <div class="segs" role="group" aria-label="Filter tickets by stage">
+            <button class="seg" type="button" aria-pressed="true">All <b class="num">12</b></button>
+            <button class="seg" type="button" aria-pressed="false">Placed <b class="num">3</b></button>
+            <button class="seg" type="button" aria-pressed="false">In the deck <b class="num">4</b></button>
+            <button class="seg" type="button" aria-pressed="false">On the pass <b class="num">3</b></button>
+            <button class="seg" type="button" aria-pressed="false">Served <b class="num">2</b></button>
+            <button class="seg" type="button" aria-pressed="false">Cancelled <b class="num">3</b></button>
+          </div>
+
+          <!-- FILTER APPLIED — a filter that hides rows must say so -->
+          <p class="filtered">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+            <span>Delivery is hidden — <b>3</b> tickets worth <b>₹3,675</b> are on the rider board instead. Showing <b>9</b> of <b>12</b>, <b>₹16,163</b>.</span>
+            <button class="btn btn--ghost btn--sm" type="button">Show delivery</button>
+          </p>
+
+          <div class="spike">
+
+            <!-- READY · T2 -->
+            <article class="ticket ticket--fat ticket--run rise" style="--i:16">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2291</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 02 · Window</span>
+                <span class="ticket__ago">on the pass 1:12</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--ready">Ready</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 3 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span> <q>1×</q> Diavola</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Bufala</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>2×</q> Masala soda</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Walk-in · <b>Salma D'Souza</b> took it at 8:33 pm</span>
+                <span class="ticket__sum"><span class="cur">₹</span>1,491</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--hot btn--sm" type="button">Mark served</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- READY · T10 -->
+            <article class="ticket ticket--fat ticket--run rise" style="--i:17">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2292</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 10 · Corner booth</span>
+                <span class="ticket__ago">on the pass 0:26</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--ready">Ready</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 3 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>2×</q> Quattro Formaggi</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Garlic bread, cheese</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Tiramisu</span>
+                <span class="li li--extra"><q>2×</q> Limca</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Nikita Rane · <b>7th visit</b></span>
+                <span class="ticket__sum"><span class="cur">₹</span>2,037</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--hot btn--sm" type="button">Mark served</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- PREPARING · T3 -->
+            <article class="ticket ticket--fat rise" style="--i:18">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2288</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 03 · Terrace</span>
+                <span class="ticket__ago">in the deck 6:12</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--preparing">Preparing</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 2 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span> <q>2×</q> Diavola</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Margherita</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Garlic bread, cheese</span>
+                <span class="li li--extra"><q>2×</q> Masala soda</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Walk-in · oldest ticket in the oven</span>
+                <span class="ticket__sum"><span class="cur">₹</span>2,058</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--primary btn--sm" type="button">To the pass</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- PREPARING · T9 -->
+            <article class="ticket ticket--fat rise" style="--i:19">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2290</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 09 · Back room</span>
+                <span class="ticket__ago">in the deck 4:35</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--preparing">Preparing</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 2 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span> <q>3×</q> Capricciosa</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Funghi e Tartufo</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Focaccia rosmarino</span>
+                <span class="li li--extra"><q>3×</q> Limca</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Devika Shirodkar · <b>5 covers</b></span>
+                <span class="ticket__sum"><span class="cur">₹</span>3,045</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--primary btn--sm" type="button">To the pass</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- PREPARING · counter -->
+            <article class="ticket ticket--fat rise" style="--i:20">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2293</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 06 · Counter end</span>
+                <span class="ticket__ago">in the deck 3:10</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--preparing">Preparing</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 2 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Marinara</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Garlic bread</span>
+                <span class="li li--extra"><q>1×</q> Limca</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Walk-in · no table service</span>
+                <span class="ticket__sum"><span class="cur">₹</span>662</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--primary btn--sm" type="button">To the pass</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- SERVED · T7 — the one open in the drawer -->
+            <article class="ticket ticket--fat rise" style="--i:21">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2287</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 07 · Back room</span>
+                <span class="ticket__ago">bill asked 9:04</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--served">Served</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                <span class="ticket__step">STEP 4 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span> <q>2×</q> Diavola</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Quattro Formaggi</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Bufala</span>
+                <span class="li li--extra">+ 3 more</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Anand Kelkar · <b>9th visit</b> · 5% regular discount</span>
+                <span class="ticket__sum"><span class="cur">₹</span>3,352</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--hot btn--sm" type="button">Take payment</button>
+                  <button class="btn btn--ghost btn--sm" type="button" aria-current="true">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- SERVED · T12 -->
+            <article class="ticket ticket--fat rise" style="--i:22">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2294</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 12 · Mezzanine</span>
+                <span class="ticket__ago">served 8:41 pm</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--served">Served</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                <span class="ticket__step">STEP 4 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Margherita</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Garlic bread</span>
+                <span class="li li--extra"><q>2×</q> Masala soda</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Walk-in · eating</span>
+                <span class="ticket__sum"><span class="cur">₹</span>819</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--hot btn--sm" type="button">Take payment</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- PLACED · takeaway -->
+            <article class="ticket ticket--fat rise" style="--i:23">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2295</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16l-1.4 12H5.4z"/><path d="M8.5 8V5.5a3.5 3.5 0 0 1 7 0V8"/></svg> Takeaway · counter</span>
+                <span class="ticket__ago">placed 0:48</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--placed">Placed</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 1 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>2×</q> Margherita</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Garlic bread</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Rukhsar Shaikh · picking up 9:05 pm</span>
+                <span class="ticket__sum"><span class="cur">₹</span>1,071</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--primary btn--sm" type="button">Into the deck</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- PLACED · T4, newest -->
+            <article class="ticket ticket--fat rise" style="--i:24">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2297</span>
+                <span class="ticket__where"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-table"/></svg> Table 04 · Terrace</span>
+                <span class="ticket__ago">placed 0:09</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--placed">Placed</span>
+                <span class="meter" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                <span class="ticket__step">STEP 1 OF 5</span>
+              </div>
+              <div class="lines">
+                <span class="li"><span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span> <q>1×</q> Napoli anchovy</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Margherita</span>
+                <span class="li"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> <q>1×</q> Focaccia rosmarino</span>
+                <span class="li li--extra"><q>2×</q> Cold coffee</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Walk-in · <b>Nikhil Wadhwa</b> took it</span>
+                <span class="ticket__sum"><span class="cur">₹</span>1,628</span>
+              </div>
+              <div class="ticket__foot">
+                <div class="ticket__acts">
+                  <button class="btn btn--primary btn--sm" type="button">Into the deck</button>
+                  <button class="btn btn--ghost btn--sm" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <p class="rule-note">Cancelled tonight — not on the pass, kept for the books.</p>
+
+            <!-- CANCELLED -->
+            <article class="ticket ticket--fat ticket--cancel rise" style="--i:25">
+              <div class="ticket__top">
+                <span class="ticket__no">#F-2285</span>
+                <span class="ticket__where">Takeaway · counter</span>
+                <span class="ticket__ago">cancelled 8:12 pm</span>
+              </div>
+              <div class="ticket__status">
+                <span class="chip chip--paid">Cancelled</span>
+                <span class="ticket__step">NO STAGE · VOID</span>
+              </div>
+              <div class="lines">
+                <span class="li li--extra"><q>1×</q> Quattro Formaggi</span>
+                <span class="li li--extra"><q>1×</q> Limca</span>
+              </div>
+              <div class="ticket__sums">
+                <span class="ticket__who">Customer left before the pie went in · void by Rehan</span>
+                <span class="ticket__sum"><span class="cur">₹</span>746</span>
+              </div>
+            </article>
+
+            <button class="spike-more" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+              Load the other 2 cancelled tickets
+            </button>
+          </div>
+        </div>
+
+        <!-- ── right column: rider board + settled ── -->
+        <div>
+
+          <!-- RIDER BOARD — where the 3 filtered-out delivery tickets went -->
+          <article class="card rise" style="--i:16" aria-labelledby="rider-h">
+            <div class="chart-head">
+              <div>
+                <span class="label">Filtered out of the pass</span>
+                <h3 id="rider-h">The rider board</h3>
+                <p>Three deliveries, all to Pali Naka and Chapel Road.</p>
+              </div>
+              <svg width="30" height="30" viewBox="0 0 24 24" style="color:var(--tomato-500)" aria-hidden="true"><use href="#i-scooter"/></svg>
+            </div>
+
+            <div class="rider rider--run">
+              <span class="av av--sm" aria-hidden="true">IS</span>
+              <span class="rider__id">
+                <b>#F-2289 · Pali Naka</b>
+                <span>Iqbal Shaikh has been waiting 2:40</span>
+              </span>
+              <span class="chip chip--ready">Ready</span>
+              <span class="rider__amt"><span class="cur">₹</span>1,554</span>
+            </div>
+
+            <div class="rider">
+              <span class="av av--sm" aria-hidden="true">NA</span>
+              <span class="rider__id">
+                <b>#F-2298 · Chapel Road</b>
+                <span>Nadeem Ansari · back in 6 min</span>
+              </span>
+              <span class="chip chip--preparing">Preparing</span>
+              <span class="rider__amt"><span class="cur">₹</span>1,134</span>
+            </div>
+
+            <div class="rider">
+              <span class="av av--sm" aria-hidden="true">NA</span>
+              <span class="rider__id">
+                <b>#F-2296 · Perry Cross Rd</b>
+                <span>Nadeem Ansari · queued behind #F-2298</span>
+              </span>
+              <span class="chip chip--placed">Placed</span>
+              <span class="rider__amt"><span class="cur">₹</span>987</span>
+            </div>
+
+            <!-- EMPTY STATE -->
+            <p class="label" style="margin-top:16px">Waiting for a rider</p>
+            <div class="empty">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-scooter"/></svg>
+              <b>Nothing stranded</b>
+              <p>Every delivery tonight already has a rider on it. Unassigned orders would land here.</p>
+              <button class="btn btn--ghost btn--sm" type="button">Manage riders</button>
+            </div>
+          </article>
+
+          <!-- SETTLED — LOADING SKELETON -->
+          <article class="card rise stack-gap" style="--i:17" aria-labelledby="settled-h" aria-busy="true">
+            <div class="chart-head">
+              <div>
+                <span class="label">Tonight</span>
+                <h3 id="settled-h">Settled tickets</h3>
+                <p>297 paid · ₹1,47,850 through the till.</p>
+              </div>
+              <span class="loading-tag"><i aria-hidden="true"></i> Loading</span>
+            </div>
+
+            <p class="sr-only">Loading the settled tickets for tonight.</p>
+            <div class="skel-rows" aria-hidden="true">
+              <div class="skel-row"><span class="skel skel--sq"></span><span class="skel-col"><span class="skel skel--w1"></span><span class="skel skel--w2"></span></span><span class="skel skel--amt"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span><span class="skel-col"><span class="skel skel--w1"></span><span class="skel skel--w2"></span></span><span class="skel skel--amt"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span><span class="skel-col"><span class="skel skel--w1"></span><span class="skel skel--w2"></span></span><span class="skel skel--amt"></span></div>
+              <div class="skel-row"><span class="skel skel--sq"></span><span class="skel-col"><span class="skel skel--w1"></span><span class="skel skel--w2"></span></span><span class="skel skel--amt"></span></div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ══════════════════════ THE TICKET DRAWER (D4) ═════════════════════════ -->
+  <aside class="detail" id="detail" aria-labelledby="detail-h">
+    <div class="detail__head brick leopard">
+      <div class="detail__top">
+        <span class="detail__no">#F-2287</span>
+        <span class="chip chip--served">Served</span>
+        <button class="detail__close" type="button" id="detailClose" aria-label="Close ticket #F-2287">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="detail__where">
+        <h2 id="detail-h">Table 07</h2>
+        <span class="ticket__where" style="background:var(--char-700);border-color:var(--char-500);color:var(--char-ink-soft)">Back room · dine in</span>
+      </div>
+      <p class="detail__sub">Anand Kelkar · 4 covers · 9th visit · <span class="tick">bill asked 8:38 pm</span></p>
+
+      <div class="detail__chips">
+        <span class="meter meter--dark" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+        <span class="ticket__step">STEP 4 OF 5 · PAYMENT PENDING</span>
+      </div>
+    </div>
+
+    <div class="detail__body">
+
+      <section class="dsec" aria-labelledby="life-h">
+        <span class="label" id="life-h">The ticket's night</span>
+        <ol class="life">
+          <li><b>Placed</b> <time>8:04 pm</time> <span>Salma D'Souza</span></li>
+          <li><b>Confirmed</b> <time>8:04 pm</time> <span>auto</span></li>
+          <li><b>In the deck</b> <time>8:06 pm</time> <span>Nikhil Wadhwa · 2:18 wait</span></li>
+          <li><b>On the pass</b> <time>8:17 pm</time> <span>11:12 oven time</span></li>
+          <li><b>Served</b> <time>8:19 pm</time> <span>Amruta Salvi</span></li>
+          <li class="now"><b>Bill asked</b> <time>8:38 pm</time> <span>9:04 ago</span></li>
+          <li class="todo"><b>Paid</b> <time>— : —</time> <span>not yet</span></li>
+        </ol>
+      </section>
+
+      <section class="dsec" aria-labelledby="lines-h">
+        <span class="label" id="lines-h">Six lines</span>
+        <div class="dlines">
+          <div class="dline">
+            <span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+            <q>2×</q>
+            <span class="nm">Diavola<em>Spicy salami, fior di latte, chilli honey</em></span>
+            <span class="amt"><span class="cur">₹</span>1,120</span>
+          </div>
+          <div class="dline">
+            <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+            <q>1×</q>
+            <span class="nm">Quattro Formaggi<em>Fior di latte, gorgonzola, taleggio, grana</em></span>
+            <span class="amt"><span class="cur">₹</span>640</span>
+          </div>
+          <div class="dline">
+            <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+            <q>1×</q>
+            <span class="nm">Bufala<em>DOP buffalo mozzarella, basil, no cook sauce</em></span>
+            <span class="amt"><span class="cur">₹</span>680</span>
+          </div>
+          <div class="dline">
+            <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+            <q>1×</q>
+            <span class="nm">Garlic bread with cheese<em>Extra chilli flakes</em></span>
+            <span class="amt"><span class="cur">₹</span>240</span>
+          </div>
+          <div class="dline">
+            <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+            <q>1×</q>
+            <span class="nm">Nutella calzone<em>Split two ways</em></span>
+            <span class="amt"><span class="cur">₹</span>320</span>
+          </div>
+          <div class="dline">
+            <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+            <q>4×</q>
+            <span class="nm">Masala soda</span>
+            <span class="amt"><span class="cur">₹</span>360</span>
+          </div>
+        </div>
+
+        <div class="totals">
+          <dl>
+            <dt>Subtotal · 6 lines</dt><dd><span class="cur">₹</span>3,360</dd>
+            <dt>Regular discount · 5%</dt><dd class="off">−<span class="cur">₹</span>168</dd>
+            <dt>GST · 5% on ₹3,192</dt><dd><span class="cur">₹</span>160</dd>
+          </dl>
+          <dl class="grand">
+            <dt>To pay</dt><dd><span class="cur">₹</span>3,352</dd>
+          </dl>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="detail__foot">
+      <button class="btn btn--ghost" type="button">Print bill</button>
+      <button class="btn btn--ghost" type="button">Split</button>
+      <button class="btn btn--hot" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3"/><path d="M2.5 10h19M6 14.5h4"/></svg>
+        Take ₹3,352
+      </button>
+    </div>
+  </aside>
+
+</div><!-- /shell -->
+<nav class="tabbar" aria-label="Primary">
+  <a class="tab" href="forno-dashboard.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+    Overview
+  </a>
+  <a class="tab" href="#" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h4"/></svg>
+    Orders
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 13.8 8 19.5 9.8 13.8 11.6 12 17.2 10.2 11.6 4.5 9.8 10.2 8z"/></svg>
+    Ask AI
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-slice"/></svg>
+    Menu
+  </a>
+  <button class="tab" type="button" id="tabMore" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    More
+  </button>
+</nav>
+<script>
+(function(){
+  'use strict';
+
+  var body = document.body;
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('backdrop');
+  var drawerMQ = window.matchMedia('(max-width: 1023px)');
+  var toggles = [document.getElementById('navToggle'), document.getElementById('tabMore')];
+  var opener = null;
+
+  function isOpen(){ return body.classList.contains('nav-open'); }
+
+  /* The drawer is a modal ONLY while it is a drawer. At >=1024 it is ordinary
+     page furniture, so role / aria-modal / inert must all come back off. */
+  function syncSidebar(){
+    if (drawerMQ.matches){
+      sidebar.setAttribute('role','dialog');
+      sidebar.setAttribute('aria-modal','true');
+      sidebar.setAttribute('aria-label','Navigation');
+      if (isOpen()) sidebar.removeAttribute('inert');
+      else sidebar.setAttribute('inert','');
+    } else {
+      sidebar.removeAttribute('role');
+      sidebar.removeAttribute('aria-modal');
+      sidebar.removeAttribute('inert');
+      sidebar.setAttribute('aria-label','Main navigation');
+    }
+  }
+
+  function expand(btn, panel, open){
+    if (!btn || !panel) return;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  }
+  var userBtn  = document.getElementById('userBtn');
+  var userMenu = document.getElementById('userMenu');
+  var switchBtn= document.getElementById('switchBtn');
+  var outlets  = document.getElementById('outlets');
+
+  function setNav(open, from){
+    var was = isOpen();
+    body.classList.toggle('nav-open', open);
+    toggles.forEach(function(t){ if(t) t.setAttribute('aria-expanded', String(open)); });
+    if (open){
+      opener = from || opener || toggles[0];
+      syncSidebar();
+      var first = sidebar.querySelector('.nav-link');
+      if (first) first.focus();
+    } else {
+      expand(userBtn, userMenu, false);
+      expand(switchBtn, outlets, false);
+      syncSidebar();
+      if (was && drawerMQ.matches && opener) opener.focus();
+      opener = null;
+    }
+  }
+
+  toggles.forEach(function(t){
+    if (!t) return;
+    t.addEventListener('click', function(){ setNav(!isOpen(), t); });
+  });
+  backdrop.addEventListener('click', function(){ setNav(false); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){
+      if (isOpen()) { setNav(false); return; }
+      if (userMenu && !userMenu.hidden) { expand(userBtn, userMenu, false); userBtn.focus(); }
+      if (outlets && !outlets.hidden) { expand(switchBtn, outlets, false); switchBtn.focus(); }
+    }
+  });
+
+  if (userBtn) userBtn.addEventListener('click', function(){
+    var open = userMenu.hidden;
+    expand(switchBtn, outlets, false);
+    expand(userBtn, userMenu, open);
+  });
+  if (switchBtn) switchBtn.addEventListener('click', function(){
+    var open = outlets.hidden;
+    expand(userBtn, userMenu, false);
+    expand(switchBtn, outlets, open);
+  });
+  document.addEventListener('click', function(e){
+    if (userMenu && !userMenu.hidden && !userMenu.contains(e.target) && !userBtn.contains(e.target)) expand(userBtn, userMenu, false);
+    if (outlets && !outlets.hidden && !outlets.contains(e.target) && !switchBtn.contains(e.target)) expand(switchBtn, outlets, false);
+  });
+
+  /* Trap focus inside the drawer while it is modal. */
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Tab' || !isOpen() || !drawerMQ.matches) return;
+    var nodes = Array.prototype.filter.call(
+      sidebar.querySelectorAll('a[href], button:not([disabled])'),
+      function(el){ return el.offsetWidth > 0 || el.offsetHeight > 0; }
+    );
+    if (!nodes.length) return;
+    var first = nodes[0], last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+
+  if (drawerMQ.addEventListener) drawerMQ.addEventListener('change', function(){ setNav(false); syncSidebar(); });
+  else if (drawerMQ.addListener) drawerMQ.addListener(function(){ setNav(false); syncSidebar(); });
+  syncSidebar();
+})();
+</script>
+
+<script>
+/* ── THE TICKET DRAWER (D4) ──────────────────────────────────────────────────
+   At >=1440px the drawer is a third shell column: ordinary page furniture, no
+   dialog semantics, no focus trap, no scroll lock — you read a ticket while
+   still watching the floor. Below 1440 it is a real modal and must behave like
+   one. Same element, two contracts, kept in sync by one media query listener. */
+/* The drawer is default-OPEN only where it is furniture (>=1440px). At any
+   narrower width it would be a modal over a page the reader has not seen yet,
+   so it starts closed and is opened by the Table 7 tile or the taped notice. */
+if (window.matchMedia('(max-width: 1439px)').matches) document.body.classList.remove('detail-open');
+
+(function(){
+  'use strict';
+
+  var body    = document.body;
+  var detail  = document.getElementById('detail');
+  var bd      = document.getElementById('detailBackdrop');
+  var closeBtn= document.getElementById('detailClose');
+  var openers = [].slice.call(document.querySelectorAll('.tile--bill, #openT7'));
+  var modalMQ = window.matchMedia('(max-width: 1439px)');
+  var opener  = null;
+
+  function isOpen(){ return body.classList.contains('detail-open'); }
+
+  function syncDetail(){
+    if (modalMQ.matches){
+      detail.setAttribute('role','dialog');
+      detail.setAttribute('aria-modal','true');
+      if (isOpen()) detail.removeAttribute('inert');
+      else detail.setAttribute('inert','');
+    } else {
+      detail.removeAttribute('role');
+      detail.removeAttribute('aria-modal');
+      detail.removeAttribute('inert');
+    }
+  }
+
+  function setDetail(open, from){
+    body.classList.toggle('detail-open', open);
+    if (open){
+      opener = from || opener;
+      syncDetail();
+      if (modalMQ.matches && closeBtn) closeBtn.focus();
+    } else {
+      syncDetail();
+      if (opener){ opener.focus(); opener = null; }
+    }
+  }
+
+  openers.forEach(function(el){
+    el.addEventListener('click', function(){ setDetail(true, el); });
+  });
+  if (closeBtn) closeBtn.addEventListener('click', function(){ setDetail(false); });
+  if (bd) bd.addEventListener('click', function(){ setDetail(false); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && isOpen() && modalMQ.matches) setDetail(false);
+  });
+
+  /* focus trap — only while the drawer is actually modal */
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Tab' || !isOpen() || !modalMQ.matches) return;
+    var nodes = Array.prototype.filter.call(
+      detail.querySelectorAll('a[href], button:not([disabled])'),
+      function(el){ return el.offsetWidth > 0 || el.offsetHeight > 0; }
+    );
+    if (!nodes.length) return;
+    var first = nodes[0], last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+
+  if (modalMQ.addEventListener) modalMQ.addEventListener('change', syncDetail);
+  else if (modalMQ.addListener) modalMQ.addListener(syncDetail);
+  syncDetail();
+})();
+
+/* ── THE SEGMENTED STAGE FILTER (D5) ─────────────────────────────────────────
+   Mockup behaviour only: it moves aria-pressed so the pressed state is real for
+   a screen reader and for the keyboard. It does not actually filter the static
+   list — the ONE filter that is genuinely applied ("delivery hidden") is
+   already reflected in the counts and in the .filtered strip above the list. */
+(function(){
+  'use strict';
+  var segs = [].slice.call(document.querySelectorAll('.segs .seg'));
+  segs.forEach(function(seg){
+    seg.addEventListener('click', function(){
+      segs.forEach(function(s){ s.setAttribute('aria-pressed','false'); });
+      seg.setAttribute('aria-pressed','true');
+    });
+  });
+})();
+</script>
+</body>
+</html>

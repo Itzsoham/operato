@@ -5,39 +5,74 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================================
- * MISE / TANDOOR — Operato's design system.
+ * MANDI COUNTER — Operato's design system.
  *
- * Charred clay-oven brown carries the buttons; tandoori red and turmeric do the
- * talking. Every neutral is warm-biased (yellow-red), never grey: against a cool
- * grey, food photography on the Menu screen reads sickly and the product feels
- * clinical. The warmth costs nothing in contrast.
+ * Named for the Indian wholesale produce market, not the salad bar. Pine-green
+ * identity over warm paper: the GROUND stays warm (every neutral is Lab hue
+ * 69-93 deg with real chroma, verified numerically — against a cool grey, food
+ * photography on the Menu screen reads sickly and the product feels clinical),
+ * while the IDENTITY is green. Cocoa carries the buttons.
  *
- * Four rules this palette enforces:
- *  1. RED IS NEVER DECORATION. --destructive appears only for destructive
- *     actions, validation errors and breached thresholds. --brand (tandoori) is a
- *     different, warmer red used for identity; they are never interchangeable.
- *     If red were also the buttons, staff would stop seeing the stock-out warning.
- *  2. INTERACTIVE AND IDENTITY ARE DIFFERENT COLOURS. --primary carries buttons
- *     and links. --ready is the loud identity tone and is a FILL ONLY — it is
- *     2.1:1 on paper and must never carry text on a light ground.
- *  3. NEUTRALS ARE WARM. See above.
- *  4. STATUS IS ORDINAL. Order state is a position in a sequence, not a label —
- *     see the lifecycle tokens and orders-client.tsx, which pairs colour with a
- *     step meter so state survives greyscale and glare.
+ * Five rules this palette enforces:
+ *  1. GREEN IS SCENERY OR IT IS SETTLED — IT IS NEVER AN ACTION. The hero hue is
+ *     banned from carrying meaning. Green appears at wash lightness or at ink
+ *     darkness, never in the mid-band where a control lives.
+ *  2. IDENTITY, INTERACTIVE AND ALARM ARE THREE DIFFERENT COLOURS, ENFORCED BY
+ *     MEASUREMENT. Identity is pine --brand, interactive is cocoa --primary,
+ *     alarm is tomato --ready. Every pair clears dE2000 12 under normal vision,
+ *     deuteranopia AND protanopia. This rule was previously ASSERTED here and was
+ *     measurably FALSE: --primary/--brand were 2.66 apart in dark under
+ *     protanopia. It is now a measured guarantee, not a claim.
+ *  3. --ready IS QUARANTINED. Tomato is the only fully saturated warm solid in
+ *     the light theme and appears ONLY on the READY chip and READY floor tile.
+ *     If it were also a button, staff would stop seeing it.
+ *  4. NEUTRALS ARE WARM, VERIFIED. Light paper #faf4e7 is C* 6.97 at hue 91.57;
+ *     dark ground #16110c is C* 3.36 at hue 69.10.
+ *  5. STATUS IS ORDINAL, AND ENCODED FOUR TIMES — hue, a five-segment meter
+ *     (bars >=6px with >=3px gaps; a 3px bar is sub-acuity beyond ~1m and is not
+ *     a real channel in a kitchen), fill weight, and the label itself. Any one
+ *     channel removed by greyscale, glare, dichromacy or forced-colors must still
+ *     leave the sequence readable.
  *
- * Every ratio quoted below is a computed WCAG 2.1 figure, not an estimate.
+ * CHARTS LIVE ON --card, NEVER ON --background: --chart-2 is 4.53:1 on --card but
+ * 4.23:1 on the page ground, i.e. below AA. Every chart sits inside a .card.
+ *
+ * Every ratio and every dE2000 figure quoted below is COMPUTED — CIEDE2000 with
+ * the G chroma correction, and Vienot/Brettel/Mollon dichromat simulation applied
+ * in linear sRGB — not estimated. See design-concepts/system/styleguide.html.
  * ========================================================================== */
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
   /* shadcn's init wrote `--font-sans: var(--font-sans)`, which is self-referential and
      resolves to nothing — the whole app silently fell back to the browser's serif.
-     These must point at the variables next/font actually defines in app/layout.tsx. */
-  --font-sans: var(--font-jakarta);
-  --font-mono: var(--font-jetbrains);
-  --font-heading: var(--font-jakarta);
+     These must point at the variables next/font actually defines in app/layout.tsx.
+
+     DECLARED TWICE, ON PURPOSE. The stacks live here (so `font-sans` / `font-mono` /
+     `font-num` exist as utilities) AND in :root §9 (so the `--t-*` font shorthands can
+     read them with var()). @theme variables are emitted only when Tailwind judges them
+     USED, so raw CSS must never depend on one being present. The two copies are
+     identical and must stay identical.
+
+     The var() fallbacks are the second half of the same bug: an undefined
+     --font-jakarta makes the whole font-family invalid at computed-value time and the
+     page renders in Times. Naming the family is the difference between "no webfont"
+     and "no design". */
+  --font-sans:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui,
+    "Segoe UI", Roboto, sans-serif;
+  --font-heading:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
+    Menlo, monospace;
+  /* Same stack as --font-sans, named separately so the intent reads at the call site:
+     money, quantities, stock balances, timers. It always pairs with tabular-nums.
+     --font-mono is reserved for exactly two things — the SQL Ask AI exposes and
+     inventory ledger IDs. It is not a "code-ish" decoration. */
+  --font-num:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -55,6 +90,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+
+  /* KPI deltas. These had NO --color-* alias, so `text-delta-up` silently produced
+     nothing and stat-tile.tsx had to reach for text-[var(--delta-up)] instead. */
+  --color-delta-up: var(--delta-up);
+  --color-delta-down: var(--delta-down);
 
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -111,216 +153,615 @@
   --color-veg: var(--veg);
   --color-nonveg: var(--nonveg);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* The modal backdrop. A colour, not a shadow, but it is born in the shadow section
+     (§8) because it is the same ink at a different job: rgb(36 28 19 / .38) light,
+     rgb(0 0 0 / .62) dark. It replaces three hardcoded `bg-black/10` scrims —
+     10% black over the dark ground #16110c is invisible. */
+  --color-scrim: var(--scrim);
+
+  /* ── RADII ────────────────────────────────────────────────────────────────────
+     RECONCILED, NOT REPLACED. The scale here used to be derived by calc() from
+     --radius (0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6). SPEC §3 names the same ladder
+     in literal px. At --radius: 0.625rem the two are the SAME NUMBERS —
+     6 / 8 / 10 / 14 / 18 / 22 / 26 px — so every one of the app's 95 radius sites
+     computes to exactly what it computed before. What changes is the source of
+     truth: the ladder in :root §7 is now the single definition and these Tailwind
+     names are consumers of it, so globals.css and _theme.css cannot drift apart.
+
+     --radius itself stays 0.625rem and stays declared in :root. It is load-bearing
+     twice over: the bare `rounded` utility reads it, and the five
+     `rounded-[min(var(--radius-md),Npx)]` clamps in button.tsx / select.tsx read
+     --radius-md through it. Those clamps are INERT by design — min(8px, 10px) = 8px
+     — and they must stay inert; they are the reason a base-radius change cannot
+     inflate dense chrome controls. */
+  --radius-xs: var(--r-2xs);   /* 2px  — tooltip arrow, tick marks (was 0.125rem = 2px) */
+  --radius-sm: var(--r-xs);    /* 6px  — was calc(var(--radius) * 0.6) = 6px */
+  --radius-md: var(--r-sm);    /* 8px  — was calc(var(--radius) * 0.8) = 8px */
+  --radius-lg: var(--r);       /* 10px — was var(--radius)            = 10px */
+  --radius-xl: var(--r-md);    /* 14px — was calc(var(--radius) * 1.4) = 14px */
+  --radius-2xl: var(--r-lg);   /* 18px — was calc(var(--radius) * 1.8) = 18px */
+  --radius-3xl: var(--r-xl);   /* 22px — was calc(var(--radius) * 2.2) = 22px */
+  --radius-4xl: var(--r-2xl);  /* 26px — was calc(var(--radius) * 2.6) = 26px */
+  /* Steps the ladder adds that Tailwind had no name for. `rounded-hair` retires
+     order-status-badge.tsx's `rounded-[1px]`; `rounded-ctl` retires the two
+     `rounded-[min(...)]` arbitrary values without changing their 8px result. */
+  --radius-hair: var(--r-hair);      /* 1px — the meter bars, the ONLY hard radius */
+  --radius-ctl: var(--r-ctl);        /* min(8px, 10px) = 8px */
+  --radius-ctl-sm: var(--r-ctl-sm);  /* min(8px, 12px) = 8px */
+  --radius-pill: var(--r-pill);      /* 999px — chips, meters, avatars */
+
+  /* ── SHADOWS ──────────────────────────────────────────────────────────────────
+     Tailwind ships eight rungs; Mandi Counter has five. 2xs collapses onto xs and
+     2xl onto xl so that NO shadow utility in this app can emit an untinted grey
+     cast — a neutral shadow on a warm ground reads as dirt, which is the whole
+     reason §8 exists. `shadow` and `shadow-md` are the same rung, the resting card.
+     Every one of these re-themes in .dark: black cast plus a lit rim. */
+  --shadow-2xs: var(--sh-xs);
+  --shadow-xs: var(--sh-xs);
+  --shadow-sm: var(--sh-sm);
+  --shadow: var(--sh);       /* the default card */
+  --shadow-md: var(--sh);
+  --shadow-lg: var(--sh-lg); /* popover, dropdown */
+  --shadow-xl: var(--sh-xl); /* dialog, sheet */
+  --shadow-2xl: var(--sh-xl);
+  /* The two coloured casts and the rim. `shadow-brand` is for the primary CTA, one
+     per screen; `shadow-ready` is for the READY floor tile under touch density and
+     nothing else. Nothing else in the system may carry a coloured shadow. */
+  --shadow-brand: var(--sh-brand);
+  --shadow-ready: var(--sh-ready);
+  --shadow-up: var(--sh-up);   /* the bottom tab bar, casting upward */
+  --shadow-rim: var(--sh-rim); /* pair with any raised surface in dark */
+
+  /* ── TYPE ─────────────────────────────────────────────────────────────────────
+     The utility face of :root §9's `--t-*` steps. The CSS `font` shorthand cannot be
+     expressed as a Tailwind utility, so each step is unpacked into size +
+     line-height + weight (+ tracking where it is part of the step). Same numbers as
+     the --t-* tokens; change one and change the other. */
+  --text-display: clamp(28px, 3.6vw, 44px);
+  --text-display--line-height: 1.08;
+  --text-display--font-weight: 800;
+  --text-h1: clamp(20px, 2.2vw, 26px);
+  --text-h1--line-height: 1.2;
+  --text-h1--font-weight: 700;
+  --text-h2: 16px;
+  --text-h2--line-height: 1.35;
+  --text-h2--font-weight: 600;
+  --text-body: 14px;
+  --text-body--line-height: 1.55;
+  --text-body--font-weight: 400;
+  --text-small: 12.5px;
+  --text-small--line-height: 1.5;
+  --text-small--font-weight: 400;
+  /* 11px uppercase at 0.12em is SMALL TEXT and needs 4.5:1 — its only legal colours
+     are --muted-foreground (6.59:1 light / 7.62:1 dark) and --accent-foreground. */
+  --text-label: 11px;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 600;
+  --text-label--letter-spacing: 0.12em;
+  /* The PageHeader <h1>. Deliberately small: the sticky header is a chrome strip,
+     not a hero. --text-h1 belongs to marketing and the styleguide, never the shell. */
+  --text-chrome: 14px;
+  --text-chrome--line-height: 1.3;
+  --text-chrome--font-weight: 600;
+  /* The KPI figure. ALWAYS with tabular-nums; "₹4,86,300" is lakh-grouped, no paise. */
+  --text-metric: clamp(22px, 2.4vw, 28px);
+  --text-metric--line-height: 1.1;
+  --text-metric--font-weight: 600;
+  --text-metric--letter-spacing: -0.02em;
+  /* OrderStatusBadge. At 10.5px bold the label needs ≥4.5:1 on its own wash — every
+     -subtle pair above is ≥5.51:1, so it holds. */
+  --text-chip: 10.5px;
+  --text-chip--line-height: 1;
+  --text-chip--font-weight: 700;
+  --text-code: 12px;         /* the Ask AI <pre> SQL block and its result cells */
+  --text-code--line-height: 1.7;
+  --text-code--font-weight: 500;
+  --tracking-label: var(--label-tracking);
+
+  /* ── SPACING / LAYOUT ─────────────────────────────────────────────────────────
+     Only the measurements Tailwind's numeric scale cannot name. The gaps (8/12/16/24)
+     are already gap-2 / gap-3 / gap-4 / gap-6 and are deliberately NOT re-aliased. */
+  --spacing-tap: var(--tap);                    /* h-tap, w-tap, p-tap — 44px */
+  --spacing-tap-sm: var(--tap-sm);              /* desktop-only chrome floor, 36px */
+  --spacing-rail: var(--rail);                  /* 48px collapsed sidebar */
+  --spacing-sidebar: var(--sidebar-w);          /* 16rem */
+  --spacing-sidebar-mobile: var(--sidebar-w-mobile); /* 18rem */
+  --container-measure: var(--measure);          /* max-w-measure — 1180px */
+
+  /* ── MOTION ───────────────────────────────────────────────────────────────────
+     Tailwind's --ease-* namespace cannot hold a key called plain `--ease`, and
+     `--ease-io: var(--ease-io)` would be the self-referential bug documented at the
+     top of this block. So the two curves get spelled-out utility names that point at
+     the :root §11 tokens. Durations have no named namespace in v4 — reach for
+     duration-[var(--dur)] at the call site. */
+  --ease-quint: var(--ease);      /* ease-out-quint: hover, press, chip, switch */
+  --ease-drawer: var(--ease-io);  /* drawer, sheet, anything that comes back */
+  --animate-rise: rise var(--dur-rise) var(--ease) both;
+  --animate-shimmer: shimmer 1.4s var(--ease-io) infinite;
+  --animate-step-advance: step-advance var(--dur) var(--ease);
+  --animate-ready-pulse: ready-pulse 2.4s var(--ease-io) infinite;
 }
 
 :root {
-  /* Tells the browser to draw NATIVE chrome — scrollbars, form controls, <select>
-     popups — to match. Without it those stay light in dark mode, which was invisible
-     until the .dark class was actually mounted. */
   color-scheme: light;
 
-  /* --- surfaces: warm paper, not white-grey --- */
-  --background: #fdfaf4;
-  --foreground: #241c14; /* 16.1:1 on background */
-  --card: #ffffff;
-  --card-foreground: #241c14;
-  --popover: #ffffff;
-  --popover-foreground: #241c14;
-  --muted: #f5f0e6;
-  --muted-foreground: #6f6552; /* 5.5:1 on bg, 5.1:1 on muted — lightest text allowed */
-  --accent: #ede6d8; /* hover surface only, never a resting state */
-  --accent-foreground: #241c14;
-  --border: #e7dfd0;
-  --input: #e7dfd0;
-  --ring: #c0442c; /* 4.9:1 on background — focus must be seen across a counter */
+  /* --- surfaces: warm neutrals, verified numerically (law 11) --- */
+  --background: #faf4e7;  /* L* 96.33 C* 6.97 h 91.57 - warm */
+  --foreground: #241c13;  /* 15.32:1 on --background */
+  --card: #fffcf5;  /* L* 99.01 C* 3.70 h 93.22; --card-foreground 16.39:1 */
+  --card-foreground: #241c13;  /* 16.39:1 on --card */
+  --popover: #ffffff;  /* the only pure white; raised layer + menu photo mat */
+  --popover-foreground: #241c13;  /* 16.79:1 on --popover */
+  --muted: #f0e7d4;  /* L* 91.88 C* 10.33 h 90.61 - warm */
+  --muted-foreground: #665441;  /* 6.59:1 on --background, 5.87:1 on --muted, 7.04:1 on --card */
+  --accent: #f3eada;  /* hover surface only, never a resting state */
+  --accent-foreground: #3a2c1e;  /* 11.28:1 on --accent */
+  --border: #e5d9c2;  /* L* 87.08 C* 12.82 h 88.43 - decorative hairline, 1.27:1 on --background */
+  --input: #9c8459;  /* carries the 1.4.11 control boundary: 3.27:1 on --background, 3.50:1 on --card */
+  --ring: #2a1e14;  /* 14.80:1 on --background, 15.84:1 on --card - 2px core + 2px --background offset ring */
 
-  /* --- interactive: charred clay oven --- */
-  --primary: #2e211a;
-  --primary-foreground: #fdfaf4; /* 15.0:1 */
+  /* --- interactive --- */
+  --primary: #664a35;  /* 7.38:1 on --background as a block; vs --brand dE 12.14, vs --ready dE 12.91, vs --destructive dE 12.04 (min over normal/deutan/protan) */
+  --primary-foreground: #fff8ec;  /* 7.66:1 ink */
+  --secondary: #efe3ce;
+  --secondary-foreground: #4a3927;  /* 8.68:1 ink */
 
-  --secondary: #f5f0e6;
-  --secondary-foreground: #241c14;
+  /* --- identity: Pine Mandi. Never a button. --- */
+  --brand: #083227;  /* 13.27:1 ink; vs --primary dE 12.14, vs --veg dE 25.32 */
+  --brand-foreground: #f4faf6;  /* 13.27:1 ink */
+  --brand-subtle: #ecf8f2;  /* 9.95:1 with its ink */
+  --brand-subtle-foreground: #174534;  /* 9.95:1 on --brand-subtle, 10.58:1 on --card */
 
-  /* --- identity: tandoori red --- */
-  --brand: #c0442c;
-  --brand-foreground: #ffffff; /* 5.1:1 */
-  --brand-subtle: #fbeae4;
-  --brand-subtle-foreground: #9a3520; /* 7.2:1 on white */
+  /* --- the alarm: Ripe Tomato. QUARANTINED - READY chip + READY floor tile only. --- */
+  --ready: #c0480f;  /* 4.59:1 on --background as a block; 5.03:1 ink; vs --warning dE 12.02, vs --primary dE 12.91 */
+  --ready-foreground: #ffffff;  /* 5.03:1 ink */
 
-  /* --- the loudest state: turmeric. FILL ONLY (2.1:1 as text on paper). --- */
-  --ready: #e2a32d;
-  --ready-foreground: #241c14; /* 7.6:1 on the fill */
+  /* --- semantic states --- */
+  --success: #4a7c69;  /* 4.80:1 ink - TIGHTEST LABEL IN THE SYSTEM, hold L* <= 48.12; vs --destructive dE 12.08, vs --veg dE 12.28 */
+  --success-foreground: #ffffff;  /* 4.80:1 ink */
+  --success-subtle: #ecfae0;  /* 9.05:1 with its ink */
+  --success-subtle-foreground: #1f4c30;  /* 9.05:1 on the wash, 9.60:1 on --card */
+  --warning: #c28c1d;  /* 5.65:1 ink; vs --ready dE 12.02, vs --veg dE 14.22. Meter fill inside a bordered chip - 2.71:1 on paper, NEVER a standalone graphic */
+  --warning-foreground: #241c13;  /* 5.65:1 ink */
+  --warning-subtle: #f3e5bb;  /* 5.51:1 with its ink */
+  --warning-subtle-foreground: #7a5209;  /* 5.51:1 on the wash, 6.75:1 on --card */
+  --warning-border: #d9b463;  /* opaque chip edge, 1.57:1 on its wash (decorative by declaration) */
+  --info: #2c6b85;  /* 5.92:1 ink; vs --success dE 20.72 */
+  --info-foreground: #ffffff;  /* 5.92:1 ink */
+  --info-subtle: #baecff;  /* 6.54:1 with its ink */
+  --info-subtle-foreground: #1f5468;  /* 6.54:1 on the wash, 8.11:1 on --card */
+  --destructive: #871c4f;  /* 9.09:1 ink; vs --primary dE 12.04, vs --nonveg dE 19.19 */
+  --destructive-foreground: #ffffff;  /* 9.09:1 ink */
+  --destructive-subtle: #f4dfe6;  /* 7.91:1 with its ink */
+  --destructive-subtle-foreground: #7c1b42;  /* 7.91:1 on the wash, 9.79:1 on --card */
+  --destructive-border: #e2a5bc;  /* opaque chip edge, 1.60:1 on its wash (decorative by declaration) */
 
-  --success: #4f7a3f;
-  --success-foreground: #ffffff; /* 5.0:1 */
-  --success-subtle: #edf2e6;
-  --success-subtle-foreground: #3a5c2e;
+  /* --- FSSAI statutory marks. RESERVED: hue is the identity, never re-tokenise. --- */
+  --veg: #1b7a3d;  /* 5.26:1 on --card, 4.92:1 on --background; Lab hue 147.95 */
+  --nonveg: #a02724;  /* 7.29:1 on --card, 6.82:1 on --background; Lab hue 33.39 */
 
-  --warning: #e2a32d;
-  --warning-foreground: #241c14;
-  --warning-subtle: #fbf1dc;
-  --warning-subtle-foreground: #7a5009;
-  --warning-border: #efdcaf;
-
-  --info: #3d6285;
-  --info-foreground: #ffffff;
-  --info-subtle: #eaf0f5;
-  --info-subtle-foreground: #35566f;
-
-  --destructive: #a31d14; /* 7.7:1 — destructive/errors/breached ONLY */
-  --destructive-foreground: #ffffff;
-  --destructive-subtle: #fbe9e7;
-  --destructive-subtle-foreground: #96190f;
-  --destructive-border: #f2cfc9;
-
-  --veg: #1b7a3d;
-  --nonveg: #a02724;
-
-  /* Chart palette — LIGHT (surface #ffffff, the card background).
-   *
-   * shadcn's neutral preset ships these ACHROMATIC (oklch(… 0 0), zero chroma), which
-   * fails the chroma floor outright: grey series are indistinguishable to everyone, not
-   * just under CVD. These are the validated slots, in fixed order — the ORDER is the
-   * CVD-safety mechanism, not a cosmetic choice.
-   *
-   * chart-1 is the brand hero and the default single hue (the revenue area chart uses
-   * it alone). The rest are ordered by solving for maximum adjacent separation under
-   * simulated deuteranopia: worst adjacent ΔE 46.2, worst among the first three 44.8.
-   * All clear 3:1 on white and the chroma floor.
-   *
-   * The one residual collision is 1↔5 (tandoori red vs turmeric, ΔE 6.5) — unavoidable
-   * if the palette is to contain both, so they are placed four apart and any chart
-   * reaching five series ships DIRECT LABELS, which is the relief rule, not a nicety. */
-  --chart-1: #c0442c; /* tandoori red — 5.1:1 */
-  --chart-2: #3d6285; /* slate blue   — 6.4:1 */
-  --chart-3: #7b4a5c; /* plum         — 7.1:1 */
-  --chart-4: #1f7a70; /* teal         — 5.2:1 */
-  --chart-5: #9c670e; /* turmeric     — 4.8:1 */
-  --chart-6: #4f7a3f; /* curry leaf   — 5.0:1 */
-  --chart-grid: #ebe4d8;
-  --chart-axis: #6f6552;
-  /* The label colour for text sitting ON a chart body (stacked-bar percentages).
-     It MUST flip with the theme: the dark ramp is deliberately light, so a hardcoded
-     white label scores 2.3:1 there. Verified ≥4.5:1 against all six slots in BOTH
-     themes — which is why chart-5 is #9c670e rather than a brighter turmeric. */
-  --chart-foreground: #ffffff;
-
-  /* Status. Reserved — never reused as "series 4". Always with an icon + label, so a
-   * status never speaks by colour alone. */
-  --delta-up: #3f6332;
-  --delta-down: #a31d14;
+  /* --- KPI deltas. Always with an icon + label. --- */
+  --delta-up: #1f4c30;  /* 9.60:1 on --card, 8.97:1 on --background */
+  --delta-down: #6c0943;  /* 11.66:1 on --card, 10.90:1 on --background; vs --delta-up dE 13.19 (was 4.21 - a deuteranope could not tell rising from falling) */
 
   --radius: 0.625rem;
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: #241c14;
-  --sidebar-primary: #2e211a;
-  --sidebar-primary-foreground: #fdfaf4;
-  --sidebar-accent: #f5f0e6;
-  --sidebar-accent-foreground: #241c14;
-  --sidebar-border: #e7dfd0;
-  --sidebar-ring: #c0442c;
+  /* --- chart ramp. Slot -> hue map is IDENTICAL in both themes. --- */
+  --chart-1: #005308;  /* 9.15:1 on --card, --chart-foreground 9.37:1 on it; L* 29.92 C* 50.60 h 137.91 */
+  --chart-2: #067cb1;  /* 4.53:1 on --card, --chart-foreground 4.64:1 on it; L* 49.04 C* 37.01 h 256.17 */
+  --chart-3: #9a6b57;  /* 4.44:1 on --card, --chart-foreground 4.55:1 on it; L* 49.59 C* 24.76 h 49.14 */
+  --chart-4: #63247f;  /* 9.81:1 on --card, --chart-foreground 10.05:1 on it; L* 27.97 C* 58.35 h 318.01 */
+  --chart-5: #9c6b01;  /* 4.54:1 on --card, --chart-foreground 4.65:1 on it; L* 48.99 C* 57.09 h 77.78. dE 0.00 from --ready under deuteranopia - CONTAINED, never render --ready on a chart route */
+  --chart-6: #8b4679;  /* 6.31:1 on --card, --chart-foreground 6.46:1 on it; L* 40.00 C* 39.71 h 336.26 */
+  --chart-grid: #e5d9c2;  /* = --border. 1.36:1 on --card - decorative structure, deliberately below the axis text */
+  --chart-axis: #665441;  /* = --muted-foreground. 7.04:1 on --card, 6.59:1 on --background - PASSES as label TEXT */
+  --chart-foreground: #ffffff;  /* in-body label. Worst of the six slots: 4.55:1 */
+
+  /* --- sidebar (re-themes separately; --primary alone does nothing here) --- */
+  --sidebar: #f4ebd9;
+  --sidebar-foreground: #3a2c1e;  /* 11.37:1 on --sidebar */
+  --sidebar-primary: #664a35;  /* tracks --primary; vs --brand dE 12.14 (the identity square sits beside it) */
+  --sidebar-primary-foreground: #fff8ec;  /* 7.66:1 on --sidebar-primary */
+  --sidebar-accent: #eadfc7;
+  --sidebar-accent-foreground: #241c13;  /* 12.70:1 on --sidebar-accent */
+  --sidebar-border: #d6c4a4;
+  --sidebar-ring: #2a1e14;  /* 13.70:1 on --sidebar */
+
+  /* ── 6. Gradients ───────────────────────────────────────────────────────────
+     Every token below declares TEXT-BEARING or DECORATIVE ONLY (law L13).
+     Interpolation is sRGB (the default). NEVER add `in oklch` — it voids law L12,
+     and L12 is the reason any of this is safe:
+
+       linear-gradient() and color-mix(in srgb, …) interpolate GAMMA-ENCODED sRGB,
+       and the sRGB EOTF is convex, so an intermediate stop's luminance is ≤ the
+       linear interpolation of its endpoints. Light text between two DARK stops is
+       therefore safe from the endpoints alone; DARK text between two LIGHT stops
+       can dip below BOTH endpoints and must be sampled. Where that case occurs
+       below it was sampled at 201 points and the worst sample is quoted with its
+       position.
+
+     The mechanism for every text-bearing ramp is
+       color-mix(in srgb, var(--X) 85%, var(--foreground))
+     which darkens in light (--foreground is near-black) and lightens in dark
+     (--foreground is near-white). Monotone-safe in both directions by construction,
+     so ONE declaration serves both themes and .dark repeats none of them. */
+
+  /* --app-bg · DECORATIVE ONLY as a surface; it carries --foreground and nothing
+     else. Mint → sidebar sand → paper → card → honey wash: the produce counter,
+     left to right, greens at the left hand and warm spice at the right. DARK TEXT
+     OVER LIGHT STOPS — sampled, not assumed: worst of 201 samples 13.38:1 at 100%
+     (endpoints 15.41 → 13.38). Dark: worst 11.03:1.
+     Goes on .main behind the cards (.bg-app), NEVER on <body> and never behind a
+     table: --card is only 1.07:1 above --background, so a card reads as a card by
+     its ring and shadow, and a gradient sliding under it steals exactly that. */
+  --app-bg: linear-gradient(140deg,
+              var(--brand-subtle)    0%,
+              var(--sidebar)        26%,
+              var(--background)     48%,
+              var(--card)           68%,
+              var(--warning-subtle) 100%);
+
+  /* --grad-hero · DECORATIVE ONLY. Marketing band, onboarding, styleguide header.
+     Dark text over light stops — sampled: worst 15.32:1 at 50% (dark 11.04:1). */
+  --grad-hero: linear-gradient(135deg,
+                 var(--brand-subtle)   0%,
+                 var(--background)    50%,
+                 var(--success-subtle) 100%);
+
+  /* --grad-primary · TEXT-BEARING — carries --primary-foreground.
+     LIGHT: #664a35 → #5c4330 · 7.66:1 → 8.63:1, every intermediate stop ≥ 7.66:1
+     by L12 (monotone, both endpoints dark).
+     DARK : #c4ac95 → #cbb5a0 · 7.87:1 → 8.68:1.
+     It replaces a flat bg-primary with hover:bg-primary/80, which measured ~5.4:1
+     and made the HOVER state lighter than the rest — i.e. hovering made the button
+     look disabled. This ramp darkens on hover instead (the mix deepens to 75%:
+     9.35:1 light, 9.26:1 dark), and :active collapses to flat var(--primary) plus
+     translateY(1px). */
+  --grad-primary: linear-gradient(180deg,
+                    var(--primary) 0%,
+                    color-mix(in srgb, var(--primary) 85%, var(--foreground)) 100%);
+  --grad-primary-hover: linear-gradient(180deg,
+                    var(--primary) 0%,
+                    color-mix(in srgb, var(--primary) 75%, var(--foreground)) 100%);
+
+  /* --grad-brand · TEXT-BEARING — carries --brand-foreground ONLY. Never
+     --primary-foreground (wrong family) and never white-in-dark (the dark brand is
+     a light mint; white on it fails outright).
+     LIGHT: #083227 → #0c2f24 · 13.27:1 → 13.76:1.
+     DARK : #90e5c8 → #9fe6cb · 12.15:1 → 12.49:1.
+     Wordmark tile, sidebar identity square, marketing hero, the AI rail. */
+  --grad-brand: linear-gradient(135deg,
+                  var(--brand) 0%,
+                  color-mix(in srgb, var(--brand) 85%, var(--foreground)) 100%);
+
+  /* --grad-destructive · TEXT-BEARING — carries --destructive-foreground.
+     LIGHT: #871c4f → #781c46 ·  9.09:1 → 10.22:1.
+     DARK : #de82a4 → #e192ac ·  6.79:1 →  7.71:1.
+     ONLY for the single confirming button inside an AlertDialog — the one place a
+     solid red is correct, because it is the last chance to stop. The ordinary
+     destructive button variant is a TINT and stays a tint. */
+  --grad-destructive: linear-gradient(180deg,
+                        var(--destructive) 0%,
+                        color-mix(in srgb, var(--destructive) 85%, var(--foreground)) 100%);
+
+  /* --grad-sidebar · DECORATIVE ONLY. An 8% deepening down the rail so the nav
+     reads as a panel without spending a second surface token. Carries
+     --sidebar-foreground: 11.37:1 → 9.75:1 light, 13.36:1 → 11.03:1 dark. */
+  --grad-sidebar: linear-gradient(180deg,
+                    var(--sidebar) 0%,
+                    color-mix(in srgb, var(--sidebar) 92%, var(--foreground)) 100%);
+
+  /* --grad-ai · DECORATIVE ONLY. The Ask AI card, and only that card. Replaces
+     assistant-client.tsx's `bg-gradient-to-b from-primary/5 to-transparent`.
+     Carries --foreground: 14.51:1 → 16.39:1 light, 12.83:1 → 14.74:1 dark. */
+  --grad-ai: linear-gradient(180deg,
+               color-mix(in srgb, var(--primary) 8%, var(--card)) 0%,
+               var(--card) 72%);
+
+  /* --grad-card-brand · DECORATIVE ONLY. .card--brand (identity / AI card).
+     Carries --foreground: 15.41:1 → 16.39:1 light, 11.04:1 → 14.74:1 dark. */
+  --grad-card-brand: linear-gradient(160deg, var(--brand-subtle), var(--card) 70%);
+
+  /* --grad-card-warn · DECORATIVE ONLY. .card--warn (the reorder banner). Its ink
+     is --warning-subtle-foreground, NOT --foreground: 5.51:1 → 6.75:1 light,
+     8.29:1 → 11.07:1 dark. */
+  --grad-card-warn: linear-gradient(160deg, var(--warning-subtle), var(--card) 78%);
+
+  /* --grad-fade-x · DECORATIVE ONLY. The scroll affordance over the right edge of a
+     .scroll-x table, so a clipped column looks clipped on a tablet, where there is
+     no scrollbar to hint with. */
+  --grad-fade-x: linear-gradient(90deg, transparent, var(--card));
+
+  /* PROHIBITIONS, so they live in the file and not only in the review:
+     · --ready is never a gradient, never a mix, never carries an overlay.
+     · --veg / --nonveg are never a gradient and never a fill above 12px.
+     · No gradient crosses two semantic families — no cocoa→tomato, no pine→beet. A
+       gradient is the one construct that can smuggle a colour across the dE gap
+       that separates identity, interactive and alarm.
+     · No gradient on a table row, a chip, or a meter bar. */
+
+  /* ── 7. Radii — a working counter, not a confectionery ──────────────────────
+     --radius: 0.625rem (10px) is declared above and is HELD. Holding the seed is
+     what keeps the five min() clamps in button.tsx / select.tsx inert, and what
+     keeps all 95 existing radius sites exactly where they are.
+
+     This ladder is the single source of truth: the Tailwind --radius-* steps in
+     @theme inline are consumers of it, and at --radius: 0.625rem it reproduces the
+     old calc() chain exactly (0.6/0.8/1/1.4/1.8/2.2/2.6 → 6/8/10/14/18/22/26px). */
+  --r-hair:  1px;   /* the ONLY hard radius: the five step-meter bars             */
+  --r-2xs:   2px;   /* tooltip arrow, tick marks, the FSSAI square outline        */
+  --r-xs:    6px;   /* = --radius-sm                                             */
+  --r-sm:    8px;   /* = --radius-md — nav links, small controls                 */
+  --r:      10px;   /* = --radius-lg = --radius — THE BASE STEP                  */
+  --r-md:   14px;   /* = --radius-xl — .card, dialog popup                       */
+  --r-lg:   18px;   /* = --radius-2xl — the floor tile, the KPI tile             */
+  --r-xl:   22px;   /* = --radius-3xl — hero band                                */
+  --r-2xl:  26px;   /* = --radius-4xl — .chip / Badge (a pill at h-5)            */
+  --r-pill: 999px;
+  /* The two control clamps that already exist in the app. INTENTIONAL: dense
+     chrome controls must not inflate when --radius grows. At --radius: 0.625rem
+     both are inert — min(8px, 10px) = 8px. */
+  --r-ctl:    min(var(--r-sm), 10px);
+  --r-ctl-sm: min(var(--r-sm), 12px);
+  /* NEVER ROUND: the FSSAI mark beyond --r-2xs (the square is statutory shape — a
+     pill-shaped veg mark is not a veg mark), and the meter bars beyond --r-hair. */
+
+  /* ── 8. Shadows — tinted with the INK hue, never neutral grey ───────────────
+     --foreground #241c13 = rgb(36 28 19). Every alpha below is that hue: a grey
+     shadow on a warm ground reads as dirt. Every blur carries a large negative
+     spread so the shadow stays tight to the element — a warm palette turns muddy
+     the moment a shadow spreads.
+     (The dark theme suspends the tint rule and replaces it with a rim — see the
+     note in .dark. That is documented, not an oversight.)
+     Elevation is the shadow; the HAIRLINE is still the ring. Do not delete the
+     `ring-1 ring-foreground/10` on cards — --card sits 1.07:1 above --background,
+     so the ring is what makes a card a card. The shadow goes underneath it. */
+  --sh-xs:    0 1px 2px          rgb(36 28 19 / .06);
+  --sh-sm:    0 2px 8px    -2px  rgb(36 28 19 / .10);
+  --sh:       0 10px 24px  -14px rgb(36 28 19 / .30);   /* the default card  */
+  --sh-lg:    0 22px 48px  -26px rgb(36 28 19 / .36);   /* popover, dropdown */
+  --sh-xl:    0 40px 80px  -40px rgb(36 28 19 / .44);   /* dialog, sheet     */
+  --sh-brand: 0 12px 26px  -14px rgb(102 74 53 / .40);  /* = --primary. The primary
+                        CTA only, one per screen.                              */
+  --sh-ready: 0 12px 26px  -14px rgb(192 72 15 / .34);  /* = --ready. The READY
+                        floor tile only, and only under touch density (a KDS read
+                        at 2 m). Nothing else may carry a coloured shadow.      */
+  --sh-up:    0 -12px 30px -20px rgb(36 28 19 / .34);   /* the bottom tab bar */
+  --sh-rim:   inset 0 1px 0 0    rgb(255 255 255 / .55);/* lit top edge — a
+                        near-invisible gloss in light, the PRIMARY elevation
+                        signal in dark.                                        */
+  --scrim:    rgb(36 28 19 / .38);                      /* modal backdrop. Replaces
+                        three hardcoded bg-black/10 scrims: 10% black over the dark
+                        ground is invisible.                                   */
+
+  /* ── 9. Type ───────────────────────────────────────────────────────────────
+     Plus Jakarta Sans (5 weights) + JetBrains Mono (3), loaded by next/font in
+     app/layout.tsx and exposed as --font-jakarta / --font-jetbrains. Zero
+     additional web fonts, zero layout shift.
+
+     These four stacks are the second copy of the ones in @theme inline (see the
+     note there): the `font` shorthand steps below need real :root variables, and a
+     @theme variable is emitted only when Tailwind judges it used. Identical
+     values, and they must stay identical.
+
+     Any replacement face MUST ship tabular figures: every ₹ column depends on
+     font-variant-numeric: tabular-nums being set globally on body, and a
+     proportional face makes those columns jitter as they update. */
+  --font-sans:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui,
+    "Segoe UI", Roboto, sans-serif;
+  --font-heading:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
+    Menlo, monospace;
+  --font-num:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+
+  /* The six canonical steps, as the `font` shorthand: one token sets weight, size,
+     line-height and family together. Only the two display tiers are fluid — body
+     and below are fixed so line length stays predictable inside a table. */
+  --t-display: 800 clamp(28px, 3.6vw, 44px)/1.08 var(--font-heading);
+  --t-h1:      700 clamp(20px, 2.2vw, 26px)/1.20 var(--font-heading);
+  --t-h2:      600 16px/1.35 var(--font-heading);
+  --t-body:    400 14px/1.55 var(--font-sans);
+  --t-small:   400 12.5px/1.50 var(--font-sans);
+  --t-label:   600 11px/1.40 var(--font-sans);
+  --label-tracking: 0.12em;  /* tracking cannot live in the `font` shorthand */
+
+  /* Bound variants — they exist because the app already hard-codes these three
+     sizes; naming them IS the fix. */
+  --t-chrome: 600 14px/1.30 var(--font-heading);
+    /* The PageHeader <h1>. DELIBERATELY SMALL: the sticky header is a chrome strip,
+       not a hero. --t-h1 belongs to the marketing site, the styleguide and a future
+       KDS — never to the app shell.                                            */
+  --t-metric: 600 clamp(22px, 2.4vw, 28px)/1.1 var(--font-num);
+    /* The KPI figure. ALWAYS with tabular-nums and letter-spacing -0.02em.
+       Currency is Intl.NumberFormat('en-IN', {style:'currency', currency:'INR',
+       maximumFractionDigits:0}) → "₹4,86,300": lakh grouping, no paise.        */
+  --t-chip:   700 10.5px/1 var(--font-sans);
+    /* OrderStatusBadge. At 10.5px bold the label needs ≥4.5:1 on its own wash —
+       every -subtle pair above is ≥5.51:1, so it holds.                        */
+  --t-code:   500 12px/1.7 var(--font-mono);
+    /* The Ask AI <pre> SQL block and the result cells.                         */
+
+  /* ── 10. Spacing / layout — semantic decisions only ─────────────────────────
+     Tailwind's numeric scale covers the rest; these name what it cannot. */
+  --gap-xs:       8px;
+  --gap-sm:      12px;
+  --gap:         16px;   /* the default grid/flex gap; = Tailwind gap-4     */
+  --gap-lg:      24px;
+  --pad-card:    16px;   /* = card.tsx's [--card-spacing:--spacing(4)]      */
+  --pad-card-sm: 12px;   /* = data-[size=sm]                               */
+  --pad-page:    16px;   /* = every page body's p-4                        */
+  --pad-head:    12px 16px;  /* PageHeader px-4 py-3                       */
+
+  --sidebar-w:        16rem;  /* 256px — SIDEBAR_WIDTH, sidebar.tsx          */
+  --sidebar-w-mobile: 18rem;  /* 288px — SIDEBAR_WIDTH_MOBILE                */
+  --rail:              3rem;  /* 48px  — SIDEBAR_WIDTH_ICON. With --tap at 44px
+                          that is 2px of gutter each side: legal, and tight. Rail
+                          buttons must be width:var(--tap); min-height:var(--tap);
+                          margin-inline:auto, and their labels CLIPPED, never
+                          display:none — the label is the accessible name of an
+                          icon-only control. If the rail is ever widened, 56px is
+                          the comfortable number; never go below 48.          */
+  --tap:                44px; /* MINIMUM TOUCH TARGET. Non-negotiable (law L15).
+                          The app's ambient control height is 32px — correct for
+                          the back office, illegal for a floor tablet.         */
+  --tap-sm:             36px; /* desktop-only chrome floor (dialog close)      */
+  --measure:          1180px; /* content max-width inside .wrap                */
+
+  /* ── 11. Motion ────────────────────────────────────────────────────────────
+     Faster than a consumer app on purpose: this is an operational tool and a
+     waiter taps the same button forty times a shift. Motion that lingers costs
+     money. */
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);  /* ease-out-quint            */
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);  /* drawer, sheet             */
+  --dur:      0.18s;   /* interactions: hover, press, chip, switch          */
+  --dur-lg:   0.28s;   /* off-canvas drawer, dialog                         */
+  --dur-rise: 0.40s;   /* entrance — not an interaction                     */
+  --stagger:  45ms;    /* per-item entrance delay unit                      */
 }
 
 .dark {
   color-scheme: dark;
 
-  /* A WARM near-black, not #000 and not a cool slate. Pure black against a bright
-     kitchen produces halation, and greasy glass shows every smear on it. */
-  --background: #17130f;
-  --foreground: #f5f0e6; /* 16.3:1 */
-  --card: #1f1a15;
-  --card-foreground: #f5f0e6;
-  --popover: #241e18;
-  --popover-foreground: #f5f0e6;
-  --muted: #2d2620;
-  --muted-foreground: #a79a85; /* 6.7:1 on bg, 5.4:1 on muted */
-  --accent: #332b23;
-  --accent-foreground: #f5f0e6;
-  --border: #3c3429;
-  --input: #453c30;
-  --ring: #e2a32d;
+  /* --- surfaces: warm neutrals, verified numerically (law 11) --- */
+  --background: #16110c;  /* L* 5.40 C* 3.36 h 69.10 - warm */
+  --foreground: #f4eadb;  /* 15.75:1 on --background */
+  --card: #1f1811;  /* L* 8.87 C* 6.11 h 69.73; --card-foreground 14.74:1 */
+  --card-foreground: #f4eadb;  /* 14.74:1 on --card */
+  --popover: #292017;  /* the raised layer */
+  --popover-foreground: #f4eadb;  /* 13.43:1 on --popover */
+  --muted: #2c2318;  /* L* 14.42 C* 9.27 h 75.86 - warm */
+  --muted-foreground: #b3a38c;  /* 7.62:1 on --background, 6.27:1 on --muted, 7.13:1 on --card */
+  --accent: #33291c;  /* hover surface only, never a resting state */
+  --accent-foreground: #f4eadb;  /* 11.96:1 on --accent */
+  --border: #3a2e20;  /* L* 19.87 C* 11.51 h 74.50 - decorative hairline, 1.42:1 on --background */
+  --input: #8a7654;  /* carries the 1.4.11 control boundary: 4.29:1 on --background, 4.01:1 on --card */
+  --ring: #f5e3c8;  /* 14.92:1 on --background, 13.95:1 on --card - 2px core + 2px --background offset ring */
 
-  /* THE INVERSION: turmeric is promoted to primary. On this ground it reads 8.4:1,
-     where the light-mode charred brown would be 1.4:1 and effectively invisible. */
-  --primary: #e2a32d;
-  --primary-foreground: #241c14; /* 7.6:1 */
+  /* --- interactive --- */
+  --primary: #c4ac95;  /* 8.65:1 on --background as a block; vs --brand dE 12.04, vs --ready dE 14.29, vs --destructive dE 12.22 (min over normal/deutan/protan) */
+  --primary-foreground: #241a10;  /* 7.87:1 ink */
+  --secondary: #33291c;
+  --secondary-foreground: #f0e4d2;  /* 11.35:1 ink */
 
-  --secondary: #2d2620;
-  --secondary-foreground: #f5f0e6;
+  /* --- identity: Pine Mandi. Never a button. --- */
+  --brand: #90e5c8;  /* 12.15:1 ink; vs --primary dE 12.04, vs --veg dE 20.52 */
+  --brand-foreground: #0b1a13;  /* 12.15:1 ink */
+  --brand-subtle: #23342b;  /* 8.53:1 with its ink */
+  --brand-subtle-foreground: #a6dcc0;  /* 8.53:1 on --brand-subtle, 11.38:1 on --card */
 
-  --brand: #e8705a; /* tandoori, lightened for the dark ground — 5.7:1 */
-  --brand-foreground: #241c14;
-  --brand-subtle: #34201b;
-  --brand-subtle-foreground: #f09385;
+  /* --- the alarm: Ripe Tomato. QUARANTINED - READY chip + READY floor tile only. --- */
+  --ready: #e87c4c;  /* 6.63:1 on --background as a block; 6.25:1 ink; vs --warning dE 12.18, vs --primary dE 14.29 */
+  --ready-foreground: #2a1206;  /* 6.25:1 ink */
 
-  --ready: #e2a32d;
-  --ready-foreground: #241c14;
+  /* --- semantic states --- */
+  --success: #aef3b2;  /* 13.02:1 ink; vs --destructive dE 21.37, vs --veg dE 19.55 */
+  --success-foreground: #0f2116;  /* 13.02:1 ink */
+  --success-subtle: #001c00;  /* 11.75:1 with its ink */
+  --success-subtle-foreground: #a9ddb6;  /* 11.75:1 on the wash, 11.45:1 on --card */
+  --warning: #f5c15d;  /* 10.32:1 ink; vs --ready dE 12.18, vs --veg dE 12.02 - the tightest dE in the system, re-run the full matrix before touching this token */
+  --warning-foreground: #241a0a;  /* 10.32:1 ink */
+  --warning-subtle: #3b2f0f;  /* 8.29:1 with its ink */
+  --warning-subtle-foreground: #ebc98a;  /* 8.29:1 on the wash, 11.07:1 on --card; vs --chart-5 dE 12.78 (this is the amber that shares the Overview with the charts) */
+  --warning-border: #705626;  /* opaque chip edge, 1.91:1 on its wash (decorative by declaration) */
+  --info: #7fc0d8;  /* 8.50:1 ink; vs --success dE 32.42 */
+  --info-foreground: #0b1e26;  /* 8.50:1 ink */
+  --info-subtle: #023547;  /* 8.27:1 with its ink */
+  --info-subtle-foreground: #a5d5e6;  /* 8.27:1 on the wash, 11.08:1 on --card */
+  --destructive: #de82a4;  /* 6.79:1 ink; vs --primary dE 12.22, vs --brand dE 12.13, vs --nonveg dE 21.30 */
+  --destructive-foreground: #2a0a16;  /* 6.79:1 ink */
+  --destructive-subtle: #240e1a;  /* 10.17:1 with its ink */
+  --destructive-subtle-foreground: #f3afc2;  /* 10.17:1 on the wash, 9.79:1 on --card */
+  --destructive-border: #6b3040;  /* opaque chip edge, 1.84:1 on its wash (decorative by declaration) */
 
-  --success: #6fbf8f;
-  --success-foreground: #241c14;
-  --success-subtle: #1e2e1f;
-  --success-subtle-foreground: #6fbf8f;
+  /* --- FSSAI statutory marks. RESERVED: hue is the identity, never re-tokenise. --- */
+  --veg: #3ea95f;  /* 5.89:1 on --card, 6.29:1 on --background; Lab hue 148.10 */
+  --nonveg: #d2564a;  /* 4.32:1 on --card, 4.62:1 on --background; Lab hue 33.52 */
 
-  --warning: #e2a32d;
-  --warning-foreground: #241c14;
-  --warning-subtle: #2e2413;
-  --warning-subtle-foreground: #e8b961;
-  --warning-border: #574726;
+  /* --- KPI deltas. Always with an icon + label. --- */
+  --delta-up: #aef3b2;  /* 13.59:1 on --card, 14.53:1 on --background */
+  --delta-down: #de82a4;  /* 6.55:1 on --card, 7.00:1 on --background; vs --delta-up dE 21.37 */
 
-  --info: #86b2d6;
-  --info-foreground: #241c14;
-  --info-subtle: #1b2733;
-  --info-subtle-foreground: #86b2d6;
+  --radius: 0.625rem;
 
-  --destructive: #f0837a;
-  --destructive-foreground: #241c14;
-  --destructive-subtle: #331a17;
-  --destructive-subtle-foreground: #f0837a;
-  --destructive-border: #5c2f2a;
+  /* --- chart ramp. Slot -> hue map is IDENTICAL in both themes. --- */
+  --chart-1: #2d9a2c;  /* 4.82:1 on --card, --chart-foreground 5.15:1 on it; L* 55.94 C* 69.78 h 138.00 */
+  --chart-2: #53bcff;  /* 8.36:1 on --card, --chart-foreground 8.94:1 on it; L* 72.91 C* 43.02 h 256.85 */
+  --chart-3: #a87c71;  /* 4.83:1 on --card, --chart-foreground 5.17:1 on it; L* 56.02 C* 20.07 h 39.28; vs --primary dE 12.42 */
+  --chart-4: #986ada;  /* 4.52:1 on --card, --chart-foreground 4.83:1 on it; L* 54.08 C* 65.52 h 308.99 */
+  --chart-5: #fecc01;  /* 11.57:1 on --card, --chart-foreground 12.37:1 on it; L* 84.10 C* 85.08 h 87.81. dE 6.53 from solid --warning - CONTAINED: solid --warning has zero consumers */
+  --chart-6: #ab6798;  /* 4.28:1 on --card, --chart-foreground 4.58:1 on it; L* 52.54 C* 37.69 h 336.32; vs --destructive/--delta-down dE 12.82 */
+  --chart-grid: #3a2e20;  /* = --border. 1.33:1 on --card - decorative structure, deliberately below the axis text */
+  --chart-axis: #b3a38c;  /* = --muted-foreground. 7.13:1 on --card, 7.62:1 on --background - PASSES as label TEXT */
+  --chart-foreground: #16110c;  /* = --background per SPEC 11, replacing the out-of-palette #111814. In-body label, worst of the six slots: 4.58:1 */
 
-  --veg: #5fbf74;
-  --nonveg: #f0837a;
+  /* --- sidebar (re-themes separately; --primary alone does nothing here) --- */
+  --sidebar: #1b150e;
+  --sidebar-foreground: #e8dcc8;  /* 13.36:1 on --sidebar */
+  --sidebar-primary: #c4ac95;  /* tracks --primary; vs --brand dE 12.04 (the identity square sits beside it) */
+  --sidebar-primary-foreground: #241a10;  /* 7.87:1 on --sidebar-primary */
+  --sidebar-accent: #2c2318;
+  --sidebar-accent-foreground: #f4eadb;  /* 12.96:1 on --sidebar-accent */
+  --sidebar-border: #463825;
+  --sidebar-ring: #f5e3c8;  /* 14.40:1 on --sidebar */
 
-  /* Chart palette — DARK (surface #1f1a15, the dark card background).
-   *
-   * SELECTED for the dark surface, not an automatic flip of the light values: each slot
-   * is stepped into the dark band individually. The SLOT->HUE MAPPING IS IDENTICAL to
-   * light — series 3 is plum in both themes — so a chart does not silently recolour when
-   * the user toggles the theme.
-   *
-   * All six clear 3:1 here, chroma floor PASS, worst adjacent deuteranopia ΔE 44.6
-   * (first three 37.8). Note chart-5 is NOT --primary's #e2a32d: a chart body in exactly
-   * the primary/ready tone reads as an interactive control. It is stepped to #e9bc57,
-   * ΔE 14.5 clear of it, exactly as light's #b77b12 is clear of light's --ready. */
-  --chart-1: #e8705a; /* tandoori   — 5.7:1  */
-  --chart-2: #86b2d6; /* slate blue — 7.7:1  */
-  --chart-3: #c98ca6; /* plum       — 6.4:1  */
-  --chart-4: #5fc4b6; /* teal       — 8.3:1  */
-  --chart-5: #e9bc57; /* turmeric   — 9.7:1  */
-  --chart-6: #8fc06e; /* curry leaf — 8.2:1  */
-  --chart-grid: #2d2620;
-  --chart-axis: #a79a85;
-  --chart-foreground: #241c14; /* ≥5.5:1 on every dark slot */
+  /* ── 8. Shadows (dark) — the tint rule is SUSPENDED, and replaced ───────────
+     Below the ground there is nothing to tint with: rgb(36 28 19 / α) over #16110c
+     is invisible. A dark UI expresses elevation with (a) a heavier, blacker cast
+     and (b) a LIT TOP RIM, and every raised dark surface pairs them:
+     box-shadow: var(--sh-rim), var(--sh-lg). Any shadow token in here that is not
+     rgb(0 0 0 / α) — apart from the two deliberate colour blooms and the rim — is
+     a bug.
+     Geometry, type, spacing and motion are theme-INDEPENDENT and are not repeated
+     here; neither are the gradients, which are built from var() tokens and so
+     re-theme themselves. */
+  --sh-xs:    0 1px 2px          rgb(0 0 0 / .40);
+  --sh-sm:    0 2px 8px    -2px  rgb(0 0 0 / .50);
+  --sh:       0 10px 24px  -14px rgb(0 0 0 / .64);
+  --sh-lg:    0 22px 48px  -26px rgb(0 0 0 / .72);
+  --sh-xl:    0 40px 80px  -40px rgb(0 0 0 / .80);
+  --sh-brand: 0 12px 26px  -14px rgb(196 172 149 / .18);  /* dark --primary bloom */
+  --sh-ready: 0 12px 26px  -14px rgb(232 124 76 / .26);   /* dark --ready bloom   */
+  --sh-up:    0 -12px 30px -20px rgb(0 0 0 / .70);
+  --sh-rim:   inset 0 1px 0 0    rgb(244 234 219 / .07);  /* = --foreground at 7% */
+  --scrim:    rgb(0 0 0 / .62);   /* 10% black over #16110c is invisible; 62% is a
+                                     real scrim.                                */
+}
 
-  --delta-up: #6fbf8f;
-  --delta-down: #f0837a;
+/* ============================================================================
+ * MOTION — the keyframes behind the --animate-* utilities.
+ * Declared at the top level rather than inside @theme so they are emitted even
+ * when the only consumer is hand-written CSS (.rise below) rather than a
+ * utility class.
+ * ========================================================================== */
 
-  --sidebar: #1f1a15;
-  --sidebar-foreground: #f5f0e6;
-  --sidebar-primary: #e2a32d;
-  --sidebar-primary-foreground: #241c14;
-  --sidebar-accent: #2d2620;
-  --sidebar-accent-foreground: #f5f0e6;
-  --sidebar-border: #3c3429;
-  --sidebar-ring: #e2a32d;
+/* Entrance. Subtle, staggered by an inline custom property: style="--i:3". */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Loading. Opacity only — a skeleton that slides is a skeleton that reads as
+   content arriving, and it does that four times a second on a slow kitchen
+   connection. */
+@keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* The one motion that carries MEANING: an order chip advancing a step. It is
+   still redundant — the meter, the label and the fill all change too. */
+@keyframes step-advance {
+  from { transform: scale(0.94); }
+  60%  { transform: scale(1.04); }
+  to   { transform: none; }
+}
+
+/* READY, on a KDS only. BOX-SHADOW ONLY — no transform, no opacity, so it can
+   never make the text unreadable mid-pulse. Never the sole signal. */
+@keyframes ready-pulse {
+  0%, 100% { box-shadow: var(--sh-rim), var(--sh-sm); }
+  50%      { box-shadow: var(--sh-rim), var(--sh-ready); }
 }
 
 @layer base {
@@ -336,4 +777,68 @@
   html {
     @apply font-sans;
   }
+
+  /* THE TWO-RING FOCUS CONSTRUCT — the focus ring is a construct, not a colour.
+     2px core in --ring, then a 2px offset ring painted in --background. No single
+     hex clears 3:1 on every fill this product has; the pair always does. Worst
+     measured case 4.59:1 light (on the READY chip) / 7.31:1 dark. Drop the offset
+     ring and the worst case falls to 1.78:1 on --brand — the box-shadow is not
+     decoration, it is half of the mechanism.
+     It sits in @layer base so any component that already paints its own
+     box-shadow ring (the `focus-visible:ring-[3px]` recipe in input/select/
+     textarea/switch) still wins in the utilities layer; this is the floor for
+     everything that does not. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--background);
+    border-radius: var(--r-xs);
+  }
+
+  /* ── The data-density="touch" scope (law L15) ──────────────────────────────
+     The app's ambient control height is 32px — correct for the back-office
+     desktop, illegal for a floor tablet with wet hands. Operational page roots
+     (Orders, Inventory, Staff) carry data-density="touch", which lifts every
+     control in the subtree to --tap. Overview, Ask AI, Menu, Customers and
+     Billing stay at ambient density because they are read, not tapped
+     mid-service. min-height beats the h-8 utility's height without needing to
+     outrank it, which is why the enforcement is a scope and not a hope. */
+  [data-density="touch"] .btn,
+  [data-density="touch"] button,
+  [data-density="touch"] [role="button"],
+  [data-density="touch"] select,
+  [data-density="touch"] input:not([type="checkbox"]):not([type="radio"]) {
+    min-height: var(--tap);
+  }
+  [data-density="touch"] td,
+  [data-density="touch"] th {
+    padding-block: 10px;
+  }
+}
+
+@layer utilities {
+  /* The three the mockups' shell needs and Tailwind cannot express: a gradient
+     that is a background rather than a colour, a named measure, and an entrance
+     whose delay is a custom property. */
+  .bg-app { background: var(--app-bg); background-attachment: fixed; }
+  .wrap { max-width: var(--measure); margin-inline: auto; }
+  .rise {
+    animation: rise var(--dur-rise) var(--ease) both;
+    animation-delay: calc(var(--i, 0) * var(--stagger));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    /* ↑ THE ONE PEOPLE MISS. Without it .rise still holds its `from` keyframe —
+       opacity 0 — for the whole staggered delay, so a reduced-motion visitor
+       watches the page appear row by row instead of it simply being there. Any
+       stagger built on animation-delay: calc(var(--i) * Nms) MUST zero the delay
+       here. */
+  }
+  [data-density="touch"] .tile--ready { animation: none; }
 }

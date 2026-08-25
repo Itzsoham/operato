@@ -1,0 +1,2489 @@
+<!doctype html>
+<!--
+================================================================================
+  OPERATO · THEME "CREMA"  —  ORDERS & FLOOR
+  Built from the DIRECTION SPEC authored on crema-dashboard.html (v1.0).
+
+  This file OBEYS that spec. The shell, tokens, masthead, section head, card,
+  chip, button, board, meter, brew meter, ornament sprite, responsive ladder
+  and script are COPIED ACROSS VERBATIM — each mockup is standalone, so the
+  duplication is correct. Only the sidebar's active item changed (Orders) and
+  the page body is new.
+
+  ------------------------------------------------------------------------------
+  SPEC DELTA — what this screen ADDS to the contract. Carry these to Menu,
+  Inventory, Staff, Customers, Ask AI and Billing.
+  ------------------------------------------------------------------------------
+
+  D1 · THE FLOOR LADDER (a second five-step sequence, alongside 5.9's ticket
+       ladder). A table is not an order, so it needs its own positions. Six of
+       them, encoded with the SAME .brew meter so a barista learns one glyph:
+         Free        step 0   chip--mute   meter all dim, tile is DASHED
+         Seated      step 1   chip--ok
+         Ordered     step 2   chip--work
+         On the pass step 3   chip--ready  (the one solid chip — unchanged)
+         Served      step 4   chip--ok
+         Bill asked  step 5   chip--warn
+       Seated and Served share the sage chip. That is deliberate and safe:
+       colour is never the carrier here — the WORD and the STEP COUNT are, and
+       both are printed on every tile ("Ordered · step 2 of 5").
+       RESERVED sits OUTSIDE the ladder, exactly as CANCELLED does on the
+       ticket ladder: no meter, chip--mute, and the tile prints the hold time.
+
+  D2 · THE LEGEND ROW. Any screen that ships a state ladder must print the
+       ladder once, in full, as a legend under the section head: glyph + word +
+       step. A ladder read across a room is only readable if it was taught
+       once. Hairline top and bottom, no card.
+
+  D3 · THE STAGE BOARD. The lifecycle overview: five stage columns separated
+       by single hairlines, each carrying a step square, the stage word, a
+       --metric-sm count and its ticket stubs. It is the Orders screen's
+       equivalent of the Overview's KPI row and it replaces it — an Orders
+       screen must not open with four generic tiles.
+
+  D4 · THE DOCKED SHEET, NOT A MODAL. New ticket opens as a 420px panel docked
+       to the right that SHRINKS the main column (padding-right) at >=1280
+       rather than covering it. A barista rings a ticket while watching the
+       pass; a modal that hides the pass is a worse tool. Below 1280 it becomes
+       an overlay with a scrim and role="dialog". The sheet head takes ONE
+       hairline, NOT the counter rule — 5.1 reserves the three-hairline edge
+       for the masthead and this file does not spend it twice.
+
+  D5 · THE TRAIL. The expanded order detail carries a vertical timeline: a 1px
+       rail with 10px SQUARE nodes (Crema is rectangular). Done nodes are
+       espresso-filled, the live node is caramel-filled with a 3px ring, future
+       nodes are hollow on --line-strong. Times are tabular. The trail is the
+       only place in the theme where a rail is drawn.
+
+  D6 · SKELETON. Loading rows are --surface-2 blocks at --r-xs with a slow
+       1.6s warm sweep (--surface-3), on a container with aria-busy="true" and
+       a visually-hidden "Loading" string. The sweep dies under
+       prefers-reduced-motion, leaving flat blocks.
+
+  D7 · EMPTY. A dashed --line-strong frame at --r, transparent fill, a 22px
+       --ink-soft icon, one sentence of --ink-soft, no illustration and no
+       button unless there is genuinely an action. Same frame as .pass-more on
+       the Overview, so the theme has one dashed object, not two.
+
+  D8 · THE SEGMENT. A scope switcher: a hairline group of 44px rectangles, the
+       active one a ceramic card with a 3px espresso bar on its BOTTOM inside
+       edge — the sidebar's active-item move, rotated. Never a pill.
+
+  D9 · WAIT TIME IS A NUMBER, NEVER A COLOUR ALONE. Anything ageing prints its
+       minutes in tabular figures next to the word "min". Past 10 minutes that
+       figure goes --warn-fg and 700, AND the ticket's own row prints a
+       --warn-bg banner saying WHY it is late. A red tile that does not say why
+       is not an alert, it is a decoration.
+
+  D10 · THE CHART RAMP LIGHTENS ON AN ESPRESSO CARD, for exactly the reason
+       1.7 lightens the up-green there: --c-1/--c-2/--c-3 are authored for
+       paper and go muddy on #231810. On a dark card the three categorical
+       slots become --crema #D9A566 / #A8C09E / #B7A18B, in the same FIXED
+       slot order. They are fills, not text, and each is legended with its
+       own printed rupee figure so the bar is never the only statement.
+
+  D11 · THE BOARD'S RANK SQUARE IS A SLOT, not a rank. 5.7 fixes its form
+       (24px, --r-xs, tabular) but not its content. In a BILL it carries the
+       line QUANTITY; in a settled list it carries the ticket's last two
+       digits; on a voided row it carries a cross and the row goes struck,
+       muted and word-labelled Void. The board stays one component.
+
+  This screen's ONE espresso card is "Open on the board" (spec 5.3 names it).
+  Its ONE pill is the masthead eyebrow. Its ornament budget is spent on the
+  masthead ring, one steam, the KPI-corner ring on the espresso card, and the
+  legal FSSAI glyph. Nothing else.
+
+  THE MOMENT: Tuesday 25 August 2026, 11:44 — two minutes after the Overview,
+  so the two files are the same shift and any drift between them is honest.
+================================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operato — Orders &amp; Floor · Crema Coffee Roasters</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS — the full Crema contract, declared here so this file stands
+   alone when opened straight off disk.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* raw cues */
+  --espresso:#2A1D16; --roast:#4A3428; --caramel:#B07636; --crema:#D9A566;
+  --oat:#EFE3D2; --cream:#F8F1E6; --chalk:#FBF8F3; --sage:#8CA089;
+
+  /* surfaces */
+  --surface:#FFFDFA; --surface-2:#F4EDE3; --surface-3:#EAE0D2;
+  --wood-1:#F6EEE2; --wood-2:#F2E9DB;
+  --app-bg:linear-gradient(180deg,#FBF8F3 0%,#F8F2E9 100%);
+
+  /* borders — decorative structure, never text */
+  --line:#E7DCCB; --line-strong:#D8C9B2; --line-sage:#D3DECE; --line-dark:#412F24;
+
+  /* ink ramp */
+  --ink:#23180F; --ink-soft:#6B5747; --ink-label:#7C6753; --ink-faint:#BBAA96;
+  --ink-invert:#FBF6EE; --ink-on-dark-soft:#C9B6A2; --ink-on-dark-label:#B7A18B;
+
+  /* brand — caramel */
+  --caramel-50:#FDF5EA; --caramel-100:#F7E8D2; --caramel-200:#EDD4AC;
+  --caramel-300:#D9A566; --caramel-500:#B07636; --caramel-700:#7A4C17;
+
+  /* secondary — sage */
+  --sage-50:#F2F5F0; --sage-100:#E3EADF; --sage-200:#C9D6C3;
+  --sage-400:#8CA089; --sage-500:#6E8566; --sage-600:#52664C; --sage-700:#3C4C37;
+
+  /* semantic states {bg,fg,line} */
+  --ok-bg:#E3EADF;    --ok-fg:#3C4C37;    --ok-line:#C9D6C3;
+  --work-bg:#F1E8DD;  --work-fg:#5F4634;  --work-line:#DECFBD;
+  --ready-bg:#D9A566; --ready-fg:#2A1D16;
+  --warn-bg:#FBEBDC;  --warn-fg:#96501B;  --warn-line:#E9C7A4;
+  --bad-bg:#F9E7E3;   --bad-fg:#8B3626;   --bad-line:#E7C6BC;
+  --mute-bg:#F4EDE3;  --mute-fg:#6B5747;
+  --up:#52664C; --down:#8B3626; --flat:#6B5747;
+
+  /* FSSAI — legally fixed, not themeable */
+  --veg:#1A7F3C; --nonveg:#8B1E1E;
+
+  /* charts */
+  --c-1:#B07636; --c-2:#6E8566; --c-3:#6B5747; --c-grid:#EADFCE;
+
+  /* type */
+  --font-serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-num:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --t-body:400 14px/1.62 var(--font-sans);
+  --t-small:400 12.5px/1.55 var(--font-sans);
+  --t-micro:500 11px/1.45 var(--font-sans);
+  --t-label:600 10.5px/1.4 var(--font-sans);
+  --label-track:.18em;
+
+  /* radii */
+  --r-xs:4px; --r-sm:8px; --r:12px; --r-md:16px; --r-lg:20px; --r-pill:999px;
+  --r-chip:6px; --r-btn:10px;
+
+  /* shadow — warm, wide, faint */
+  --sh-xs:0 1px 2px rgba(42,29,22,.04);
+  --sh-sm:0 2px 6px -2px rgba(42,29,22,.06);
+  --sh:0 10px 30px -18px rgba(42,29,22,.22);
+  --sh-lg:0 26px 60px -34px rgba(42,29,22,.28);
+  --sh-dark:0 18px 40px -22px rgba(42,29,22,.45);
+
+  /* spacing + shell */
+  --gap:14px; --gap-lg:22px; --pad-card:22px;
+  --pad-page:clamp(16px,2.6vw,34px);
+  --sec-gap:clamp(34px,4.4vw,60px);
+  --tap:44px; --sidebar:268px; --rail:78px; --wrap:1240px;
+
+  /* motion */
+  --ease:cubic-bezier(.22,1,.36,1); --dur:.22s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · RESET
+   ══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink);
+  background:var(--app-bg); background-attachment:fixed;
+  min-height:100dvh; -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--caramel-700);outline-offset:2px;border-radius:var(--r-xs)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* entrance — subtler than a stock stagger, on purpose. Crema does not bounce. */
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rise{animation:rise .5s var(--ease) both;animation-delay:calc(var(--i,0) * 60ms)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · PRIMITIVES
+   ══════════════════════════════════════════════════════════════════════════ */
+.label{
+  font:var(--t-label); letter-spacing:var(--label-track);
+  text-transform:uppercase; color:var(--ink-label);
+}
+.metric{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums;
+  font-weight:300; font-size:clamp(30px,3.4vw,44px); line-height:1.05;
+  letter-spacing:-.03em; color:var(--ink); white-space:nowrap;
+}
+.metric-sm{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums;
+  font-weight:300; font-size:clamp(21px,2.2vw,27px); line-height:1.1;
+  letter-spacing:-.02em; color:var(--ink); white-space:nowrap;
+}
+.cur{font-size:.58em;font-weight:400;color:var(--ink-soft);margin-right:3px;letter-spacing:0}
+
+.card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:var(--pad-card); box-shadow:var(--sh);
+}
+.card--oat{background:#FDF8F0}
+.card--sage{background:var(--sage-50);border-color:var(--line-sage)}
+.card--caramel{background:var(--caramel-50);border-color:var(--caramel-200)}
+.card--espresso{
+  background:linear-gradient(155deg,#33241B,#231810);
+  border-color:var(--line-dark); box-shadow:var(--sh-dark); color:var(--ink-invert);
+}
+.card--espresso .label{color:var(--ink-on-dark-label)}
+.card--espresso .metric,.card--espresso .metric-sm{color:var(--ink-invert)}
+.card--espresso .cur{color:var(--ink-on-dark-soft)}
+
+.card__title{
+  font-family:var(--font-serif); font-weight:400;
+  font-size:clamp(17px,1.6vw,20px); line-height:1.25; color:var(--ink);
+}
+.card__sub{font:var(--t-small);color:var(--ink-soft);margin-top:3px}
+.card__head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.card__head .card__act{margin-left:auto}
+
+/* 5.5 THE CHIP — a jar label. Square dot. 6px radius. Never a pill. */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:26px;padding:4px 9px;border-radius:var(--r-chip);
+  border:1px solid transparent;
+  font:600 10.5px/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";width:6px;height:6px;background:currentColor;opacity:.8;flex:0 0 auto}
+.chip--ok{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-line)}
+.chip--work{background:var(--work-bg);color:var(--work-fg);border-color:var(--work-line)}
+.chip--warn{background:var(--warn-bg);color:var(--warn-fg);border-color:var(--warn-line)}
+.chip--bad{background:var(--bad-bg);color:var(--bad-fg);border-color:var(--bad-line)}
+.chip--mute{background:var(--mute-bg);color:var(--mute-fg);border-color:var(--line)}
+/* the ONE solid chip in the whole system */
+.chip--ready{background:var(--ready-bg);color:var(--ready-fg);border-color:transparent;font-weight:700}
+.chip--ready::before{opacity:1}
+
+/* 5.6 THE BUTTON — rectangles, 46px, never a pill */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:46px;padding:0 20px;border-radius:var(--r-btn);
+  font:600 13.5px/1 var(--font-sans);
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),
+             background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.btn svg{width:18px;height:18px;flex:0 0 auto}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--espresso);color:var(--ink-invert);box-shadow:var(--sh-dark)}
+.btn--primary:hover{background:#3A2A20}
+.btn--ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--sh-xs)}
+.btn--ghost:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.btn--quiet{background:transparent;color:var(--ink-soft)}
+.btn--quiet:hover{background:var(--surface-2);color:var(--ink)}
+.btn--warn{background:var(--surface);color:var(--warn-fg);border:1px solid var(--warn-line);box-shadow:var(--sh-xs)}
+.btn--warn:hover{background:#FFF7EE}
+.btn--sm{min-height:40px;padding:0 14px;font-size:12.5px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+
+/* FSSAI mark — 14px square outline + Ø6 filled dot. The colours are legal. */
+.fssai{width:14px;height:14px;flex:0 0 auto}
+.fssai--veg{color:var(--veg)}
+.fssai--nonveg{color:var(--nonveg)}
+
+/* 5.8 THE HAIRLINE METER — 3px, never fatter */
+.meter{height:3px;border-radius:var(--r-xs);background:var(--surface-3);overflow:hidden;display:block}
+.meter>i{display:block;height:100%;border-radius:var(--r-xs);background:var(--c-1)}
+.meter--ok>i{background:var(--sage-500)}
+.meter--warn>i{background:var(--warn-fg)}
+.meter--seg{display:flex;gap:2px;background:none;overflow:visible}
+.meter--seg>i{border-radius:var(--r-xs)}
+
+/* 5.9 THE BREW METER — 5 bars, redundant with the chip on purpose */
+.brew{display:inline-flex;gap:3px;align-items:flex-end;color:var(--ink-soft)}
+.brew>i{width:3px;height:10px;border-radius:var(--r-xs);background:currentColor;opacity:.22}
+.brew>i.on{opacity:1}
+
+/* delta — arrow glyph AND signed number; colour never carries it alone */
+.delta{display:inline-flex;align-items:center;gap:5px;font:600 12px/1 var(--font-sans);font-variant-numeric:tabular-nums}
+.delta svg{width:13px;height:13px}
+.delta--up{color:var(--up)} .delta--down{color:var(--down)} .delta--flat{color:var(--flat)}
+.card--espresso .delta--up{color:#A8C09E}
+.delta em{font-style:normal;font-weight:500;color:var(--ink-soft)}
+.card--espresso .delta em{color:var(--ink-on-dark-soft)}
+
+/* avatar — initials in a rounded SQUARE, because Crema is rectangular */
+.av{
+  width:36px;height:36px;flex:0 0 auto;border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  font:600 12px/1 var(--font-sans);letter-spacing:.02em;
+  background:var(--caramel-100);color:var(--caramel-700);
+  box-shadow:inset 0 0 0 1px var(--caramel-200);
+}
+.av--sage{background:var(--sage-100);color:var(--sage-700);box-shadow:inset 0 0 0 1px var(--sage-200)}
+.av--ink{background:var(--espresso);color:var(--ink-invert);box-shadow:none}
+.av--sm{width:30px;height:30px;font-size:11px;border-radius:var(--r-xs)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE — the reference convention, in Crema's rectangles
+   ══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:12px;right:12px;z-index:99;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 12px;border-radius:var(--r-chip);
+  background:var(--surface);border:1px solid var(--line-strong);
+  box-shadow:var(--sh-sm);
+  font:700 10.5px/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--caramel-700);pointer-events:none;
+}
+.variant-badge svg{width:14px;height:14px;color:var(--caramel-500)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · SHELL — sidebar >=1280 · icon rail 1024–1279 · drawer + tabbar <=1023
+   ══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+/* THE SIDEBAR IS A PANEL OF PALE WOOD — no glass, no backdrop-filter. */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;
+  display:flex;flex-direction:column;gap:20px;
+  padding:22px 16px 18px;
+  background:linear-gradient(180deg,var(--wood-1),var(--wood-2));
+  border-right:1px solid var(--line);
+  overflow-y:auto;scrollbar-width:none;z-index:50;
+}
+.sidebar::-webkit-scrollbar{display:none}
+
+.brand{display:flex;align-items:center;gap:12px;padding:2px 4px}
+.brand-logo{
+  width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r);background:var(--espresso);color:var(--crema);
+  box-shadow:var(--sh-dark);
+}
+.brand-logo svg{width:22px;height:22px}
+.brand-text{min-width:0;display:block}
+.brand-name{
+  display:block;font-family:var(--font-serif);font-weight:400;
+  font-size:19px;line-height:1.1;letter-spacing:.005em;color:var(--ink);white-space:nowrap;
+}
+.brand-tag{
+  display:block;margin-top:3px;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);white-space:nowrap;
+}
+
+/* the business switcher */
+.switcher{
+  width:100%;display:flex;align-items:center;gap:11px;
+  min-height:58px;padding:9px 11px;
+  border-radius:var(--r);border:1px solid var(--line);
+  background:var(--surface);box-shadow:var(--sh-xs);text-align:left;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.switcher:hover{background:#FFFFFF;border-color:var(--line-strong)}
+.switcher-ico{
+  width:32px;height:32px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--caramel-100);color:var(--caramel-700);
+  box-shadow:inset 0 0 0 1px var(--caramel-200);
+}
+.switcher-ico svg{width:17px;height:17px}
+.switcher-meta{min-width:0;flex:1;display:block}
+.switcher-name{display:block;font:600 13px/1.25 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.switcher-role{display:block;margin-top:2px;font:var(--t-label);
+  letter-spacing:var(--label-track);text-transform:uppercase;color:var(--ink-label)}
+.switcher>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+
+.side-cta{width:100%}
+
+.nav-group+.nav-group{margin-top:20px}
+.nav-group>.label{display:block;padding:0 12px 9px;color:var(--ink-label)}
+.nav-list{list-style:none;display:grid;gap:2px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-height:var(--tap);padding:0 12px;border-radius:var(--r-sm);
+  color:var(--ink-soft);font:600 13.5px/1 var(--font-sans);
+  border:1px solid transparent;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:19px;height:19px;flex:0 0 auto;opacity:.9}
+.nav-link:hover{background:var(--surface-2);color:var(--ink)}
+/* the ACTIVE item is a ceramic card lifted off the wood, with a 3px espresso
+   bar flush to its left inside edge */
+.nav-link[aria-current="page"]{
+  background:var(--surface);border-color:var(--line);box-shadow:var(--sh-sm);
+  color:var(--ink);padding-left:18px;
+}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;
+  border-radius:0 var(--r-xs) var(--r-xs) 0;background:var(--espresso);
+}
+.nav-link[aria-current="page"] svg{color:var(--caramel-700);opacity:1}
+.nav-badge{
+  margin-left:auto;font:600 10.5px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  background:var(--caramel-100);color:var(--caramel-700);
+  box-shadow:inset 0 0 0 1px var(--caramel-200);
+  padding:4px 7px;border-radius:var(--r-xs);
+}
+.nav-badge--warn{background:var(--warn-bg);color:var(--warn-fg);box-shadow:inset 0 0 0 1px var(--warn-line)}
+
+.side-foot{margin-top:auto;padding-top:16px;position:relative}
+.side-foot::before{content:"";display:block;height:1px;background:var(--line);margin-bottom:14px}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:11px;
+  min-height:var(--tap);padding:8px 10px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-xs);
+  text-align:left;transition:background var(--dur) var(--ease);
+}
+.user-btn:hover{background:#FFFFFF}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:600 12.5px/1.25 var(--font-sans);color:var(--ink)}
+.user-mail{display:block;margin-top:2px;font:400 11px/1.3 var(--font-sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* --ink-soft, NOT --ink-faint: this chevron is the only signal that the button
+   expands a menu, so it is an affordance and needs 3:1, not an ornament. */
+.user-btn>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+.user-menu{
+  list-style:none;margin-top:6px;padding:6px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-lg);
+  display:grid;gap:2px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);
+  padding:0 10px;border-radius:var(--r-sm);font:600 12.5px/1 var(--font-sans);color:var(--ink-soft)}
+.user-menu a:hover{background:var(--surface-2);color:var(--ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu[hidden]{display:none!important}
+
+.main{min-width:0;padding-bottom:52px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · THE MASTHEAD (5.1) — full-bleed band, the ring, the steam,
+   and the three-hairline COUNTER RULE at its foot.
+   ══════════════════════════════════════════════════════════════════════════ */
+.mast{
+  position:relative;overflow:hidden;isolation:isolate;
+  background:linear-gradient(158deg,var(--oat) 0%,var(--cream) 44%,var(--chalk) 100%);
+  padding:clamp(20px,2.8vw,34px) var(--pad-page) clamp(30px,3.4vw,46px);
+}
+/* THE COUNTER RULE — three stacked hairlines, 3px apart. The theme's edge. */
+.mast::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:10px;pointer-events:none;
+  background:repeating-linear-gradient(180deg,var(--line) 0 1px,transparent 1px 4px);
+}
+/* THE RING — the mark a wet cup leaves on paper. Decorative, aria-hidden. */
+.mast-ring{
+  position:absolute;top:-150px;right:-110px;width:460px;height:460px;
+  color:var(--caramel-300);opacity:.30;pointer-events:none;z-index:-1;
+}
+.mast-in{
+  position:relative;max-width:var(--wrap);margin-inline:auto;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:clamp(18px,3vw,44px);flex-wrap:wrap;
+}
+.mast-l{min-width:0;flex:1 1 420px}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  min-height:34px;padding:6px 14px;
+  border-radius:var(--r-pill); /* the theme's ONE pill */
+  background:rgba(255,253,250,.72);border:1px solid var(--line);
+  box-shadow:var(--sh-xs);
+  font:600 11.5px/1.3 var(--font-sans);color:var(--ink);white-space:nowrap;
+}
+.eyebrow em{font-style:normal;font-weight:500;color:var(--ink-soft)}
+.eyebrow .bar{width:1px;height:14px;background:var(--line-strong);flex:0 0 auto}
+.eyebrow .live{display:inline-flex;align-items:center;gap:6px;color:var(--sage-600);font-weight:600}
+.eyebrow .live i{width:6px;height:6px;background:currentColor;flex:0 0 auto}
+
+/* THE STEAM — three rising curls. Once per screen, above the greeting. */
+.steam{width:78px;height:34px;color:var(--sage-400);opacity:.55;margin:16px 0 -2px 3px}
+
+.greeting{
+  font-family:var(--font-serif);font-weight:300;
+  font-size:clamp(34px,5.2vw,58px);line-height:1.02;letter-spacing:-.015em;
+  color:var(--ink);margin-top:6px;
+}
+.greeting em{font-style:italic;color:var(--caramel-700);font-weight:400}
+/* Every string in the masthead is --ink, not --ink-soft: the band composites
+   --oat under the ring, where --ink-soft has no headroom over 4.5:1. */
+.mast-date{
+  margin-top:14px;font-family:var(--font-serif);font-style:italic;
+  font-size:clamp(15px,1.6vw,18px);line-height:1.4;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.mast-line{
+  margin-top:9px;font-size:clamp(13.5px,1.3vw,15px);line-height:1.62;
+  color:var(--ink);max-width:52ch;font-variant-numeric:tabular-nums;
+}
+.mast-line b{font-weight:700}
+.mast-line .warn{color:var(--warn-fg);font-weight:600}
+.mast-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+/* THE AT-A-GLANCE PANEL — the only card allowed inside a masthead */
+.glance{
+  flex:0 0 auto;width:min(300px,100%);position:relative;overflow:hidden;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--sh);padding:6px 20px;
+}
+.glance-ring{position:absolute;top:-46px;right:-46px;width:132px;height:132px;
+  color:var(--sage-400);opacity:.5;pointer-events:none}
+.glance-row{
+  position:relative;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:15px 0;
+}
+.glance-row+.glance-row{border-top:1px solid var(--line)}
+.glance-row .label{display:block}
+.glance-row small{display:block;margin-top:4px;font:var(--t-small);color:var(--ink-soft)}
+.glance-val{text-align:right;flex:0 0 auto}
+.glance-val b{display:block;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:26px;line-height:1.05;letter-spacing:-.02em;color:var(--ink)}
+.glance-val .of{font-size:.55em;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+
+.hamburger{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · PAGE COLUMN + SECTION HEAD (5.2 — "the printed menu rule")
+   ══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--wrap);margin-inline:auto;padding:0 var(--pad-page)}
+.sec{margin-top:var(--sec-gap)}
+.sec--tight{margin-top:clamp(18px,2vw,26px)}
+.sec__head{display:flex;align-items:flex-end;gap:16px;margin-bottom:clamp(16px,2vw,24px);flex-wrap:wrap}
+.sec__titles{min-width:0}
+.sec__titles .label{display:block;margin-bottom:7px}
+.sec__title{
+  font-family:var(--font-serif);font-weight:400;
+  font-size:clamp(22px,2.4vw,30px);line-height:1.15;letter-spacing:-.01em;color:var(--ink);
+}
+/* THE DOUBLE HAIRLINE that runs to the far right edge */
+.sec__rule{
+  flex:1 1 60px;height:3px;min-width:40px;margin-bottom:10px;
+  background:linear-gradient(180deg,var(--line) 0 1px,transparent 1px 2px,var(--line) 2px 3px);
+}
+.sec__act{flex:0 0 auto;display:flex;align-items:center;gap:9px;margin-bottom:2px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · KPI TILES — corner ring, light oversized figure, a foot visual each
+   ══════════════════════════════════════════════════════════════════════════ */
+.kpis{display:grid;gap:var(--gap);grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:1000px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{position:relative;overflow:hidden;min-height:212px;display:flex;flex-direction:column;gap:8px}
+.kpi-ring{position:absolute;top:-46px;right:-46px;width:132px;height:132px;
+  opacity:.5;pointer-events:none;color:var(--caramel-300)}
+.kpi--sage .kpi-ring{color:var(--sage-400)}
+.kpi--espresso .kpi-ring{color:var(--crema);opacity:.34}
+.kpi .label{padding-right:52px}
+.kpi__val{margin-top:4px}
+.kpi__delta{margin-top:2px}
+.kpi__foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.card--espresso .kpi__foot{border-top-color:var(--line-dark)}
+.kpi__scale{
+  display:flex;justify-content:space-between;gap:8px;margin-top:8px;
+  font:600 10.5px/1.2 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-soft);
+}
+.card--espresso .kpi__scale{color:var(--ink-on-dark-soft)}
+.kpi__foot-label{display:block;margin-bottom:9px;font:var(--t-label);
+  letter-spacing:var(--label-track);text-transform:uppercase;color:var(--ink-label)}
+.card--espresso .kpi__foot-label{color:var(--ink-on-dark-label)}
+
+/* the hour-of-day column strip inside the Tickets tile */
+.hours{display:flex;align-items:flex-end;gap:6px;height:34px}
+.hours i{flex:1;background:var(--caramel-300);border-radius:var(--r-xs) var(--r-xs) 0 0;min-height:3px}
+.hours i.now{background:var(--caramel-500)}
+.hours i.ahead{background:var(--surface-3)}
+
+/* An espresso card needs its own inset tracks — a --surface-3 track on a dark
+   card reads as a bar that is already full. */
+.card--espresso .meter{background:rgba(251,246,238,.16)}
+.card--espresso .meter>i{background:var(--crema)}
+.card--espresso .range{background:rgba(251,246,238,.16)}
+.card--espresso .hours i.ahead{background:rgba(251,246,238,.16)}
+.card--espresso .brew{color:var(--ink-on-dark-soft)}
+
+/* the ticket-range rule inside the Average tile */
+.range{position:relative;height:3px;border-radius:var(--r-xs);background:var(--surface-3)}
+.range i{position:absolute;top:-3px;width:2px;height:9px;background:var(--sage-500);border-radius:1px}
+.range i.mark{background:var(--espresso);width:3px;height:13px;top:-5px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · THE REORDER RAIL — the "needs attention" module
+   ══════════════════════════════════════════════════════════════════════════ */
+.alert{
+  background:var(--warn-bg);border:1px solid var(--warn-line);
+  border-radius:var(--r-lg);box-shadow:var(--sh);padding:var(--pad-card);
+}
+.alert__top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.alert__ico{
+  width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--surface);color:var(--warn-fg);
+  box-shadow:inset 0 0 0 1px var(--warn-line);
+}
+.alert__ico svg{width:20px;height:20px}
+.alert__txt{min-width:0;flex:1 1 260px}
+.alert__txt h3{font-family:var(--font-serif);font-weight:400;font-size:19px;line-height:1.25;color:var(--ink)}
+.alert__txt p{margin-top:4px;font:var(--t-small);color:var(--warn-fg)}
+.alert__act{flex:0 0 auto;margin-left:auto}
+.reorders{
+  list-style:none;margin-top:18px;display:grid;gap:2px;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+}
+.reorder{
+  display:grid;gap:8px;padding:14px 16px;min-height:96px;
+  background:var(--surface);border:1px solid var(--warn-line);border-radius:var(--r);
+}
+.reorder__top{display:flex;align-items:center;gap:10px}
+.reorder__name{flex:1;min-width:0;font:600 13.5px/1.3 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reorder__left{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:300;
+  font-size:20px;letter-spacing:-.02em;color:var(--ink);
+}
+.reorder__left small{font-size:.6em;font-weight:500;color:var(--ink-soft);margin-left:2px}
+.reorder__meta{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.reorder__meta b{color:var(--warn-fg);font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   10 · THE TREND CHART
+   ══════════════════════════════════════════════════════════════════════════ */
+.duo{display:grid;gap:var(--gap-lg);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1080px){.duo{grid-template-columns:minmax(0,1.62fr) minmax(0,1fr)}}
+.chart-wrap{margin:18px -6px 0;padding:0 6px}
+.chart-wrap svg{min-width:760px;width:100%;height:auto;display:block}
+.chart-foot{
+  display:flex;align-items:center;gap:12px 26px;flex-wrap:wrap;
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+}
+.chart-foot .lg{display:inline-flex;align-items:center;gap:7px;font:var(--t-small);color:var(--ink-soft)}
+.chart-foot .lg i{width:10px;height:10px;border-radius:var(--r-xs);display:block;flex:0 0 auto}
+.chart-foot .stat{display:block}
+.chart-foot .stat span{display:block;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);margin-bottom:4px}
+.chart-foot .stat b{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
+.chart-foot .stat b em{font-style:normal;font-size:.62em;font-weight:500;color:var(--ink-soft);margin-left:5px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11 · THE DOT-LEADER BOARD (5.7) — the chalkboard menu row
+   ══════════════════════════════════════════════════════════════════════════ */
+.board{list-style:none;margin-top:14px}
+.board li{display:flex;align-items:baseline;gap:10px;min-height:52px;padding:9px 0}
+.board li+li{border-top:1px solid var(--line)}
+.board .rank{
+  width:24px;height:24px;flex:0 0 auto;display:grid;place-items:center;
+  align-self:center;border-radius:var(--r-xs);
+  font:600 11px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  background:var(--surface-2);color:var(--ink-soft);box-shadow:inset 0 0 0 1px var(--line);
+}
+.board li:first-child .rank{background:var(--caramel-300);color:var(--espresso);box-shadow:none;font-weight:700}
+.board .fssai{align-self:center}
+.board .name{font:600 13.5px/1.35 var(--font-sans);color:var(--ink);flex:0 1 auto;min-width:0}
+.board .leader{flex:1 1 12px;min-width:12px;border-bottom:1px dotted var(--line-strong);
+  transform:translateY(-5px);align-self:baseline}
+.board .n{flex:0 0 auto;font:500 12px/1.2 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.board .amt{flex:0 0 auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:16px;letter-spacing:-.02em;color:var(--ink);min-width:66px;text-align:right}
+.board .amt .cur{font-size:.66em}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12 · THE REGULARS CARD (known-name share of takings)
+   ══════════════════════════════════════════════════════════════════════════ */
+.share{margin-top:16px}
+.share .metric{display:block}
+.share p{margin-top:12px;font:var(--t-small);color:var(--ink-soft);text-wrap:balance}
+.share p b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.share .meter{margin-top:14px}
+.share .kpi__scale{margin-top:8px}
+.regulars{list-style:none;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:grid;gap:2px}
+.regulars li a{display:flex;align-items:center;gap:11px;min-height:var(--tap);
+  padding:0 8px;border-radius:var(--r-sm);transition:background var(--dur) var(--ease)}
+.regulars li a:hover{background:var(--surface-2)}
+.regulars .who{flex:1;min-width:0;font:600 12.5px/1.3 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.regulars .who small{display:block;margin-top:1px;font:400 11px/1.3 var(--font-sans);color:var(--ink-soft)}
+.regulars .n{flex:0 0 auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:400;font-size:13px;color:var(--ink)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   13 · THE PASS — the live ticket strip
+   ══════════════════════════════════════════════════════════════════════════ */
+.pass{display:flex;gap:var(--gap);padding:4px 4px 14px;margin:0 -4px}
+.ticket{
+  flex:0 0 274px;display:flex;flex-direction:column;gap:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh-sm);padding:16px;min-height:196px;
+}
+.ticket--live{border-color:var(--caramel-200);box-shadow:var(--sh)}
+.ticket__top{display:flex;align-items:center;gap:10px}
+.ticket__no{font:600 12px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--caramel-700);letter-spacing:.04em}
+.ticket__time{margin-left:auto;font:500 11.5px/1 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.ticket__who{display:flex;align-items:center;gap:9px}
+.ticket__who b{font:600 13.5px/1.3 var(--font-sans);color:var(--ink);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket__who .tag{font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);margin-left:auto;flex:0 0 auto}
+.ticket__items{list-style:none;display:grid;gap:5px}
+.ticket__items li{display:flex;align-items:center;gap:7px;font:var(--t-small);color:var(--ink-soft)}
+.ticket__items li b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.ticket__items li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket__foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:10px}
+.ticket__total{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+.ticket__total .cur{font-size:.6em}
+.ticket__foot .brew{margin-left:auto}
+.pass-more{
+  flex:0 0 148px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;min-height:196px;border-radius:var(--r-md);
+  border:1px dashed var(--line-strong);background:transparent;color:var(--ink-soft);
+  font:600 12.5px/1.3 var(--font-sans);text-align:center;padding:16px;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.pass-more:hover{background:var(--surface-2);color:var(--ink)}
+.pass-more svg{width:20px;height:20px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   14 · OFF-CANVAS CHROME
+   ══════════════════════════════════════════════════════════════════════════ */
+.backdrop{
+  position:fixed;inset:0;background:rgba(35,24,15,.42);z-index:45;
+  opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease);
+}
+body.nav-open .backdrop{opacity:1;pointer-events:auto}
+body.nav-open{overflow:hidden}
+.tabbar{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   15 · RESPONSIVE LADDER
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Tablet landscape 1024–1279 → the 78px icon rail */
+@media (max-width:1279px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:20px 12px 16px;align-items:center;overflow:visible;gap:16px}
+  .brand{justify-content:center;padding:2px 0}
+  .switcher{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .switcher-ico{width:26px;height:26px}
+  .switcher>svg:last-child{display:none}
+  .nav-link{justify-content:center;padding:0;width:var(--tap);margin:0 auto}
+  .nav-link[aria-current="page"]{padding-left:0}
+  .nav-link[aria-current="page"]::before{left:-1px;top:9px;bottom:9px}
+  .side-cta{width:var(--tap);padding:0}
+  .nav-badge{position:absolute;top:2px;right:-2px;padding:2px 5px;font-size:9.5px}
+  /* Labels are CLIPPED, never display:none — they are the accessible name of
+     every icon-only control in the rail. */
+  .brand-text,.nav-group>.label,.nav-link span,.side-cta span,.switcher-meta{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .nav-group+.nav-group{margin-top:14px;position:relative;padding-top:14px}
+  .nav-group+.nav-group::before{content:"";position:absolute;top:0;left:16%;right:16%;height:1px;background:var(--line)}
+  .side-foot::before{margin-bottom:12px}
+  .user-btn{width:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .user-meta,.user-btn>svg:last-child{display:none}
+  .user-menu{position:absolute;bottom:0;left:calc(100% + 10px);width:208px;margin-top:0;z-index:70}
+}
+
+/* Below 1024 → off-canvas drawer + bottom tab bar */
+@media (max-width:1023px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:282px;
+    padding:22px 16px 18px;align-items:stretch;gap:20px;
+    background:linear-gradient(180deg,var(--wood-1),var(--wood-2));
+    box-shadow:var(--sh-lg);overflow-y:auto;
+    transform:translateX(-102%);transition:transform .28s var(--ease);z-index:60;
+  }
+  body.nav-open .sidebar{transform:none}
+  .brand{justify-content:flex-start;padding:2px 4px}
+  .brand-text,.nav-group>.label,.nav-link span,.side-cta span,.switcher-meta{
+    position:static;width:auto;height:auto;margin:0;overflow:visible;clip-path:none;
+  }
+  .switcher{width:100%;min-height:58px;padding:9px 11px;justify-content:flex-start;border-radius:var(--r)}
+  .switcher-ico{width:32px;height:32px}
+  .switcher>svg:last-child{display:block}
+  .nav-link{justify-content:flex-start;padding:0 12px;width:auto}
+  .nav-link[aria-current="page"]{padding-left:18px}
+  .nav-link[aria-current="page"]::before{left:0;top:7px;bottom:7px}
+  .nav-badge{position:static;padding:4px 7px;font-size:10.5px}
+  .side-cta{width:100%;padding:0 20px}
+  .nav-group+.nav-group{position:static;padding-top:0;margin-top:20px}
+  .nav-group+.nav-group::before{content:none}
+  .user-btn{width:100%;padding:8px 10px;justify-content:flex-start;border-radius:var(--r)}
+  .user-meta{display:block}
+  .user-btn>svg:last-child{display:block}
+  .user-menu{display:grid;position:static;width:auto;margin-top:6px}
+
+  .main{padding-bottom:calc(78px + env(safe-area-inset-bottom,0px) + 24px)}
+  .hamburger{display:inline-flex}
+  .glance{width:100%}
+
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:55;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+    background:var(--surface);border-top:1px solid var(--line);
+    box-shadow:0 -10px 30px -22px rgba(42,29,22,.35);
+  }
+  .tab{
+    display:grid;place-items:center;gap:4px;min-height:var(--tap);padding:6px 2px;
+    border-radius:var(--r-sm);color:var(--ink-soft);
+    font:600 10px/1.2 var(--font-sans);
+    transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+  }
+  .tab svg{width:21px;height:21px}
+  .tab:hover{color:var(--ink);background:var(--surface-2)}
+  .tab[aria-current="page"],.tab[aria-expanded="true"]{color:var(--caramel-700);background:var(--caramel-50)}
+}
+
+/* Phone */
+@media (max-width:640px){
+  /* the fixed .variant-badge floats top-right; drop the eyebrow below it */
+  .mast{padding-top:56px}
+  .mast-in{align-items:flex-start}
+  .mast-cta{width:100%}
+  .mast-cta .btn{flex:1 1 auto}
+  .eyebrow em,.eyebrow .bar{display:none}
+  .sec__act{width:100%;margin-left:0}
+  .sec__act .btn{flex:1 1 auto}
+  .board .name{flex:1 1 auto}
+  .board .leader{display:none}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:minmax(0,1fr)}
+  .ticket{flex:0 0 248px}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   16 · ORDERS & FLOOR — screen-specific. Everything above this line is the
+   shared Crema contract, copied verbatim from the Overview.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* D8 · THE SEGMENT — the sidebar's active-item move, rotated onto a
+   horizontal scope switcher. Rectangles. Never a pill. */
+.segment{
+  display:inline-flex;gap:2px;padding:3px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);
+}
+.segment button{
+  position:relative;display:inline-flex;align-items:center;gap:8px;
+  min-height:var(--tap);padding:0 15px;border-radius:var(--r-sm);
+  font:600 12.5px/1 var(--font-sans);color:var(--ink-soft);
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.segment button:hover{color:var(--ink);background:var(--surface)}
+.segment button b{
+  font:600 11px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  padding:3px 6px;border-radius:var(--r-xs);
+  background:var(--surface-3);color:var(--ink-soft);
+}
+.segment button[aria-pressed="true"]{
+  background:var(--surface);color:var(--ink);
+  box-shadow:var(--sh-sm),inset 0 0 0 1px var(--line);
+}
+.segment button[aria-pressed="true"]::after{
+  content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;
+  border-radius:var(--r-xs) var(--r-xs) 0 0;background:var(--espresso);
+}
+.segment button[aria-pressed="true"] b{background:var(--caramel-100);color:var(--caramel-700)}
+
+/* D3 · THE STAGE BOARD + the screen's one espresso card */
+.board-row{display:grid;gap:var(--gap-lg);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1120px){.board-row{grid-template-columns:minmax(0,300px) minmax(0,1fr)}}
+
+.open-card{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:9px;min-height:246px}
+.open-card .kpi-ring{color:var(--crema);opacity:.34}
+.open-card .label{padding-right:52px}
+.open-card__val{margin-top:2px}
+.open-card__note{font:var(--t-small);color:var(--ink-on-dark-soft);max-width:30ch}
+.open-card__note b{color:var(--ink-invert);font-weight:600;font-variant-numeric:tabular-nums}
+.open-card__foot{margin-top:auto;padding-top:15px;border-top:1px solid var(--line-dark)}
+.split{display:flex;gap:2px;margin-top:9px}
+.split i{height:3px;border-radius:var(--r-xs);display:block}
+.split-key{
+  list-style:none;display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:11px;
+  font:var(--t-micro);color:var(--ink-on-dark-soft);font-variant-numeric:tabular-nums;
+}
+.split-key li{display:inline-flex;align-items:center;gap:7px}
+.split-key i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+.split-key b{color:var(--ink-invert);font-weight:600}
+
+.stages{
+  display:grid;grid-template-columns:repeat(5,minmax(126px,1fr));
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--sh);overflow:hidden;min-width:660px;
+}
+.stages-scroll{margin:0 -6px;padding:0 6px}
+.stage{position:relative;display:flex;flex-direction:column;gap:9px;padding:18px 16px 16px;min-height:246px}
+.stage+.stage{border-left:1px solid var(--line)}
+.stage__step{
+  width:24px;height:24px;display:grid;place-items:center;border-radius:var(--r-xs);
+  font:600 11px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  background:var(--surface-2);color:var(--ink-soft);box-shadow:inset 0 0 0 1px var(--line);
+}
+.stage__name{font-family:var(--font-serif);font-weight:400;font-size:17px;line-height:1.2;color:var(--ink)}
+.stage__top{display:flex;align-items:center;gap:9px}
+.stage__n{margin-top:-2px}
+.stage__n .of{font-size:.44em;font-weight:500;color:var(--ink-soft);letter-spacing:0;margin-left:4px}
+.stage__stubs{list-style:none;margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:4px}
+.stage__stubs li{
+  display:flex;align-items:center;gap:8px;min-height:22px;
+  font:500 11.5px/1.2 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink-soft);
+}
+.stage__stubs li b{font-weight:600;color:var(--ink);letter-spacing:.03em}
+.stage__stubs li span{margin-left:auto}
+.stage__stubs li.dim{color:var(--ink-label)}
+.stage--live{background:var(--caramel-50)}
+.stage--live .stage__step{background:var(--caramel-300);color:var(--espresso);box-shadow:none;font-weight:700}
+.stage--live .stage__stubs{border-top-color:var(--caramel-200)}
+.stage--done .stage__step{background:var(--surface-3);color:var(--ink-soft)}
+.stage__arrow{
+  position:absolute;top:25px;left:-8px;width:15px;height:15px;
+  color:var(--ink-faint);background:var(--surface);
+}
+.stage--live .stage__arrow{background:linear-gradient(90deg,var(--surface) 50%,var(--caramel-50) 50%)}
+
+/* D2 · THE LEGEND ROW — the ladder, printed once */
+.legend{
+  list-style:none;display:flex;flex-wrap:wrap;gap:10px 26px;
+  margin-bottom:clamp(16px,2vw,22px);padding:13px 2px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.legend li{display:inline-flex;align-items:center;gap:9px;font:var(--t-small);color:var(--ink-soft)}
+.legend b{font-weight:600;color:var(--ink)}
+.legend .step{
+  font:600 10.5px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--ink-label);letter-spacing:.06em;
+}
+
+/* THE FLOOR GRID */
+.floor{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+.tbl{
+  position:relative;display:flex;flex-direction:column;gap:11px;text-align:left;
+  min-height:190px;padding:16px 16px 14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh-sm);
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),
+             border-color var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.tbl:hover{box-shadow:var(--sh);border-color:var(--line-strong)}
+.tbl:active{transform:translateY(1px)}
+.tbl--free{background:transparent;border-style:dashed;border-color:var(--line-strong);box-shadow:none}
+.tbl--free:hover{background:var(--surface-2)}
+.tbl--pass{border-color:var(--caramel-300);box-shadow:var(--sh)}
+.tbl--bill{background:var(--caramel-50);border-color:var(--caramel-200)}
+.tbl--held{background:var(--surface-2);border-style:dashed;box-shadow:none}
+.tbl__top{display:flex;align-items:flex-start;gap:10px}
+.tbl__no{font-family:var(--font-serif);font-weight:400;font-size:21px;line-height:1.1;color:var(--ink);display:block}
+.tbl__where{display:block;margin-top:4px;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label)}
+.tbl__seats{margin-left:auto;text-align:right;flex:0 0 auto}
+.seatrow{display:flex;gap:3px;justify-content:flex-end}
+.seatrow i{width:8px;height:8px;border-radius:2px;background:var(--surface-3);display:block}
+.seatrow i.on{background:var(--roast)}
+.tbl__seatn{display:block;margin-top:5px;font:500 10.5px/1 var(--font-num);
+  font-variant-numeric:tabular-nums;color:var(--ink-soft);white-space:nowrap}
+.tbl__state{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.tbl__step{font:600 10.5px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--ink-label);letter-spacing:.06em;white-space:nowrap}
+.tbl__live{
+  margin-top:auto;padding-top:12px;border-top:1px solid var(--line);
+  display:flex;align-items:baseline;gap:9px;
+}
+.tbl--bill .tbl__live{border-top-color:var(--caramel-200)}
+.tbl--free .tbl__live,.tbl--held .tbl__live{border-top-color:var(--line-strong);border-top-style:dashed}
+.tbl__tkt{font:600 12px/1.2 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--caramel-700);letter-spacing:.04em}
+.tbl__amt{margin-left:auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
+.tbl__amt .cur{font-size:.6em}
+.tbl__who{display:flex;align-items:center;gap:8px;font:var(--t-small);color:var(--ink-soft);min-width:0}
+.tbl__who b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbl__quiet{font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.tbl__age{font:500 11px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--ink-soft);margin-left:auto;flex:0 0 auto}
+.tbl__age.late{color:var(--warn-fg);font-weight:700}
+
+/* THE FILTER BAR — a filter IS applied on this screen */
+.filters{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 14px;margin-bottom:var(--gap);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);
+}
+.filters .label{flex:0 0 auto}
+.fchip{
+  display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:5px 6px 5px 13px;
+  border-radius:var(--r-chip);background:var(--surface);border:1px solid var(--line-strong);
+  font:600 12px/1 var(--font-sans);color:var(--ink);box-shadow:var(--sh-xs);
+}
+/* a 28px glyph, but a 44px hit area — the pseudo-element carries the target */
+.fchip button{
+  position:relative;width:28px;height:28px;display:grid;place-items:center;border-radius:var(--r-xs);
+  color:var(--ink-soft);transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.fchip button::after{content:"";position:absolute;left:-8px;right:-8px;top:-8px;bottom:-8px}
+.fchip button:hover{background:var(--surface-3);color:var(--ink)}
+.fchip svg{width:13px;height:13px}
+.filters__note{margin-left:auto;font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.filters__note b{color:var(--ink);font-weight:600}
+
+/* THE TICKET LIST */
+.tkl{list-style:none;display:grid;gap:2px}
+.tk{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh-xs);
+  transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.tk:hover{box-shadow:var(--sh-sm);border-color:var(--line-strong)}
+.tk--pass{border-color:var(--caramel-300);box-shadow:var(--sh-sm)}
+.tk--open{border-color:var(--line-strong);box-shadow:var(--sh)}
+.tk__row{
+  display:grid;gap:12px 16px;align-items:center;padding:14px 16px;min-height:78px;
+  grid-template-columns:minmax(0,1fr);
+}
+@media (min-width:860px){
+  .tk__row{grid-template-columns:190px minmax(0,1fr) 110px auto}
+}
+.tk__id{display:flex;flex-direction:column;gap:7px;min-width:0}
+.tk__idtop{display:flex;align-items:center;gap:9px}
+.tk__no{font:600 13px/1 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:.04em}
+.tk__at{font:500 11.5px/1 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.tk__state{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.tk__step{font:600 10.5px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--ink-label);letter-spacing:.06em}
+.tk__where{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.tk__where .who{font:600 13.5px/1.35 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk__where .at{font:var(--t-small);color:var(--ink-soft);white-space:nowrap}
+.tk__lines{margin-top:5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.tk__lines span{display:inline-flex;align-items:center;gap:6px}
+.tk__lines b{font-weight:600;color:var(--ink-soft)}
+.tk__lines .sep{color:var(--ink-label)}
+.tk__tot{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:300;
+  font-size:21px;letter-spacing:-.02em;color:var(--ink)}
+.tk__tot .cur{font-size:.58em}
+/* a voided row on a dot-leader board — struck, muted, and word-labelled */
+.board li.void .name,.board li.void .amt{text-decoration:line-through;color:var(--ink-soft)}
+.board li.void .rank{background:var(--bad-bg);color:var(--bad-fg);box-shadow:inset 0 0 0 1px var(--bad-line)}
+.tk__act{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tk__flag{
+  display:flex;align-items:center;gap:9px;padding:9px 16px;
+  border-top:1px solid var(--warn-line);background:var(--warn-bg);
+  font:var(--t-small);color:var(--warn-fg);
+}
+.tk__flag:last-child{border-radius:0 0 15px 15px}
+.tk--open .tk__flag{border-radius:0}
+.tk__flag svg{width:16px;height:16px;flex:0 0 auto}
+.tk__flag b{font-weight:700;font-variant-numeric:tabular-nums}
+.tk--open .tk__row{border-bottom:1px solid var(--line)}
+
+/* THE EXPANDED ORDER DETAIL */
+.detail{display:grid;gap:var(--gap-lg);padding:18px 16px 17px;background:#FDF8F0;border-radius:0 0 15px 15px}
+@media (min-width:920px){.detail{grid-template-columns:minmax(0,1fr) 250px}}
+.detail__label{display:block;margin-bottom:10px}
+.detail .board{margin-top:0}
+.detail .board li{min-height:44px}
+.detail__sum{
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--line-strong);
+  display:grid;gap:7px;font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums;
+}
+.detail__sum div{display:flex;align-items:baseline;gap:10px}
+.detail__sum .dots{flex:1;border-bottom:1px dotted var(--line-strong);transform:translateY(-4px)}
+.detail__sum b{color:var(--ink);font-weight:600}
+.detail__sum .tot{padding-top:8px;border-top:1px solid var(--line);font-size:13px;color:var(--ink)}
+.detail__sum .tot strong{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:22px;letter-spacing:-.02em}
+.detail__acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+
+/* D5 · THE TRAIL — the only rail in the theme */
+.trail{list-style:none;position:relative;padding-left:22px}
+.trail::before{content:"";position:absolute;left:4px;top:9px;bottom:11px;width:1px;background:var(--line-strong)}
+.trail li{position:relative;display:grid;gap:2px;padding:0 0 15px}
+.trail li:last-child{padding-bottom:0}
+.trail li::before{
+  content:"";position:absolute;left:-22px;top:4px;width:9px;height:9px;border-radius:2px;
+  background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line-strong);
+}
+.trail li.done::before{background:var(--espresso);box-shadow:none}
+.trail li.now::before{background:var(--caramel-300);box-shadow:0 0 0 3px var(--caramel-100)}
+.trail .t{font:600 12.5px/1.3 var(--font-sans);color:var(--ink)}
+.trail li.next .t{color:var(--ink-soft)}
+.trail .m{font:400 11.5px/1.4 var(--font-sans);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.trail .m em{font-style:normal;font-weight:600;color:var(--ink)}
+
+/* D6 · SKELETON */
+@keyframes sweep{from{background-position:-180% 0}to{background-position:180% 0}}
+.skel{
+  display:block;height:11px;border-radius:var(--r-xs);background:var(--surface-2);
+  background-image:linear-gradient(90deg,rgba(234,224,210,0) 0%,var(--surface-3) 46%,rgba(234,224,210,0) 92%);
+  background-size:180% 100%;background-repeat:no-repeat;
+  animation:sweep 1.6s var(--ease) infinite;
+}
+@media (prefers-reduced-motion:reduce){.skel{animation:none;background-image:none}}
+.skel-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:9px 0;border-top:1px solid var(--line)}
+.skel-row .sq{width:24px;height:24px;border-radius:var(--r-xs);flex:0 0 auto}
+.skel-row .a{flex:1 1 auto}
+.skel-row .b{width:64px;height:13px;flex:0 0 auto}
+.skel-note{display:flex;align-items:center;gap:9px;margin-top:14px;font:var(--t-small);color:var(--ink-soft)}
+.skel-note svg{width:15px;height:15px;animation:spin 1.5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.skel-note svg{animation:none}}
+
+/* D7 · EMPTY */
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
+  text-align:center;padding:26px 20px;min-height:150px;
+  border:1px dashed var(--line-strong);border-radius:var(--r);
+}
+.empty svg{width:22px;height:22px;color:var(--ink-soft)}
+.empty p{font:var(--t-small);color:var(--ink-soft);max-width:30ch;text-wrap:balance}
+.empty p b{color:var(--ink);font-weight:600}
+
+/* THE PASS SECTION'S SIDE COLUMN */
+.pass-duo{display:grid;gap:var(--gap-lg);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1180px){.pass-duo{grid-template-columns:minmax(0,1fr) minmax(0,290px)}}
+.side-stack{display:grid;gap:var(--gap-lg);align-content:start}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   17 · D4 · THE DOCKED SHEET — new ticket
+   ══════════════════════════════════════════════════════════════════════════ */
+.sheet{
+  position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:58;
+  display:flex;flex-direction:column;
+  background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--sh-lg);
+  transform:translateX(101%);transition:transform .3s var(--ease);
+}
+body.sheet-open .sheet{transform:none}
+@media (min-width:1280px){
+  body.sheet-open .main{padding-right:420px}
+  body.sheet-open .variant-badge{right:432px}
+  .sheet{box-shadow:none}
+}
+.sheet-bd{
+  position:fixed;inset:0;background:rgba(35,24,15,.42);z-index:57;
+  opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease);
+}
+@media (max-width:1279px){
+  body.sheet-open .sheet-bd{opacity:1;pointer-events:auto}
+  /* the fixed variant badge floats top-right; drop the sheet head below it */
+  body.sheet-open .sheet__head{padding-top:54px}
+}
+.sheet__head{
+  display:flex;align-items:flex-start;gap:12px;padding:18px 20px 15px;
+  border-bottom:1px solid var(--line);flex:0 0 auto;
+  background:linear-gradient(158deg,var(--cream),var(--surface) 72%);
+}
+.sheet__head .label{display:block;margin-bottom:6px}
+.sheet__head h2{font-family:var(--font-serif);font-weight:400;font-size:23px;line-height:1.15;color:var(--ink)}
+.sheet__head p{margin-top:5px;font:var(--t-small);color:var(--ink-soft);max-width:34ch}
+.sheet__x{margin-left:auto;flex:0 0 auto}
+.sheet__body{flex:1 1 auto;overflow-y:auto;padding:18px 20px 22px;display:grid;gap:20px;align-content:start}
+.sheet__foot{
+  flex:0 0 auto;padding:15px 20px calc(15px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);background:var(--surface-2);display:grid;gap:12px;
+}
+.field{display:grid;gap:8px}
+.field>.label{display:block}
+.field__note{font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.field__note b{color:var(--ink);font-weight:600}
+.input{
+  display:flex;align-items:center;gap:10px;min-height:46px;padding:0 13px;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-btn);
+  box-shadow:var(--sh-xs);color:var(--ink-soft);
+}
+.input svg{width:17px;height:17px;flex:0 0 auto}
+.input input{
+  flex:1;min-width:0;border:0;background:none;outline:none;
+  font:400 13.5px/1 var(--font-sans);color:var(--ink);
+}
+.input input::placeholder{color:var(--ink-soft)}
+.input:focus-within{border-color:var(--caramel-700);box-shadow:0 0 0 3px var(--caramel-100)}
+.input .cur{font-size:14px;color:var(--ink-soft);margin:0}
+.input--money input{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.sel{
+  display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 13px;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-btn);
+  box-shadow:var(--sh-xs);text-align:left;font:600 13px/1.25 var(--font-sans);color:var(--ink);
+}
+.sel small{display:block;margin-top:2px;font:400 11.5px/1 var(--font-sans);color:var(--ink-soft)}
+.sel>svg:last-child{width:15px;height:15px;color:var(--ink-soft);margin-left:auto;flex:0 0 auto}
+.sel:hover{border-color:var(--ink-label)}
+.seg-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r)}
+.seg-3 button{
+  position:relative;min-height:var(--tap);padding:0 6px;border-radius:var(--r-sm);
+  font:600 12px/1.2 var(--font-sans);color:var(--ink-soft);
+}
+.seg-3 button:hover{color:var(--ink);background:var(--surface)}
+.seg-3 button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--sh-sm)}
+.seg-3 button[aria-pressed="true"]::after{
+  content:"";position:absolute;left:12px;right:12px;bottom:0;height:3px;
+  border-radius:var(--r-xs) var(--r-xs) 0 0;background:var(--espresso);
+}
+.picks{list-style:none;display:grid;gap:2px}
+.pick{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 10px;border-radius:var(--r-sm)}
+.pick:hover{background:var(--surface-2)}
+.pick--on{background:var(--caramel-50);box-shadow:inset 0 0 0 1px var(--caramel-200)}
+.pick__m{min-width:0;flex:1}
+.pick__m b{display:block;font:600 13px/1.3 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick__m small{display:block;margin-top:2px;font:400 11.5px/1.3 var(--font-sans);
+  color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.qty{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.qty button{
+  width:var(--tap);height:var(--tap);display:grid;place-items:center;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:var(--sh-xs);
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.qty button:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.qty button svg{width:16px;height:16px}
+.qty output{
+  min-width:34px;text-align:center;font:500 14px/1 var(--font-num);
+  font-variant-numeric:tabular-nums;color:var(--ink);
+}
+.pick__add{width:var(--tap);height:var(--tap);display:grid;place-items:center;border-radius:var(--r-sm);
+  border:1px dashed var(--line-strong);color:var(--ink-soft);flex:0 0 auto}
+.pick__add:hover{background:var(--surface-2);color:var(--ink);border-style:solid}
+.pick__add svg{width:17px;height:17px}
+.attached{display:flex;align-items:center;gap:10px;min-height:56px;padding:9px 11px;
+  border-radius:var(--r);background:var(--sage-50);border:1px solid var(--line-sage)}
+.attached .m{min-width:0;flex:1}
+.attached .m b{display:block;font:600 13px/1.3 var(--font-sans);color:var(--ink)}
+.attached .m small{display:block;margin-top:2px;font:400 11.5px/1.3 var(--font-sans);
+  color:var(--sage-600);font-variant-numeric:tabular-nums}
+.attached button{position:relative;width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-xs);color:var(--sage-600)}
+.attached button::after{content:"";position:absolute;left:-4px;right:-4px;top:-4px;bottom:-4px}
+.attached button:hover{background:var(--sage-100)}
+.attached button svg{width:15px;height:15px}
+.tally{display:grid;gap:7px;font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.tally div{display:flex;align-items:baseline;gap:10px}
+.tally .dots{flex:1;border-bottom:1px dotted var(--line-strong);transform:translateY(-4px)}
+.tally b{color:var(--ink);font-weight:600}
+.tally .tot{padding-top:9px;margin-top:2px;border-top:1px solid var(--line-strong);
+  font-size:13px;color:var(--ink);align-items:center}
+.tally .tot strong{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:26px;letter-spacing:-.02em;color:var(--ink)}
+.tally .tot strong .cur{font-size:.55em}
+.sheet__foot p{font:var(--t-micro);color:var(--ink-soft);text-align:center}
+
+/* RESPONSIVE ADDITIONS */
+@media (max-width:1023px){.stages{min-width:620px}}
+@media (max-width:860px){
+  .tk__row{grid-template-columns:minmax(0,1fr);align-items:flex-start}
+  .tk__act{width:100%}
+  .tk__act .btn{flex:1 1 auto}
+  .filters__note{margin-left:0;width:100%}
+}
+@media (max-width:640px){
+  .floor{grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+  .sheet{border-left:0}
+  .segment{width:100%}
+  .segment button{flex:1 1 auto;justify-content:center;padding:0 8px}
+  .legend{gap:9px 18px}
+}
+@media (max-width:430px){
+  .floor{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body class="sheet-open">
+
+<!-- ═══ ORNAMENT SPRITE ══════════════════════════════════════════════════════
+     Crema's whole ornament vocabulary is three marks and one legal glyph.
+     Every ornament consumer is aria-hidden + pointer-events:none.
+     ICON RULE for the whole theme: 24x24 viewBox, fill:none, stroke:currentColor,
+     stroke-width 1.7 (thinner than a stock dashboard's 2 — it is part of the
+     calm), stroke-linecap:round, stroke-linejoin:round.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- THE RING — the mark a wet cup leaves on paper. Masthead backdrop,
+         KPI corner ornament, at-a-glance panel corner. Stroke only, always. -->
+    <symbol id="o-ring" viewBox="0 0 200 200">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <circle cx="100" cy="100" r="94" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="80" stroke-width="6" opacity=".45"/>
+        <circle cx="100" cy="100" r="62" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="44" stroke-width="3" opacity=".6"/>
+        <circle cx="100" cy="100" r="25" stroke-width="1.4"/>
+      </g>
+    </symbol>
+
+    <!-- THE STEAM — three rising curls. Once per screen, above the greeting. -->
+    <symbol id="o-steam" viewBox="0 0 78 34">
+      <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path d="M13 32c-5.5-6.5 4-9.5 0-16S11.5 6 16 2"/>
+        <path d="M38 32c-5.5-6.5 4-9.5 0-16S36.5 6 41 2"/>
+        <path d="M63 32c-5.5-6.5 4-9.5 0-16S61.5 6 66 2"/>
+      </g>
+    </symbol>
+
+    <!-- THE BEAN — the Operato brand tile's glyph inside this theme -->
+    <symbol id="o-bean" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <ellipse cx="12" cy="12" rx="6.3" ry="9.1" transform="rotate(-34 12 12)"/>
+        <path d="M8.1 18.6c2.6-2.9 5.3-10.4 7.8-13.2"/>
+      </g>
+    </symbol>
+
+    <!-- FSSAI MARK — one symbol, two callers. The class supplies the LEGAL
+         colour: .fssai--veg #1A7F3C, .fssai--nonveg #8B1E1E. Not themeable. -->
+    <symbol id="o-fssai" viewBox="0 0 24 24">
+      <rect x="2.3" y="2.3" width="19.4" height="19.4" rx="2"
+            fill="none" stroke="currentColor" stroke-width="2.6"/>
+      <circle cx="12" cy="12" r="5.1" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="variant-badge">
+  <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#o-ring"/></svg>
+  Orders &amp; Floor · Crema
+</div>
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+<div class="sheet-bd" id="sheetBd" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+
+    <a class="brand" href="#" title="Operato">
+      <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#o-bean"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Operato</span>
+        <span class="brand-tag">for Crema</span>
+      </span>
+    </a>
+
+    <!-- business switcher -->
+    <button class="switcher" type="button" aria-haspopup="menu" aria-expanded="false"
+            aria-label="Switch business — currently Crema Coffee Roasters, you are the owner">
+      <span class="switcher-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5 4.6 4.5A1.6 1.6 0 0 1 6.1 3.4h11.8a1.6 1.6 0 0 1 1.5 1.1L21 9.5"/>
+          <path d="M3 9.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>
+          <path d="M4.6 12.4V20a.9.9 0 0 0 .9.9h13a.9.9 0 0 0 .9-.9v-7.6"/>
+        </svg>
+      </span>
+      <span class="switcher-meta">
+        <span class="switcher-name">Crema Coffee Roasters</span>
+        <span class="switcher-role">Owner</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m8 8 4-4 4 4M16 16l-4 4-4-4"/>
+      </svg>
+    </button>
+
+    <button class="btn btn--primary side-cta" type="button" title="New ticket" aria-label="New ticket">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      <span>New ticket</span>
+    </button>
+
+    <nav class="nav-group">
+      <span class="label" id="nav-counter">Counter</span>
+      <ul class="nav-list" aria-labelledby="nav-counter">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7.5" height="8.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.8"/>
+            <rect x="13.5" y="11" width="7.5" height="10" rx="1.8"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.8"/>
+          </svg><span>Overview</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3.2 13.7 8 18.5 9.7 13.7 11.4 12 16.2 10.3 11.4 5.5 9.7 10.3 8z"/>
+            <path d="M18.4 15.6l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+          </svg><span>Ask AI</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 6.5h12.2v6.2a6.1 6.1 0 0 1-12.2 0z"/>
+            <path d="M15.7 8.2h1.9a2.6 2.6 0 0 1 0 5.2h-1.9"/>
+            <path d="M3 20.6h14"/>
+          </svg><span>Menu</span></a></li>
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5.5 2.8v18.4l2.2-1.4 2.1 1.4 2.2-1.4 2.1 1.4 2.2-1.4 2.2 1.4V2.8L16.3 4.2 14.1 2.8 12 4.2 9.8 2.8 7.7 4.2z"/>
+            <path d="M9 9h6M9 13h4"/>
+          </svg><span>Orders</span><span class="nav-badge num">7</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group">
+      <span class="label" id="nav-shop">The shop</span>
+      <ul class="nav-list" aria-labelledby="nav-shop">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 7.9v8.2a1.6 1.6 0 0 1-.85 1.4l-6.85 3.8a1.6 1.6 0 0 1-1.6 0L4.35 17.5a1.6 1.6 0 0 1-.85-1.4V7.9a1.6 1.6 0 0 1 .85-1.4l6.85-3.8a1.6 1.6 0 0 1 1.6 0l6.85 3.8a1.6 1.6 0 0 1 .85 1.4z"/>
+            <path d="m3.8 7 8.2 4.5L20.2 7M12 21V11.5"/>
+          </svg><span>Inventory</span><span class="nav-badge nav-badge--warn num">3</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="7.5" r="3.6"/><path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/>
+          </svg><span>Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="8" r="3.3"/><path d="M2.8 20a6.2 6.2 0 0 1 12.4 0"/>
+            <path d="M16.4 5.4a3.1 3.1 0 0 1 0 5.8M18 20a6.2 6.2 0 0 0-2.7-5.1"/>
+          </svg><span>Customers</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2.6" y="5.2" width="18.8" height="13.6" rx="2.4"/><path d="M2.6 10h18.8M6.4 14.8h3.4"/>
+          </svg><span>Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <button class="user-btn" type="button" id="userBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+        <span class="av av--ink" aria-hidden="true">AR</span>
+        <span class="user-meta">
+          <span class="user-name">Anaya Rao</span>
+          <span class="user-mail">anaya@cremacoffee.in</span>
+        </span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m8 8 4-4 4 4M16 16l-4 4-4-4"/>
+        </svg>
+      </button>
+      <ul class="user-menu" id="userMenu" role="menu" hidden>
+        <li role="none"><a role="menuitem" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.2"/><path d="M19.6 14.4a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06A2 2 0 1 1 4.14 16.9l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 7.1 4.14l.06.06a1.7 1.7 0 0 0 1.87.34H9.1a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9.1a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.56 1.03z"/>
+          </svg>Settings</a></li>
+        <li role="none"><a role="menuitem" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/>
+          </svg>Theme</a></li>
+        <li role="none"><a role="menuitem" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.5 21H5.4A1.9 1.9 0 0 1 3.5 19.1V4.9A1.9 1.9 0 0 1 5.4 3h4.1"/><path d="m16 16.5 4.5-4.5L16 7.5M20.5 12H9.5"/>
+          </svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════ MAIN ══════════════════════ -->
+  <main class="main">
+
+    <!-- ─────────── 5.1 THE MASTHEAD ─────────── -->
+    <header class="mast">
+      <svg class="mast-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+
+      <div class="mast-in">
+        <div class="mast-l">
+          <div class="eyebrow rise" style="--i:0">
+            <button class="hamburger btn btn--icon btn--quiet" type="button" id="hamburger"
+                    aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar"
+                    style="min-height:32px;width:32px;margin:-6px 2px -6px -8px">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16"/>
+              </svg>
+            </button>
+            <strong>Crema Coffee Roasters</strong>
+            <em>Indiranagar, Bengaluru</em>
+            <span class="bar" aria-hidden="true"></span>
+            <span class="live"><i aria-hidden="true"></i>Open · 7:00–21:00</span>
+          </div>
+
+          <svg class="steam rise" style="--i:1" viewBox="0 0 78 34" aria-hidden="true" focusable="false"><use href="#o-steam"/></svg>
+
+          <h1 class="greeting rise" style="--i:2">Seven tickets <em>open</em>.</h1>
+
+          <p class="mast-date rise" style="--i:3">Tuesday, 25 August 2026 · 11:44 · Ravi on the bar, Devika on the till</p>
+
+          <p class="mast-line rise" style="--i:4">
+            <b>₹4,030</b> is sitting open across the board and two cups are waiting on the pass.
+            <span class="warn">#1182 has been on the bar 11 minutes</span> — a pour-over queued in behind two flat whites.
+          </p>
+
+          <div class="mast-cta rise" style="--i:5">
+            <button class="btn btn--primary" type="button" id="newTicket" aria-expanded="true" aria-controls="sheet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              New ticket
+            </button>
+            <button class="btn btn--ghost" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M11 5.5 6.5 9H3.6v6h2.9L11 18.5z"/><path d="M15.4 9.2a4 4 0 0 1 0 5.6M18.2 6.4a8 8 0 0 1 0 11.2"/>
+              </svg>
+              Call the pass
+            </button>
+          </div>
+        </div>
+
+        <!-- THE AT-A-GLANCE PANEL — the only card permitted inside a masthead -->
+        <aside class="glance rise" style="--i:3" aria-label="The pass right now">
+          <svg class="glance-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+          <div class="glance-row">
+            <span><span class="label">Oldest on the bar</span><small>#1182 · Table 4</small></span>
+            <span class="glance-val"><b class="num">11<span class="of"> min</span></b></span>
+          </div>
+          <div class="glance-row">
+            <span><span class="label">Waiting on the pass</span><small>called, not collected</small></span>
+            <span class="glance-val"><b class="num">2</b></span>
+          </div>
+          <div class="glance-row">
+            <span><span class="label">Seats taken</span><small>indoor + the two benches</small></span>
+            <span class="glance-val"><b class="num">17<span class="of"> / 26</span></b></span>
+          </div>
+        </aside>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ═══════════ D3 · THE BOARD — the lifecycle, and the open money ═══════════ -->
+      <section class="sec sec--tight" aria-labelledby="sec-board">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Live · 11:44</span>
+            <h2 class="sec__title" id="sec-board">The board</h2>
+          </div>
+          <div class="sec__rule" aria-hidden="true"></div>
+          <div class="sec__act">
+            <div class="segment" role="group" aria-label="Which tickets to show">
+              <button type="button" aria-pressed="true">Open <b class="num">7</b></button>
+              <button type="button" aria-pressed="false">Today <b class="num">186</b></button>
+              <button type="button" aria-pressed="false">Voided <b class="num">1</b></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="board-row">
+
+          <!-- THE ONE ESPRESSO CARD ON THIS SCREEN (spec 5.3 names it: the open total) -->
+          <article class="card card--espresso open-card rise" style="--i:0">
+            <svg class="kpi-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+            <span class="label">Open on the board</span>
+            <span class="metric open-card__val"><span class="cur">₹</span>4,030</span>
+            <p class="open-card__note"><b>7</b> tickets not yet paid. The oldest was placed at <b>11:33</b>.</p>
+            <div class="open-card__foot">
+              <span class="kpi__foot-label">What is open, by kind</span>
+              <div class="split" role="img" aria-label="Of the open total: dine in 47%, takeaway 11%, beans 42%">
+                <i style="flex:47;background:var(--crema)"></i>
+                <i style="flex:11;background:#A8C09E"></i>
+                <i style="flex:42;background:#B7A18B"></i>
+              </div>
+              <ul class="split-key">
+                <li><i style="background:var(--crema)"></i>Dine in <b>₹1,910</b></li>
+                <li><i style="background:#A8C09E"></i>Takeaway <b>₹430</b></li>
+                <li><i style="background:#B7A18B"></i>Beans <b>₹1,690</b></li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- THE STAGE BOARD — five columns, one per position in 5.9's ladder -->
+          <div class="stages-scroll scroll-x rise" style="--i:1">
+            <div class="stages">
+
+              <section class="stage stage--done" aria-labelledby="st-1">
+                <div class="stage__top">
+                  <span class="stage__step num" aria-hidden="true">1</span>
+                  <h3 class="stage__name" id="st-1">Placed</h3>
+                </div>
+                <span class="metric-sm stage__n num">2<span class="of">tickets</span></span>
+                <ul class="stage__stubs">
+                  <li><b>#1188</b><span>11:44</span></li>
+                  <li><b>#1187</b><span>11:43</span></li>
+                </ul>
+              </section>
+
+              <section class="stage stage--done" aria-labelledby="st-2">
+                <svg class="stage__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                <div class="stage__top">
+                  <span class="stage__step num" aria-hidden="true">2</span>
+                  <h3 class="stage__name" id="st-2">Brewing</h3>
+                </div>
+                <span class="metric-sm stage__n num">2<span class="of">tickets</span></span>
+                <ul class="stage__stubs">
+                  <li><b>#1186</b><span>3 min</span></li>
+                  <li><b>#1182</b><span style="color:var(--warn-fg);font-weight:700">11 min</span></li>
+                </ul>
+              </section>
+
+              <section class="stage stage--live" aria-labelledby="st-3">
+                <svg class="stage__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                <div class="stage__top">
+                  <span class="stage__step num" aria-hidden="true">3</span>
+                  <h3 class="stage__name" id="st-3">On the pass</h3>
+                </div>
+                <span class="metric-sm stage__n num">2<span class="of">tickets</span></span>
+                <ul class="stage__stubs">
+                  <li><b>#1185</b><span>1 min</span></li>
+                  <li><b>#1183</b><span>8 min</span></li>
+                </ul>
+              </section>
+
+              <section class="stage" aria-labelledby="st-4">
+                <svg class="stage__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                <div class="stage__top">
+                  <span class="stage__step num" aria-hidden="true">4</span>
+                  <h3 class="stage__name" id="st-4">Served</h3>
+                </div>
+                <span class="metric-sm stage__n num">1<span class="of">ticket</span></span>
+                <ul class="stage__stubs">
+                  <li><b>#1181</b><span>bill asked</span></li>
+                </ul>
+              </section>
+
+              <section class="stage" aria-labelledby="st-5">
+                <svg class="stage__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                <div class="stage__top">
+                  <span class="stage__step num" aria-hidden="true">5</span>
+                  <h3 class="stage__name" id="st-5">Paid</h3>
+                </div>
+                <span class="metric-sm stage__n num">179<span class="of">today</span></span>
+                <ul class="stage__stubs">
+                  <li><b>#1184</b><span>11:38</span></li>
+                  <li class="dim"><b>#1180</b><span>11:24</span></li>
+                </ul>
+              </section>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ THE FLOOR ═══════════ -->
+      <section class="sec" aria-labelledby="sec-floor">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">17 of 26 seats · one room, two benches</span>
+            <h2 class="sec__title" id="sec-floor">The floor</h2>
+          </div>
+          <div class="sec__rule" aria-hidden="true"></div>
+          <div class="sec__act">
+            <span class="chip chip--warn">1 bill waiting</span>
+            <button class="btn btn--ghost btn--sm" type="button">Edit the room</button>
+          </div>
+        </div>
+
+        <!-- D2 · THE LEGEND — a ladder read across a room is only readable if it
+             was taught once. Word + step count, never colour on its own. -->
+        <ul class="legend" aria-label="What a table tile means">
+          <li><span class="brew" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>Free</b><span class="step">0 / 5</span></li>
+          <li><span class="brew" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span><b>Seated</b><span class="step">1 / 5</span></li>
+          <li><span class="brew" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><b>Ordered</b><span class="step">2 / 5</span></li>
+          <li><span class="brew" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><b>On the pass</b><span class="step">3 / 5</span></li>
+          <li><span class="brew" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><b>Served</b><span class="step">4 / 5</span></li>
+          <li><span class="brew" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><b>Bill asked</b><span class="step">5 / 5</span></li>
+          <li><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M9.5 9.5v5M14.5 9.5v5"/></svg><b>Held</b><span class="step">reserved · outside the ladder</span></li>
+        </ul>
+
+        <div class="floor rise" style="--i:0">
+
+          <button class="tbl" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Table 1</span><span class="tbl__where">Window</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i class="on"></i><i class="on"></i></span>
+                <span class="tbl__seatn num">2 of 2</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--work">Ordered</span>
+              <span class="brew" role="img" aria-label="Step 2 of 5 — ordered"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">2 / 5</span>
+            </span>
+            <span class="tbl__who"><b>Meera Gupta</b><span class="tbl__age num">3 min</span></span>
+            <span class="tbl__live">
+              <span class="tbl__tkt">#1186</span>
+              <span class="tbl__amt"><span class="cur">₹</span>690</span>
+            </span>
+          </button>
+
+          <button class="tbl tbl--bill" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Table 2</span><span class="tbl__where">Corner</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+                <span class="tbl__seatn num">4 of 4</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--warn">Bill asked</span>
+              <span class="brew" role="img" aria-label="Step 5 of 5 — bill asked"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+              <span class="tbl__step">5 / 5</span>
+            </span>
+            <span class="tbl__who"><b>Tara Iyer</b><span class="tbl__age num">2 min</span></span>
+            <span class="tbl__live">
+              <span class="tbl__tkt">#1181</span>
+              <span class="tbl__amt"><span class="cur">₹</span>430</span>
+            </span>
+          </button>
+
+          <button class="tbl tbl--free" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Table 3</span><span class="tbl__where">Middle</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                <span class="tbl__seatn num">0 of 4</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--mute">Free</span>
+              <span class="brew" role="img" aria-label="Step 0 of 5 — free"><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">0 / 5</span>
+            </span>
+            <span class="tbl__quiet">Wiped at 11:31</span>
+            <span class="tbl__live">
+              <span class="tbl__quiet">Seat a walk-in</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;color:var(--ink-soft)"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+          </button>
+
+          <button class="tbl" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Table 4</span><span class="tbl__where">Middle</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                <span class="tbl__seatn num">3 of 4</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--work">Ordered</span>
+              <span class="brew" role="img" aria-label="Step 2 of 5 — ordered"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">2 / 5</span>
+            </span>
+            <span class="tbl__who"><b>Arjun Bhat</b><span class="tbl__age late num">11 min</span></span>
+            <span class="tbl__live">
+              <span class="tbl__tkt">#1182</span>
+              <span class="tbl__amt"><span class="cur">₹</span>360</span>
+            </span>
+          </button>
+
+          <button class="tbl" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Table 5</span><span class="tbl__where">By the roaster</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i class="on"></i><i class="on"></i></span>
+                <span class="tbl__seatn num">2 of 2</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--ok">Seated</span>
+              <span class="brew" role="img" aria-label="Step 1 of 5 — seated"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">1 / 5</span>
+            </span>
+            <span class="tbl__quiet">No order yet · 4 min</span>
+            <span class="tbl__live">
+              <span class="tbl__quiet">Take the order</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;color:var(--ink-soft)"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </button>
+
+          <button class="tbl tbl--free" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Table 6</span><span class="tbl__where">By the roaster</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i></i><i></i></span>
+                <span class="tbl__seatn num">0 of 2</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--mute">Free</span>
+              <span class="brew" role="img" aria-label="Step 0 of 5 — free"><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">0 / 5</span>
+            </span>
+            <span class="tbl__quiet">Wiped at 11:09</span>
+            <span class="tbl__live">
+              <span class="tbl__quiet">Seat a walk-in</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;color:var(--ink-soft)"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+          </button>
+
+          <button class="tbl tbl--pass" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">The counter</span><span class="tbl__where">Stools C1–C4</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+                <span class="tbl__seatn num">4 of 4</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--ready">On the pass</span>
+              <span class="brew" role="img" aria-label="Step 3 of 5 — on the pass"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+              <span class="tbl__step">3 / 5</span>
+            </span>
+            <span class="tbl__who"><b>Walk-in</b><span class="tbl__age num">1 min</span></span>
+            <span class="tbl__live">
+              <span class="tbl__tkt">#1185</span>
+              <span class="tbl__amt"><span class="cur">₹</span>430</span>
+            </span>
+          </button>
+
+          <button class="tbl" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Bench 1</span><span class="tbl__where">Outside</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i class="on"></i><i class="on"></i></span>
+                <span class="tbl__seatn num">2 of 2</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--ok">Seated</span>
+              <span class="brew" role="img" aria-label="Step 1 of 5 — seated"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">1 / 5</span>
+            </span>
+            <span class="tbl__quiet">No order yet · 18 min</span>
+            <span class="tbl__live">
+              <span class="tbl__quiet">Take the order</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;color:var(--ink-soft)"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </button>
+
+          <button class="tbl tbl--free" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Bench 2</span><span class="tbl__where">Outside</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i></i><i></i></span>
+                <span class="tbl__seatn num">0 of 2</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--mute">Free</span>
+              <span class="brew" role="img" aria-label="Step 0 of 5 — free"><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="tbl__step">0 / 5</span>
+            </span>
+            <span class="tbl__quiet">In the sun until 13:00</span>
+            <span class="tbl__live">
+              <span class="tbl__quiet">Seat a walk-in</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;color:var(--ink-soft)"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+          </button>
+
+          <button class="tbl tbl--held" type="button">
+            <span class="tbl__top">
+              <span><span class="tbl__no">Cupping table</span><span class="tbl__where">Back room</span></span>
+              <span class="tbl__seats">
+                <span class="seatrow" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="tbl__seatn num">0 of 6</span>
+              </span>
+            </span>
+            <span class="tbl__state">
+              <span class="chip chip--mute">Held</span>
+              <span class="tbl__step">outside the ladder</span>
+            </span>
+            <span class="tbl__quiet">Public cupping · 17:00 · 6 booked</span>
+            <span class="tbl__live">
+              <span class="tbl__quiet">Release the hold</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;color:var(--ink-soft)"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </span>
+          </button>
+
+        </div>
+      </section>
+
+      <!-- ═══════════ AT THE PASS — the live ticket list ═══════════ -->
+      <section class="sec" aria-labelledby="sec-pass">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Live · updated 11:44</span>
+            <h2 class="sec__title" id="sec-pass">At the pass</h2>
+          </div>
+          <div class="sec__rule" aria-hidden="true"></div>
+          <div class="sec__act">
+            <span class="chip chip--ready">2 on the pass</span>
+            <button class="btn btn--ghost btn--sm" type="button">Print the run sheet</button>
+          </div>
+        </div>
+
+        <div class="pass-duo">
+
+          <div>
+            <!-- A FILTER IS APPLIED. The note prints what is hidden and why. -->
+            <div class="filters rise" style="--i:0">
+              <span class="label">Filtered</span>
+              <span class="fchip">Open only
+                <button type="button" aria-label="Remove filter: open only">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+              </span>
+              <span class="fchip">The bar &amp; the till
+                <button type="button" aria-label="Remove filter: the bar and the till">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+              </span>
+              <button class="btn btn--quiet btn--sm" type="button">Clear</button>
+              <p class="filters__note">Showing <b>7</b> of <b>186</b> tickets today — 179 settled and 1 voided are hidden.</p>
+            </div>
+
+            <ol class="tkl rise" style="--i:1">
+
+              <li class="tk tk--pass">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1185</span><span class="tk__at num">11:40</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--ready">On the pass</span>
+                      <span class="brew" role="img" aria-label="Step 3 of 5 — on the pass"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                      <span class="tk__step">3 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="who">Walk-in</span><span class="at">· The counter, stool 2</span></div>
+                    <div class="tk__lines">
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Cold Brew 300 ml</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>Cardamom Bun</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>430</span>
+                  <div class="tk__act">
+                    <button class="btn btn--ghost btn--sm" type="button">served</button>
+                    <button class="btn btn--primary btn--sm" type="button">Pay</button>
+                  </div>
+                </div>
+              </li>
+
+              <li class="tk tk--pass">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1183</span><span class="tk__at num">11:36</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--ready">On the pass</span>
+                      <span class="brew" role="img" aria-label="Step 3 of 5 — on the pass"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                      <span class="tk__step">3 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="who">Walk-in</span><span class="at">· takeaway</span></div>
+                    <div class="tk__lines">
+                      <span><b>2×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Filter Coffee</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>180</span>
+                  <div class="tk__act">
+                    <button class="btn btn--ghost btn--sm" type="button">served</button>
+                    <button class="btn btn--primary btn--sm" type="button">Pay</button>
+                  </div>
+                </div>
+                <p class="tk__flag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 2"/></svg>
+                  Called <b>8 min</b> ago and still on the pass — a filter goes cold. Call it again or re-pull it.
+                </p>
+              </li>
+
+              <li class="tk">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1186</span><span class="tk__at num">11:41</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--work">Brewing</span>
+                      <span class="brew" role="img" aria-label="Step 2 of 5 — brewing"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                      <span class="tk__step">2 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="av av--sm" aria-hidden="true">MG</span><span class="who">Meera Gupta</span><span class="at">· Table 1, Window</span></div>
+                    <div class="tk__lines">
+                      <span><b>2×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Cortado</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>Almond Croissant</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Sparkling water</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>690</span>
+                  <div class="tk__act">
+                    <button class="btn btn--ghost btn--sm" type="button">on the pass</button>
+                  </div>
+                </div>
+              </li>
+
+              <!-- ═══ THE OPEN ORDER DETAIL — the oldest ticket on the bar ═══ -->
+              <li class="tk tk--open">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1182</span><span class="tk__at num">11:33</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--work">Brewing</span>
+                      <span class="brew" role="img" aria-label="Step 2 of 5 — brewing"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+                      <span class="tk__step">2 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="av av--sm" aria-hidden="true">AB</span><span class="who">Arjun Bhat</span><span class="at">· Table 4 · 34 visits</span></div>
+                    <div class="tk__lines">
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Flat White</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>Banana Bread</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>360</span>
+                  <div class="tk__act">
+                    <button class="btn btn--quiet btn--sm" type="button" aria-expanded="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px"><path d="m6 15 6-6 6 6"/></svg>
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                <p class="tk__flag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6 21.4 19.6H2.6z"/><path d="M12 9.6v4M12 16.6h.01"/></svg>
+                  On the bar <b>11 min</b> — the longest open ticket today. Ravi has two pour-overs queued in front of it.
+                </p>
+
+                <div class="detail">
+                  <div>
+                    <span class="label detail__label">The ticket</span>
+                    <!-- 5.7's dot-leader board, reused as a bill. In this context the
+                         rank square carries the QUANTITY rather than a rank. -->
+                    <ul class="board">
+                      <li>
+                        <span class="rank num" aria-hidden="true">1</span>
+                        <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                        <span class="name">Flat White</span>
+                        <span class="leader" aria-hidden="true"></span>
+                        <span class="n">180 ml</span>
+                        <span class="amt"><span class="cur">₹</span>190</span>
+                      </li>
+                      <li>
+                        <span class="rank num" aria-hidden="true">1</span>
+                        <svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>
+                        <span class="name">Banana Bread</span>
+                        <span class="leader" aria-hidden="true"></span>
+                        <span class="n">warmed</span>
+                        <span class="amt"><span class="cur">₹</span>170</span>
+                      </li>
+                    </ul>
+                    <div class="detail__sum">
+                      <div><span>Subtotal</span><span class="dots" aria-hidden="true"></span><b>₹360</b></div>
+                      <div><span>Discount</span><span class="dots" aria-hidden="true"></span><b>— ₹0</b></div>
+                      <div><span>GST 5%, included in the menu price</span><span class="dots" aria-hidden="true"></span><b>₹17</b></div>
+                      <div class="tot"><span>To pay</span><span class="dots" aria-hidden="true"></span><strong><span class="cur">₹</span>360</strong></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span class="label detail__label">The trail</span>
+                    <ol class="trail">
+                      <li class="done"><span class="t">Placed · 11:33</span><span class="m">Devika, at the till</span></li>
+                      <li class="now"><span class="t">Brewing · since 11:34</span><span class="m">Ravi, on the bar · <em>11 min</em></span></li>
+                      <li class="next"><span class="t">On the pass</span><span class="m">not yet called</span></li>
+                      <li class="next"><span class="t">Served</span></li>
+                      <li class="next"><span class="t">Paid</span></li>
+                    </ol>
+                    <div class="detail__acts">
+                      <button class="btn btn--primary btn--sm" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        on the pass
+                      </button>
+                      <button class="btn btn--ghost btn--sm" type="button">Add to the ticket</button>
+                      <button class="btn btn--warn btn--sm" type="button">Void</button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <li class="tk">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1188</span><span class="tk__at num">11:44</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--mute">Placed</span>
+                      <span class="brew" role="img" aria-label="Step 1 of 5 — placed"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                      <span class="tk__step">1 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="who">Walk-in</span><span class="at">· takeaway</span></div>
+                    <div class="tk__lines">
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Espresso</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Sparkling water</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>250</span>
+                  <div class="tk__act">
+                    <button class="btn btn--ghost btn--sm" type="button">brewing</button>
+                  </div>
+                </div>
+              </li>
+
+              <li class="tk">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1187</span><span class="tk__at num">11:43</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--mute">Placed</span>
+                      <span class="brew" role="img" aria-label="Step 1 of 5 — placed"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+                      <span class="tk__step">1 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="av av--sage av--sm" aria-hidden="true">NS</span><span class="who">Nikhil Suresh</span><span class="at">· beans, over the counter</span></div>
+                    <div class="tk__lines">
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Attikan Estate · 250 g · ground for filter</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>House Blend · 500 g · whole bean</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>1,690</span>
+                  <div class="tk__act">
+                    <button class="btn btn--ghost btn--sm" type="button">brewing</button>
+                  </div>
+                </div>
+              </li>
+
+              <li class="tk">
+                <div class="tk__row">
+                  <div class="tk__id">
+                    <div class="tk__idtop"><span class="tk__no">#1181</span><span class="tk__at num">11:29</span></div>
+                    <div class="tk__state">
+                      <span class="chip chip--ok">Served</span>
+                      <span class="brew" role="img" aria-label="Step 4 of 5 — served"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                      <span class="tk__step">4 / 5</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="tk__where"><span class="av av--sage av--sm" aria-hidden="true">TI</span><span class="who">Tara Iyer</span><span class="at">· Table 2, Corner · bill asked 11:42</span></div>
+                    <div class="tk__lines">
+                      <span><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>Pour-over · Attikan</span>
+                      <span class="sep" aria-hidden="true">·</span>
+                      <span><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>Cardamom Bun</span>
+                    </div>
+                  </div>
+                  <span class="tk__tot"><span class="cur">₹</span>430</span>
+                  <div class="tk__act">
+                    <button class="btn btn--primary btn--sm" type="button">Pay</button>
+                  </div>
+                </div>
+              </li>
+
+            </ol>
+          </div>
+
+          <!-- ─────────── the side column ─────────── -->
+          <div class="side-stack">
+
+            <!-- D7 · AN EMPTY STATE, told honestly -->
+            <article class="card card--sage rise" style="--i:2">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">Held tickets</h3>
+                  <p class="card__sub">paused at the customer’s ask</p>
+                </div>
+              </div>
+              <div class="empty" style="margin-top:16px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M9.5 9.5v5M14.5 9.5v5"/>
+                </svg>
+                <p><b>Nothing is being held.</b> Every ticket on the board is moving.</p>
+              </div>
+            </article>
+
+            <!-- D6 · A LOADING SKELETON, mid-page and honest about it -->
+            <article class="card rise" style="--i:3">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">Settled since 11:00</h3>
+                  <p class="card__sub">newest first · the till, not the bar</p>
+                </div>
+              </div>
+              <ul class="board" style="margin-top:12px">
+                <li>
+                  <span class="rank num" aria-hidden="true">84</span>
+                  <span class="name">Kavya Menon</span>
+                  <span class="leader" aria-hidden="true"></span>
+                  <span class="n">11:38</span>
+                  <span class="amt"><span class="cur">₹</span>370</span>
+                </li>
+                <li>
+                  <span class="rank num" aria-hidden="true">80</span>
+                  <span class="name">Nikhil Suresh</span>
+                  <span class="leader" aria-hidden="true"></span>
+                  <span class="n">11:24</span>
+                  <span class="amt"><span class="cur">₹</span>980</span>
+                </li>
+                <li>
+                  <span class="rank num" aria-hidden="true">79</span>
+                  <span class="name">Walk-in</span>
+                  <span class="leader" aria-hidden="true"></span>
+                  <span class="n">11:19</span>
+                  <span class="amt"><span class="cur">₹</span>480</span>
+                </li>
+                <li class="void">
+                  <span class="rank" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                  </span>
+                  <span class="name">Ishaan Rao</span>
+                  <span class="leader" aria-hidden="true"></span>
+                  <span class="chip chip--bad" style="align-self:center">Void</span>
+                  <span class="amt"><span class="cur">₹</span>210</span>
+                </li>
+              </ul>
+
+              <div aria-busy="true" aria-live="polite">
+                <span class="sr-only">Loading the rest of the hour</span>
+                <div class="skel-row" aria-hidden="true">
+                  <span class="skel sq"></span><span class="skel a"></span><span class="skel b"></span>
+                </div>
+                <div class="skel-row" aria-hidden="true">
+                  <span class="skel sq"></span><span class="skel a" style="max-width:60%"></span><span class="skel b"></span>
+                </div>
+                <p class="skel-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 3.6a8.4 8.4 0 1 0 8.4 8.4"/></svg>
+                  Fetching the rest of 11:00–11:44 from the till…
+                </p>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /.wrap -->
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     D4 · THE DOCKED SHEET — new ticket. A panel, not a modal: at >=1280 it
+     shrinks the main column instead of covering it, because a barista rings a
+     ticket while still watching the pass. Below 1280 it becomes an overlay.
+     ══════════════════════════════════════════════════════════════════════ -->
+<aside class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet__head">
+    <div>
+      <span class="label">At the till · Devika</span>
+      <h2 id="sheet-title">New ticket</h2>
+      <p>Pick the cups, then send it to the bar.</p>
+    </div>
+    <button class="btn btn--icon btn--quiet sheet__x" type="button" id="sheetClose" aria-label="Close the new ticket panel">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="sheet__body">
+
+    <div class="field">
+      <span class="label">Find a dish or a bag</span>
+      <label class="input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m15.6 15.6 4.2 4.2"/></svg>
+        <span class="sr-only">Search the menu</span>
+        <input type="text" value="co" aria-label="Search the menu">
+      </label>
+      <p class="field__note"><b>4</b> of 48 available items match “co”. Sold-out items are not listed.</p>
+
+      <ul class="picks">
+        <li class="pick pick--on">
+          <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+          <span class="pick__m"><b>Cortado</b><small>₹180 · double ristretto, 120 ml</small></span>
+          <span class="qty">
+            <button type="button" aria-label="One fewer Cortado">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <output class="num" aria-label="Cortado quantity">2</output>
+            <button type="button" aria-label="One more Cortado">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </span>
+        </li>
+        <li class="pick pick--on">
+          <svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>
+          <span class="pick__m"><b>Cocoa &amp; Sea Salt Cookie</b><small>₹120 · baked at 6:20 today</small></span>
+          <span class="qty">
+            <button type="button" aria-label="One fewer Cocoa and Sea Salt Cookie">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <output class="num" aria-label="Cocoa and Sea Salt Cookie quantity">1</output>
+            <button type="button" aria-label="One more Cocoa and Sea Salt Cookie">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </span>
+        </li>
+        <li class="pick">
+          <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+          <span class="pick__m"><b>Cold Brew 300 ml</b><small>₹240 · 18 h steep, Attikan</small></span>
+          <button class="pick__add" type="button" aria-label="Add Cold Brew 300 ml">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </li>
+        <li class="pick">
+          <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+          <span class="pick__m"><b>Coorg Filter Blend · 250 g</b><small>₹780 · roasted 22 Aug</small></span>
+          <button class="pick__add" type="button" aria-label="Add Coorg Filter Blend 250 g">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="field">
+      <span class="label">How it is being taken</span>
+      <div class="seg-3" role="group" aria-label="Order type">
+        <button type="button" aria-pressed="true">At a table</button>
+        <button type="button" aria-pressed="false">Takeaway</button>
+        <button type="button" aria-pressed="false">Delivery</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label">Table</span>
+      <button class="sel" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span>Table 3 · Middle<small>4 seats · free since 11:31</small></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="field">
+      <span class="label">Who it is for</span>
+      <div class="attached">
+        <span class="av av--sage" aria-hidden="true">KS</span>
+        <span class="m"><b>Kabir Shetty</b><small>42 visits · usually a cortado, no sugar</small></span>
+        <button type="button" aria-label="Detach Kabir Shetty and ring this as a walk-in">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label">Discount</span>
+      <label class="input input--money">
+        <span class="cur" aria-hidden="true">₹</span>
+        <span class="sr-only">Discount in rupees</span>
+        <input type="text" value="0" inputmode="numeric" class="num" aria-label="Discount in rupees">
+      </label>
+      <p class="field__note">A staff discount needs Anaya’s PIN.</p>
+    </div>
+
+  </div>
+
+  <div class="sheet__foot">
+    <div class="tally">
+      <div><span>Subtotal</span><span class="dots" aria-hidden="true"></span><b>₹480</b></div>
+      <div><span>Discount</span><span class="dots" aria-hidden="true"></span><b>— ₹0</b></div>
+      <div><span>GST 5%, included</span><span class="dots" aria-hidden="true"></span><b>₹23</b></div>
+      <div class="tot"><span>To pay</span><span class="dots" aria-hidden="true"></span><strong><span class="cur">₹</span>480</strong></div>
+    </div>
+    <button class="btn btn--primary" type="button" style="width:100%">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      Send to the bar
+    </button>
+    <button class="btn btn--ghost" type="button" style="width:100%">Hold it as a tab</button>
+    <p>The till recomputes the total when the ticket lands.</p>
+  </div>
+</aside>
+
+
+<!-- ═══ BOTTOM TAB BAR (below 1024) — "More" opens the drawer, which carries
+     Menu, Staff, Customers, Billing and the account block. ═══ -->
+<nav class="tabbar" aria-label="Primary">
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7.5" height="8.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.8"/>
+      <rect x="13.5" y="11" width="7.5" height="10" rx="1.8"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.8"/>
+    </svg>Overview</a>
+  <a class="tab" href="#" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5.5 2.8v18.4l2.2-1.4 2.1 1.4 2.2-1.4 2.1 1.4 2.2-1.4 2.2 1.4V2.8L16.3 4.2 14.1 2.8 12 4.2 9.8 2.8 7.7 4.2z"/><path d="M9 9h6M9 13h4"/>
+    </svg>Orders</a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3.2 13.7 8 18.5 9.7 13.7 11.4 12 16.2 10.3 11.4 5.5 9.7 10.3 8z"/><path d="M18.4 15.6l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+    </svg>Ask AI</a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20.5 7.9v8.2a1.6 1.6 0 0 1-.85 1.4l-6.85 3.8a1.6 1.6 0 0 1-1.6 0L4.35 17.5a1.6 1.6 0 0 1-.85-1.4V7.9a1.6 1.6 0 0 1 .85-1.4l6.85-3.8a1.6 1.6 0 0 1 1.6 0l6.85 3.8a1.6 1.6 0 0 1 .85 1.4z"/><path d="m3.8 7 8.2 4.5L20.2 7M12 21V11.5"/>
+    </svg>Inventory</a>
+  <button class="tab" type="button" id="tabMore" aria-label="More — Menu, Staff, Customers, Billing and your account" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    More
+  </button>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  var body = document.body;
+  var backdrop = document.getElementById('backdrop');
+  var hamburger = document.getElementById('hamburger');
+  var tabMore = document.getElementById('tabMore');
+
+  function setNav(open) {
+    body.classList.toggle('nav-open', open);
+    if (hamburger) hamburger.setAttribute('aria-expanded', String(open));
+    if (tabMore) tabMore.setAttribute('aria-expanded', String(open));
+  }
+  function toggleNav() { setNav(!body.classList.contains('nav-open')); }
+
+  if (hamburger) hamburger.addEventListener('click', toggleNav);
+  if (tabMore) tabMore.addEventListener('click', toggleNav);
+  if (backdrop) backdrop.addEventListener('click', function () { setNav(false); });
+
+  /* the account menu */
+  var userBtn = document.getElementById('userBtn');
+  var userMenu = document.getElementById('userMenu');
+  if (userBtn && userMenu) {
+    userBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = userMenu.hidden;
+      userMenu.hidden = !open;
+      userBtn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', function (e) {
+      if (!userMenu.hidden && !userMenu.contains(e.target) && e.target !== userBtn) {
+        userMenu.hidden = true;
+        userBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  /* D4 · the docked new-ticket sheet. It ships OPEN so the flow is visible;
+     closing it hands the whole board back. Below 1280 it is a real dialog
+     with a scrim, so it takes role/aria-modal there and drops them above. */
+  var sheet = document.getElementById('sheet');
+  var sheetBd = document.getElementById('sheetBd');
+  var sheetClose = document.getElementById('sheetClose');
+  var newTicket = document.getElementById('newTicket');
+
+  function syncSheetRole() {
+    if (!sheet) return;
+    var overlay = window.matchMedia('(max-width:1279px)').matches;
+    if (overlay) {
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-modal', 'true');
+    } else {
+      sheet.removeAttribute('role');
+      sheet.removeAttribute('aria-modal');
+    }
+  }
+  function setSheet(open) {
+    body.classList.toggle('sheet-open', open);
+    if (newTicket) newTicket.setAttribute('aria-expanded', String(open));
+    if (sheet) sheet.setAttribute('aria-hidden', String(!open));
+    if (open) syncSheetRole();
+  }
+
+  if (sheetClose) sheetClose.addEventListener('click', function () { setSheet(false); });
+  if (sheetBd) sheetBd.addEventListener('click', function () { setSheet(false); });
+  if (newTicket) newTicket.addEventListener('click', function () {
+    setSheet(!body.classList.contains('sheet-open'));
+  });
+  window.addEventListener('resize', function () {
+    if (body.classList.contains('sheet-open')) syncSheetRole();
+  });
+  syncSheetRole();
+
+  /* the segmented scope switchers — aria-pressed is the state, nothing else */
+  Array.prototype.forEach.call(document.querySelectorAll('.segment,.seg-3'), function (group) {
+    group.addEventListener('click', function (e) {
+      var hit = e.target.closest('button');
+      if (!hit || !group.contains(hit)) return;
+      Array.prototype.forEach.call(group.querySelectorAll('button'), function (b) {
+        b.setAttribute('aria-pressed', String(b === hit));
+      });
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    setNav(false);
+    if (window.matchMedia('(max-width:1279px)').matches) setSheet(false);
+    if (userMenu && !userMenu.hidden) {
+      userMenu.hidden = true;
+      userBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+}());
+</script>
+</body>
+</html>

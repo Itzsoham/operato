@@ -1,0 +1,1386 @@
+/* ==========================================================================
+   OPERATO — "MANDI COUNTER" design system
+   Shared token contract for every mockup in design-concepts/system/.
+   Every screen links exactly two stylesheets: _theme.css and _shell.css.
+
+   Palette source: Mandi Counter — Pine Mandi / Market Mint / Cocoa Counter /
+   Ripe Tomato / Cucumber Blue / Beet / Honey. Transcribed VERBATIM from the
+   verified token record (root.css / dark.css / FINAL_TOKENS.json). Every hex
+   in this file is one of those measured values, or is derived by color-mix()
+   from two of them — and every derived value is printed with the ratio that
+   was actually measured on it. No hex here was chosen by eye.
+
+   Product context, because it explains most of the decisions below: Operato
+   runs on a TABLET, in a working kitchen — bright light, greasy glass,
+   glare, and glances rather than reads. Tablet is the primary target, not a
+   responsive afterthought; --tap: 44px is enforced by a real attribute
+   scope; and status is never carried by hue alone.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ── 1. Brand palette (verbatim — Mandi Counter, do not tweak) ──────────
+     Seven swatches. Their names are the vocabulary the styleguide speaks;
+     every semantic token below is an ALIAS onto one of them, never a new
+     hex. The thesis the palette encodes: green is scenery or it is settled
+     — it is never an action. That is why --pine is identity, --cocoa is
+     interactive, and the two never trade jobs.                             */
+  --pine:        #083227;  /* Pine Mandi     · identity. 13.27:1 with its ink   */
+  --market-mint: #ecf8f2;  /* Market Mint    · the identity WASH, never a fill  */
+  --cocoa:       #664a35;  /* Cocoa Counter  · interactive. 7.38:1 on paper     */
+  --tomato:      #c0480f;  /* Ripe Tomato    · the alarm. QUARANTINED — see §5  */
+  --cucumber:    #2c6b85;  /* Cucumber Blue  · waiting / informational          */
+  --beet:        #871c4f;  /* Beet           · destructive + form errors        */
+  --honey:       #c28c1d;  /* Honey          · warning. 2.71:1 on paper — this
+                              swatch is a FILL INSIDE A BORDERED CHIP and a
+                              meter segment. It is never a standalone graphic
+                              and never carries text on the page ground.        */
+
+  /* Separation is measured, not assumed: --cocoa vs --pine dE 12.14,
+     --cocoa vs --tomato dE 12.91, --cocoa vs --beet dE 12.04 — each a
+     minimum taken over normal / deuteranope / protanope vision. The three
+     families cannot be confused by anyone, which is the whole point of
+     keeping identity, interactive and alarm in separate hue territory.     */
+
+  /* ── 2. Derived ramps — wash / fill / ink, per family ───────────────────
+     THE LOAD-BEARING RULE OF THIS SECTION:
+       raw washes are BACKGROUNDS; the deep tokens are the only ones that
+       may appear in `color:` or back a fill that carries text.
+     A `-subtle` token is a wash and may only be a background. A
+     `-subtle-foreground` token is ink and is measured against its own wash,
+     not against paper. A `-foreground` token is the on-colour for the solid
+     fill of the same family. A `-border` token is an OPAQUE chip edge —
+     opaque because an alpha edge composites differently on every surface
+     the chip lands on, and a chip lands on four of them.                   */
+
+  /* Cocoa — interactive. The only family that may be a button fill.        */
+  --primary:              var(--cocoa);
+  --primary-foreground:   #fff8ec;  /* 7.66:1 on --primary                       */
+  --secondary:            #efe3ce;  /* quiet fill: filter chips, nominal badges  */
+  --secondary-foreground: #4a3927;  /* 8.68:1 on --secondary                     */
+  --secondary-hover:      color-mix(in srgb, var(--secondary), var(--foreground) 5%);
+    /* = #E5D9C5 · --secondary-foreground 7.90:1 on it. Promoted to a real
+       token because it was the app's ONLY arithmetic colour, hand-written
+       inside button.tsx where no re-theme could ever reach it.             */
+
+  /* Pine — identity. Never a button, never a chip, never a data-mutating
+     control. It appears as a wordmark tile, an avatar and a marketing fill. */
+  --brand:                    var(--pine);
+  --brand-foreground:         #f4faf6;  /* 13.27:1 on --brand                    */
+  --brand-subtle:             var(--market-mint);
+  --brand-subtle-foreground:  #174534;  /* 9.95:1 on the wash, 10.58:1 on --card */
+
+  /* Tomato — the alarm. QUARANTINED at token level: the READY chip and the
+     READY floor tile, nothing else. There is deliberately no --ready-subtle
+     and deliberately no gradient: the moment a second component borrows
+     this fill, "the only solid block on the row" stops meaning READY and
+     the fill-weight channel of §8.1 dies silently.                         */
+  --ready:            var(--tomato);  /* 4.59:1 as a block on paper            */
+  --ready-foreground: #ffffff;        /* 5.03:1 on --ready                     */
+
+  /* Success — the garden green. Shares its wash with SERVED and with staff
+     isActive, on purpose: "fresh / ours / settled" is one idea.            */
+  --success:                   #4a7c69;  /* 4.80:1 with its ink — THE TIGHTEST
+                                  LABEL IN THE SYSTEM. Hold L* ≤ 48.12; any
+                                  lift here fails AA before it looks wrong.  */
+  --success-foreground:        #ffffff;  /* 4.80:1 on --success               */
+  --success-subtle:            #ecfae0;  /* wash only                         */
+  --success-subtle-foreground: #1f4c30;  /* 9.05:1 on the wash, 9.60:1 on --card */
+
+  /* Honey — warning. One amber serves the Overview banner, the Inventory
+     card, the reorder row tint, the badge and the meter fill. They must not
+     vibrate: all five reference these same three tokens.                   */
+  --warning:                   var(--honey);
+  --warning-foreground:        #241c13;  /* 5.65:1 on --warning. NOT white —
+                                  white on --honey measures 2.60:1.          */
+  --warning-subtle:            #f3e5bb;
+  --warning-subtle-foreground: #7a5209;  /* 5.51:1 on the wash, 6.75:1 on --card */
+  --warning-border:            #d9b463;  /* OPAQUE chip edge. 1.57:1 on its own
+                                  wash — decorative by declaration, and never
+                                  the only edge on an interactive control.   */
+
+  /* Cucumber — informational / waiting. dE 20.72 from --success, which is
+     what keeps "still waiting" from reading as "done" at a glance.         */
+  --info:                   var(--cucumber);
+  --info-foreground:        #ffffff;  /* 5.92:1 on --info                     */
+  --info-subtle:            #baecff;
+  --info-subtle-foreground: #1f5468;  /* 6.54:1 on the wash, 8.11:1 on --card */
+
+  /* Beet — destructive. dE 19.19 from --nonveg, which matters because both
+     are red-ish and one of them is a statutory mark.                       */
+  --destructive:                   var(--beet);
+  --destructive-foreground:        #ffffff;  /* 9.09:1 on --destructive       */
+  --destructive-subtle:            #f4dfe6;
+  --destructive-subtle-foreground: #7c1b42;  /* 7.91:1 on the wash, 9.79:1 on --card */
+  --destructive-border:            #e2a5bc;  /* OPAQUE chip edge, 1.60:1 on its wash */
+
+  /* ── 3. Ink (text) — warm, never pure black, never a cool grey ──────────
+     #241C13 is L* 12.09 at hue 68° — the same warm family as the paper it
+     sits on. A neutral #1A1A1A on a warm ground reads as a stain; a cool
+     grey reads as a different design system leaking in. Neutrals are warm
+     in BOTH themes, and that was verified numerically, not judged.         */
+  --foreground:         #241c13;  /* 15.32:1 on --background, 16.39:1 on --card */
+  --card-foreground:    #241c13;  /* 16.39:1 on --card                          */
+  --popover-foreground: #241c13;  /* 16.79:1 on --popover                       */
+  --muted-foreground:   #665441;  /* 6.59:1 on --background · 5.87:1 on --muted ·
+                                     7.04:1 on --card. THE FLOOR for .label —
+                                     nothing quieter than this may be text.     */
+  --accent-foreground:  #3a2c1e;  /* 11.28:1 on --accent                        */
+  --ink-invert:         var(--background);
+    /* The only ink allowed on `.card--ink` (the inverted spotlight card and
+       the tooltip surface) — 15.32:1. Not #FFF: pure white on warm ink is a
+       harsher edge than the palette uses anywhere else.                    */
+
+  /* ── 4. Surfaces — paper, card, popover, the raised layer ───────────────
+     --card sits only 1.07:1 above --background. That is DELIBERATE (a warm
+     paper stack, not a grey/white stack) and it is why every card carries a
+     hairline and a shadow: the fill is not what makes a card legible here,
+     the edge is. Remove the ring and the card disappears.                  */
+  --background: #faf4e7;  /* L* 96.33 C* 6.97 h 91.57 — warm paper            */
+  --card:       #fffcf5;  /* L* 99.01 C* 3.70 h 93.22                          */
+  --popover:    #ffffff;  /* the ONLY pure white in the light theme: the
+                             raised layer, and the mat behind a menu photo.   */
+  --muted:      #f0e7d4;  /* L* 91.88 C* 10.33 h 90.61 — table stripe, skeleton,
+                             the PAID/CANCELLED receding fill                 */
+  --accent:     #f3eada;  /* HOVER SURFACE ONLY. Never a resting state — a
+                             resting --accent is indistinguishable from a
+                             hovered one and the hover affordance dies.       */
+
+  /* The three hairline weights. They are three different jobs and are NOT
+     interchangeable — this is the single most-repeated mistake in the app:
+       --border  1.27:1 · DECORATIVE structure. Table rules, dividers, card
+                 edges. Never the only edge on an interactive control.
+       --input   3.27:1 on --background / 3.50:1 on --card · this is the one
+                 that carries the WCAG 1.4.11 non-text-contrast boundary.
+                 Every input, select, textarea and outline button uses it.
+       --ring   14.80:1 · the focus core. Paired with a 2px --background
+                 offset ring (see :focus-visible) because no single hex
+                 clears 3:1 on every fill this product has.                  */
+  --border: #e5d9c2;  /* L* 87.08 C* 12.82 h 88.43                            */
+  --input:  #9c8459;
+  --ring:   #2a1e14;  /* 14.80:1 on --background, 15.84:1 on --card           */
+
+  /* The sidebar re-themes SEPARATELY. Changing --primary or --accent does
+     nothing in here — that is a feature (the nav is chrome, not content)
+     and a trap (eight tokens to keep in step).                             */
+  --sidebar:                    #f4ebd9;
+  --sidebar-foreground:         #3a2c1e;  /* 11.37:1 on --sidebar             */
+  --sidebar-primary:            #664a35;  /* tracks --primary; dE 12.14 from
+                                   --brand, which matters because the identity
+                                   square sits directly beside it.            */
+  --sidebar-primary-foreground: #fff8ec;  /* 7.66:1 on --sidebar-primary      */
+  --sidebar-accent:             #eadfc7;
+  --sidebar-accent-foreground:  #241c13;  /* 12.70:1 on --sidebar-accent      */
+  --sidebar-border:             #d6c4a4;
+  --sidebar-ring:               #2a1e14;  /* 13.70:1 on --sidebar             */
+
+  /* ── 5. Semantic — mapped to the REAL Prisma enums ──────────────────────
+     Every triple below is an ALIAS. No new hexes, so a palette change can
+     never desynchronise a status from its family. The names are the enum
+     values, so the CSS survives a rename of the label copy but breaks
+     loudly if the enum itself changes — which is the correct failure mode. */
+
+  /* --- OrderStatus · ORDINAL, encoded FOUR times (law L14) ---------------
+     hue → meter position → fill weight → label text. Any one channel
+     removed (greyscale print, glare, dichromacy, forced-colors) must still
+     leave the sequence readable, so none of the four is optional.
+     Advance path: PENDING/CONFIRMED → PREPARING → READY → SERVED;
+     PAID is reached only via the Pay action, from READY or SERVED.
+     Mnemonic: blue waits · honey burns · tomato is up · green is done ·
+     sand is closed.                                                        */
+
+  /* PENDING — "Placed". Meter 1/5, wash. 6.54:1                            */
+  --st-placed-bg: var(--info-subtle);
+  --st-placed-fg: var(--info-subtle-foreground);
+  --st-placed-bd: color-mix(in srgb, var(--info) 25%, transparent);
+  /* CONFIRMED — same triple as PENDING, meter 1/5. Two enum values, one
+     visual state: the kitchen does not act differently between them, and
+     inventing a second blue would imply it does.                           */
+  --st-confirmed-bg: var(--info-subtle);
+  --st-confirmed-fg: var(--info-subtle-foreground);
+  --st-confirmed-bd: color-mix(in srgb, var(--info) 25%, transparent);
+  /* PREPARING — "Preparing". Meter 2/5, wash + OPAQUE border. 5.51:1       */
+  --st-preparing-bg: var(--warning-subtle);
+  --st-preparing-fg: var(--warning-subtle-foreground);
+  --st-preparing-bd: var(--warning-border);
+  /* READY — meter 3/5, and the ONLY SOLID CHIP IN THE SYSTEM. 5.03:1.
+     Desaturate the whole screen and this is still the one dark block on
+     the row. That is the fill-weight channel, and it only exists because
+     --ready has exactly two consumers.                                     */
+  --st-ready-bg: var(--ready);
+  --st-ready-fg: var(--ready-foreground);
+  --st-ready-bd: color-mix(in srgb, var(--ready-foreground) 25%, transparent);
+  /* SERVED — meter 4/5, wash. 9.05:1. Borrows the house green deliberately:
+     --brand and --success sit dE 4.06 apart, and "fresh / ours / settled"
+     is one idea. The borrowing stays legal ONLY because --brand never
+     appears as a chip.                                                     */
+  --st-served-bg: var(--success-subtle);
+  --st-served-fg: var(--success-subtle-foreground);
+  --st-served-bd: color-mix(in srgb, var(--success) 25%, transparent);
+  /* PAID — meter 5/5, flat and receding. 5.87:1. Done is quiet.            */
+  --st-paid-bg: var(--muted);
+  --st-paid-fg: var(--muted-foreground);
+  --st-paid-bd: var(--border);
+  /* CANCELLED — NO METER AT ALL plus line-through. The absence is the
+     signal: nothing progressed. Never render this with 0 grey bars — an
+     empty meter reads as "step 0 of 5", i.e. still in the queue.           */
+  --st-cancelled-bg: var(--muted);
+  --st-cancelled-fg: var(--muted-foreground);
+  --st-cancelled-bd: var(--border);
+
+  /* --- ItemStatus (per-line kitchen state, future KDS) -------------------
+     PENDING / PREPARING / READY / SERVED reuse the four triples above with
+     meter steps 1/2/3/4 out of FOUR — there is no PAID on a line. A
+     line-level chip must never render step 5 or step 0.                    */
+
+  /* --- TableStatus — stored, surfaced on the floor grid ------------------ */
+  --tbl-free-bg:     var(--card);
+  --tbl-free-fg:     var(--muted-foreground);
+  --tbl-free-bd:     var(--border);
+  --tbl-live-bg:     color-mix(in srgb, var(--primary) 5%, var(--card));
+    /* = #F7F3EB · --foreground 15.20:1. A 5% tint, not a fill: an occupied
+       table is a state, not an alarm.                                      */
+  --tbl-live-fg:     var(--foreground);
+  --tbl-live-bd:     color-mix(in srgb, var(--primary) 40%, transparent);
+  --tbl-reserved-bg: var(--info-subtle);
+  --tbl-reserved-fg: var(--info-subtle-foreground);
+  --tbl-reserved-bd: color-mix(in srgb, var(--info) 25%, transparent);
+  --tbl-inactive-bg: var(--muted);
+  --tbl-inactive-fg: var(--muted-foreground);
+  --tbl-inactive-bd: var(--border);
+
+  /* --- TransactionType — DIRECTION, not severity -------------------------
+     Wasted stock is not an error; a stock take is not a success. Each
+     carries a glyph (↓ ↑ × =) so the direction survives greyscale.         */
+  --tx-in-bg:     var(--success-subtle);
+  --tx-in-fg:     var(--success-subtle-foreground);
+  --tx-out-bg:    var(--muted);
+  --tx-out-fg:    var(--muted-foreground);
+  --tx-waste-bg:  var(--destructive-subtle);
+  --tx-waste-fg:  var(--destructive-subtle-foreground);
+  --tx-waste-bd:  var(--destructive-border);   /* OPAQUE                     */
+  --tx-adjust-bg: var(--secondary);
+  --tx-adjust-fg: var(--secondary-foreground);
+
+  /* --- Derived stock state ---------------------------------------------- */
+  --stock-reorder-row: color-mix(in srgb, var(--warning-subtle) 50%, transparent);
+    /* over --card = #F9F1D8 · --warning-subtle-foreground 6.10:1 on it,
+       --foreground 14.83:1. A tint at 50% so the row still reads as a row. */
+  --stock-low-fg:      var(--warning-subtle-foreground);
+    /* daysLeft < 3 — a SECOND, sharper threshold layered on the row tint,
+       expressed as weight + ink rather than a third colour.                */
+
+  /* --- Nominal vocabularies: one treatment, on purpose -------------------
+     StaffRole (7 values), menu categories, customer tags. All identical.
+     Do NOT assign seven hues to StaffRole: the moment you do, the Status
+     column's meaningful green stops reading as meaningful.                 */
+  --nominal-bg: var(--secondary);
+  --nominal-fg: var(--secondary-foreground);
+
+  /* --- Staff isActive ---------------------------------------------------- */
+  --staff-on-bg:  var(--success-subtle);
+  --staff-on-fg:  var(--success-subtle-foreground);
+  --staff-off-bg: var(--muted);
+  --staff-off-fg: var(--muted-foreground);
+
+  /* --- Plan · FREE / PRO. Only the Razorpay webhook grants PRO; the
+     post-payment transient changes COPY only, never this badge.           */
+  --plan-pro-bg:  var(--primary);
+  --plan-pro-fg:  var(--primary-foreground);
+  --plan-free-bg: var(--secondary);
+  --plan-free-fg: var(--secondary-foreground);
+
+  /* --- KPI delta. ALWAYS paired with an arrow glyph and a signed number;
+     colour is reinforcement only. --delta-up is NOT automatically green —
+     it follows higherIsBetter, so a rising wastage figure is --delta-down. */
+  --delta-up:   #1f4c30;  /* 9.60:1 on --card, 8.97:1 on --background        */
+  --delta-down: #6c0943;  /* 11.66:1 on --card, 10.90:1 on --background.
+                             dE 13.19 from --delta-up — it was 4.21 before
+                             the repair, i.e. a deuteranope could not tell
+                             rising from falling. That is why this is not
+                             simply --success / --destructive.              */
+  --delta-flat: var(--muted-foreground);  /* flat, or no baseline yet        */
+
+  /* --- AI quota. remaining === 0 is the ONE place --destructive marks
+     something that is not an error, so it carries no icon and no border:
+     it must read as a hard stop, not a failure.                           */
+  --quota-ok:   var(--muted-foreground);
+  --quota-stop: var(--destructive);
+
+  /* ── 5b. Form validation — a SEPARATE layer from OrderStatus ────────────
+     A form error is not a CANCELLED order. These aliases exist so the two
+     vocabularies stay single-meaning: never style a field error with
+     --muted (PAID/CANCELLED), and never style a cancelled order with
+     --danger-*. Same hue, different job, different token.                  */
+  --danger-fg:     var(--destructive);         /* 9.09:1 ink; 6.97:1 on paper */
+  --danger-bg:     var(--destructive-subtle);
+  --danger-border: var(--destructive-border);  /* OPAQUE                      */
+  --danger-ring:   color-mix(in srgb, var(--destructive) 20%, transparent);
+
+  /* ── 5c. FSSAI marks — statutory, never aliased, never re-themed by hue ─
+     Indian food law mandates the veg / non-veg mark. The HUE is the
+     identity and is held to within 0.15° across themes; only lightness
+     moves. Never alias these to --success / --destructive, never render
+     them as a fill, a text colour or a control border, and never larger
+     than a 16px glyph. They exist in exactly one form: the .fssai
+     primitive — a 12px square outline with a 6px round dot.               */
+  --veg:    #1b7a3d;  /* 5.26:1 on --card, 4.92:1 on --background · Lab h 147.95 */
+  --nonveg: #a02724;  /* 7.29:1 on --card, 6.82:1 on --background · Lab h  33.39 */
+
+  /* ── 5d. Chart ramp — LAW L16: CHARTS LIVE ON --card, NEVER --background ─
+     Measured: --chart-2 is 4.53:1 on --card but 4.23:1 on --background, and
+     --chart-5 is 4.54 vs 4.24. On the page ground the ramp drops below AA.
+     Every chart in every mockup is inside a .card. The slot→hue map is
+     IDENTICAL in both themes, so a series keeps its colour across a flip.  */
+  --chart-1: #005308;  /* 9.15:1 on --card · L* 29.92 C* 50.60 h 137.91      */
+  --chart-2: #067cb1;  /* 4.53:1 on --card · L* 49.04 C* 37.01 h 256.17      */
+  --chart-3: #9a6b57;  /* 4.44:1 on --card · L* 49.59 C* 24.76 h  49.14      */
+  --chart-4: #63247f;  /* 9.81:1 on --card · L* 27.97 C* 58.35 h 318.01      */
+  --chart-5: #9c6b01;  /* 4.54:1 on --card · L* 48.99 C* 57.09 h  77.78.
+                          dE 0.00 from --ready under deuteranopia. CONTAINED
+                          by rule: --ready never renders on a chart route.   */
+  --chart-6: #8b4679;  /* 6.31:1 on --card · L* 40.00 C* 39.71 h 336.26      */
+  --chart-grid: var(--border);            /* 1.36:1 on --card — structure,
+                          deliberately BELOW the axis text so data reads first */
+  --chart-axis: var(--muted-foreground);  /* 7.04:1 on --card — passes as TEXT  */
+  --chart-foreground: #ffffff;            /* in-body label. Worst of the six
+                          slots 4.55:1. --primary-foreground fails here at
+                          4.39:1 on slots 2 and 5 — do not "unify" them.     */
+
+  /* ── 6. Gradients ──────────────────────────────────────────────────────
+     Every token below declares TEXT-BEARING or DECORATIVE ONLY (law L13).
+     Interpolation is sRGB (the default). NEVER add `in oklch` — it voids
+     law L12, and L12 is the reason any of this is safe:
+
+       linear-gradient() and color-mix(in srgb, …) interpolate GAMMA-ENCODED
+       sRGB, and the sRGB EOTF is convex, so an intermediate stop's
+       luminance is ≤ the linear interpolation of its endpoints'. Light text
+       between two DARK stops is therefore safe from the endpoints alone;
+       DARK text between two LIGHT stops can dip below BOTH endpoints and
+       must be sampled. Where that case occurs below, it was sampled at 201
+       points and the worst sample is quoted with its position.
+
+     The mechanism for every text-bearing ramp is
+       color-mix(in srgb, var(--X) 85%, var(--foreground))
+     which darkens in light (--foreground is near-black) and lightens in
+     dark (--foreground is near-white). Monotone-safe in both directions by
+     construction, and a single declaration serves both themes.            */
+
+  /* --app-bg · DECORATIVE ONLY as a surface; it carries --foreground and
+     nothing else. Mint → sidebar sand → paper → card → honey wash: the
+     produce counter, left to right, greens at the left hand and warm spice
+     at the right. DARK TEXT OVER LIGHT STOPS — sampled, not assumed:
+     worst of 201 samples 13.38:1 at 100% (endpoints 15.41 → 13.38).
+     Goes on .main behind the cards (.bg-app), NEVER on <body> and never
+     behind a table: --card is only 1.07:1 above --background, so a card
+     reads as a card by its ring and shadow, and a gradient sliding under
+     it steals exactly that.                                               */
+  --app-bg: linear-gradient(140deg,
+              var(--brand-subtle)    0%,
+              var(--sidebar)        26%,
+              var(--background)     48%,
+              var(--card)           68%,
+              var(--warning-subtle) 100%);
+
+  /* --grad-hero · DECORATIVE ONLY. Marketing band, onboarding, styleguide
+     header. Dark text over light stops — sampled: worst 15.32:1 at 50%.   */
+  --grad-hero: linear-gradient(135deg,
+                 var(--brand-subtle)   0%,
+                 var(--background)    50%,
+                 var(--success-subtle) 100%);
+
+  /* --grad-primary · TEXT-BEARING — carries --primary-foreground.
+     LIGHT: #664A35 → #5C4330 · 7.66:1 → 8.63:1, every intermediate stop
+     ≥ 7.66:1 by L12 (monotone, both endpoints dark).
+     DARK : #C4AC95 → #CBB5A0 · 7.87:1 → 8.68:1.
+     It replaces a flat bg-primary with hover:bg-primary/80, which measured
+     ~5.4:1 and made the HOVER state lighter than the rest — i.e. hovering
+     made the button look disabled. This ramp darkens on hover instead
+     (the mix deepens to 75%: 9.35:1 light, 9.26:1 dark), and :active
+     collapses to flat var(--primary) plus translateY(1px).                */
+  --grad-primary: linear-gradient(180deg,
+                    var(--primary) 0%,
+                    color-mix(in srgb, var(--primary) 85%, var(--foreground)) 100%);
+  --grad-primary-hover: linear-gradient(180deg,
+                    var(--primary) 0%,
+                    color-mix(in srgb, var(--primary) 75%, var(--foreground)) 100%);
+
+  /* --grad-brand · TEXT-BEARING — carries --brand-foreground ONLY. Never
+     --primary-foreground (wrong family) and never white-in-dark (the dark
+     brand is a light mint; white on it fails outright).
+     LIGHT: #083227 → #0C2F24 · 13.27:1 → 13.76:1.
+     DARK : #90E5C8 → #9FE6CB · 12.15:1 → 12.49:1.
+     Wordmark tile, sidebar identity square, marketing hero, the AI rail.   */
+  --grad-brand: linear-gradient(135deg,
+                  var(--brand) 0%,
+                  color-mix(in srgb, var(--brand) 85%, var(--foreground)) 100%);
+
+  /* --grad-destructive · TEXT-BEARING — carries --destructive-foreground.
+     LIGHT: #871C4F → #781C46 ·  9.09:1 → 10.22:1.
+     DARK : #DE82A4 → #E192AC ·  6.79:1 →  7.71:1.
+     ONLY for the single confirming button inside an AlertDialog — the one
+     place a solid red is correct, because it is the last chance to stop.
+     The ordinary destructive button variant is a TINT and stays a tint.    */
+  --grad-destructive: linear-gradient(180deg,
+                        var(--destructive) 0%,
+                        color-mix(in srgb, var(--destructive) 85%, var(--foreground)) 100%);
+
+  /* --grad-sidebar · DECORATIVE ONLY. An 8% deepening down the rail so the
+     nav reads as a panel without spending a second surface token. Carries
+     --sidebar-foreground: 11.37:1 → 9.75:1 light, 13.36:1 → 11.03:1 dark. */
+  --grad-sidebar: linear-gradient(180deg,
+                    var(--sidebar) 0%,
+                    color-mix(in srgb, var(--sidebar) 92%, var(--foreground)) 100%);
+
+  /* --grad-ai · DECORATIVE ONLY. The Ask AI card, and only that card.
+     Carries --foreground: 14.51:1 → 16.39:1 light, 12.83:1 → 14.74:1 dark. */
+  --grad-ai: linear-gradient(180deg,
+               color-mix(in srgb, var(--primary) 8%, var(--card)) 0%,
+               var(--card) 72%);
+
+  /* --grad-card-brand · DECORATIVE ONLY. .card--brand (identity / AI card).
+     Carries --foreground: 15.41:1 → 16.39:1 light, 11.04:1 → 14.74:1 dark. */
+  --grad-card-brand: linear-gradient(160deg, var(--brand-subtle), var(--card) 70%);
+
+  /* --grad-card-warn · DECORATIVE ONLY. .card--warn (the reorder banner).
+     Its ink is --warning-subtle-foreground, NOT --foreground:
+     5.51:1 → 6.75:1 light, 8.29:1 → 11.07:1 dark.                          */
+  --grad-card-warn: linear-gradient(160deg, var(--warning-subtle), var(--card) 78%);
+
+  /* --grad-fade-x · DECORATIVE ONLY. The scroll affordance sitting over the
+     right edge of a .scroll-x table, so a clipped column looks clipped.    */
+  --grad-fade-x: linear-gradient(90deg, transparent, var(--card));
+
+  /* PROHIBITIONS, so they are in the file and not only in the review:
+     · --ready is never a gradient, never a mix, never carries an overlay.
+     · --veg / --nonveg are never a gradient and never a fill above 12px.
+     · No gradient crosses two semantic families — no cocoa→tomato, no
+       pine→beet. A gradient is the one construct that can smuggle a colour
+       across the dE gap that separates identity, interactive and alarm.
+     · No gradient on a table row, a chip, or a meter bar.                  */
+
+  /* ── 7. Radii — a working counter, not a confectionery ──────────────────
+     Base --radius: 0.625rem (10px), held from the app so the five min()
+     clamps in button.tsx / select.tsx stay inert and none of the 95
+     existing radius sites move.                                           */
+  --radius:  0.625rem;
+  --r-hair:  1px;   /* the ONLY hard radius: the five step-meter bars       */
+  --r-2xs:   2px;   /* tooltip arrow, tick marks, the FSSAI square outline  */
+  --r-xs:    6px;   /* = --radius-sm  (--radius * 0.6)                      */
+  --r-sm:    8px;   /* = --radius-md  (* 0.8) — nav links, small controls   */
+  --r:      10px;   /* = --radius-lg  = --radius — THE BASE STEP            */
+  --r-md:   14px;   /* = --radius-xl  (* 1.4) — .card, dialog popup         */
+  --r-lg:   18px;   /* = --radius-2xl (* 1.8) — the floor tile, the KPI tile */
+  --r-xl:   22px;   /* = --radius-3xl (* 2.2) — hero band                   */
+  --r-2xl:  26px;   /* = --radius-4xl (* 2.6) — .chip / Badge (a pill at h-5) */
+  --r-pill: 999px;
+  /* The two control clamps that already exist in the app. INTENTIONAL:
+     dense chrome controls must not inflate when --radius grows. At
+     --radius: 0.625rem both are inert — min(8px, 10px) = 8px.             */
+  --r-ctl:    min(var(--r-sm), 10px);
+  --r-ctl-sm: min(var(--r-sm), 12px);
+  /* NEVER ROUND: the FSSAI mark beyond --r-2xs (the square is statutory
+     shape — a pill-shaped veg mark is not a veg mark), and the meter bars
+     beyond --r-hair.                                                      */
+
+  /* ── 8. Shadows — tinted with the INK hue, never neutral grey ───────────
+     --foreground #241C13 = rgb(36 28 19). Every alpha below is that hue: a
+     grey shadow on a warm ground reads as dirt. Every blur carries a large
+     negative spread so the shadow stays tight to the element — a warm
+     palette turns muddy the moment a shadow spreads.
+     (The dark theme suspends the tint rule and replaces it with a rim —
+     see the note in .dark. That is documented, not accidental.)           */
+  --sh-xs:    0 1px 2px          rgb(36 28 19 / .06);
+  --sh-sm:    0 2px 8px    -2px  rgb(36 28 19 / .10);
+  --sh:       0 10px 24px  -14px rgb(36 28 19 / .30);   /* the default card  */
+  --sh-lg:    0 22px 48px  -26px rgb(36 28 19 / .36);   /* popover, dropdown */
+  --sh-xl:    0 40px 80px  -40px rgb(36 28 19 / .44);   /* dialog, sheet     */
+  --sh-brand: 0 12px 26px  -14px rgb(102 74 53 / .40);  /* = --primary. The
+                        primary CTA only, one per screen.                   */
+  --sh-ready: 0 12px 26px  -14px rgb(192 72 15 / .34);  /* = --ready. The
+                        READY floor tile only, and only under touch density
+                        (a KDS read at 2 m). Nothing else may carry a
+                        coloured shadow.                                    */
+  --sh-up:    0 -12px 30px -20px rgb(36 28 19 / .34);   /* the bottom tab bar */
+  --sh-rim:   inset 0 1px 0 0    rgb(255 255 255 / .55);/* lit top edge — a
+                        near-invisible gloss in light, the PRIMARY elevation
+                        signal in dark.                                     */
+  --scrim:    rgb(36 28 19 / .38);                      /* modal backdrop.
+                        Replaces three hardcoded bg-black/10 backdrops:
+                        10% black over the dark ground is invisible.        */
+
+  /* ── 9. Type ───────────────────────────────────────────────────────────
+     Plus Jakarta Sans (5 weights) + JetBrains Mono (3), already loaded by
+     next/font in the app and exposed as --font-jakarta / --font-jetbrains.
+     These mockups are opened straight from disk with no next/font, so each
+     stack supplies the family NAME as the var() fallback — without it an
+     undefined var makes the whole font-family declaration invalid and the
+     page silently renders in Times.
+
+     Any replacement face MUST ship tabular figures: every ₹ column depends
+     on font-variant-numeric: tabular-nums being set globally on body, and a
+     proportional face makes those columns jitter as they update.          */
+  --font-sans:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui,
+    "Segoe UI", Roboto, sans-serif;
+  --font-heading:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
+    Menlo, monospace;
+  --font-num:
+    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+    /* --font-num is the SAME stack as --font-sans, named separately so the
+       intent reads at the call site: money, quantities, stock balances,
+       timers. It always pairs with tabular-nums.
+       --font-mono is reserved for exactly TWO things — the SQL that Ask AI
+       exposes, and inventory ledger IDs. It is not a "code-ish" decoration. */
+
+  /* The six canonical steps, as the `font` shorthand: one token sets
+     weight, size, line-height and family together. Only the two display
+     tiers are fluid — body and below are fixed so line length stays
+     predictable inside a table.                                           */
+  --t-display: 800 clamp(28px, 3.6vw, 44px)/1.08 var(--font-heading);
+  --t-h1:      700 clamp(20px, 2.2vw, 26px)/1.20 var(--font-heading);
+  --t-h2:      600 16px/1.35 var(--font-heading);
+  --t-body:    400 14px/1.55 var(--font-sans);
+  --t-small:   400 12.5px/1.50 var(--font-sans);
+  --t-label:   600 11px/1.40 var(--font-sans);
+  --label-tracking: 0.12em;  /* tracking cannot live in the `font` shorthand */
+
+  /* Bound variants — they exist because the app already hard-codes these
+     three sizes; naming them IS the fix.                                  */
+  --t-chrome: 600 14px/1.30 var(--font-heading);
+    /* The PageHeader <h1>. DELIBERATELY SMALL: the sticky header is a
+       chrome strip, not a hero. --t-h1 belongs to the marketing site, the
+       styleguide and a future KDS — never to the app shell.               */
+  --t-metric: 600 clamp(22px, 2.4vw, 28px)/1.1 var(--font-num);
+    /* The KPI figure. ALWAYS with tabular-nums and letter-spacing -0.02em.
+       Currency is Intl.NumberFormat('en-IN', {style:'currency',
+       currency:'INR', maximumFractionDigits:0}) → "₹4,86,300": lakh
+       grouping, no paise.                                                 */
+  --t-chip:   700 10.5px/1 var(--font-sans);
+    /* OrderStatusBadge. At 10.5px bold the label needs ≥4.5:1 on its own
+       wash — every -subtle pair above is ≥5.51:1, so it holds.            */
+  --t-code:   500 12px/1.7 var(--font-mono);
+    /* The Ask AI <pre> SQL block and the result cells.                    */
+
+  /* ── 10. Spacing / layout — semantic decisions only ─────────────────────
+     Tailwind's numeric scale covers the rest; these name what it cannot.  */
+  --gap-xs:       8px;
+  --gap-sm:      12px;
+  --gap:         16px;   /* the default grid/flex gap; = Tailwind gap-4     */
+  --gap-lg:      24px;
+  --pad-card:    16px;   /* = card.tsx's [--card-spacing:--spacing(4)]      */
+  --pad-card-sm: 12px;   /* = data-[size=sm]                               */
+  --pad-page:    16px;   /* = every page body's p-4                        */
+  --pad-head:    12px 16px;  /* PageHeader px-4 py-3                       */
+
+  --sidebar-w:        16rem;  /* 256px — SIDEBAR_WIDTH                      */
+  --sidebar-w-mobile: 18rem;  /* 288px — SIDEBAR_WIDTH_MOBILE               */
+  --rail:              3rem;  /* 48px  — SIDEBAR_WIDTH_ICON. With --tap at
+                          44px that is 2px of gutter each side: legal, and
+                          tight. Rail buttons must be width:var(--tap);
+                          min-height:var(--tap); margin-inline:auto, and
+                          their labels CLIPPED, never display:none — the
+                          label is the accessible name of an icon-only
+                          control. If the rail is ever widened, 56px is the
+                          comfortable number; never go below 48.           */
+  --tap:                44px; /* MINIMUM TOUCH TARGET. Non-negotiable.      */
+  --tap-sm:             36px; /* desktop-only chrome floor (dialog close)   */
+  --measure:          1180px; /* content max-width inside .wrap             */
+
+  /* ── 11. Motion ────────────────────────────────────────────────────────
+     Faster than a consumer app on purpose: this is an operational tool and
+     a waiter taps the same button forty times a shift. Motion that lingers
+     is motion that costs money.                                           */
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);  /* ease-out-quint            */
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);  /* drawer, sheet             */
+  --dur:      0.18s;   /* interactions: hover, press, chip, switch          */
+  --dur-lg:   0.28s;   /* off-canvas drawer, dialog                         */
+  --dur-rise: 0.40s;   /* entrance — not an interaction                     */
+  --stagger:  45ms;    /* per-item entrance delay unit                      */
+}
+
+/* ==========================================================================
+   DARK — the same eleven sections, the same token names, dark values.
+   Geometry, type, spacing and motion are theme-INDEPENDENT and are not
+   repeated here; only colour and the shadow alphas change.
+
+   These mockups are opened directly from disk with no theme script, so the
+   dark palette is declared TWICE: once on .dark / [data-theme="dark"] for
+   an explicit choice, and once inside prefers-color-scheme for the OS
+   default. The media block is guarded against an explicit LIGHT choice so
+   the switch wins in both directions. The two blocks are mirrors — the
+   ratios are documented here; if you change one, change both.
+   ========================================================================== */
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* ── 1. Brand palette (dark) ────────────────────────────────────────────
+     Every swatch is LIFTED, not inverted: the hue survives the flip and the
+     role survives with it. --honey is the tightest dE in the whole system
+     (12.02 to --veg) — re-run the full matrix before touching it.         */
+  --pine:        #90e5c8;  /* Pine Mandi     · 12.15:1 with its ink          */
+  --market-mint: #23342b;  /* Market Mint    · the wash inverts to a deep bed */
+  --cocoa:       #c4ac95;  /* Cocoa Counter  · 8.65:1 as a block on the ground */
+  --tomato:      #e87c4c;  /* Ripe Tomato    · 6.63:1 as a block             */
+  --cucumber:    #7fc0d8;  /* Cucumber Blue  · 8.50:1 with its ink           */
+  --beet:        #de82a4;  /* Beet           · 6.79:1 with its ink           */
+  --honey:       #f5c15d;  /* Honey          · 10.32:1 with its ink          */
+
+  /* ── 2. Derived ramps (dark) ───────────────────────────────────────────
+     Same rule, mirrored: in dark the WASH is the deep bed and the INK is
+     the light rung. --success-subtle #001C00 is nearly black on purpose —
+     it is a bed, never a text colour.                                     */
+  --primary:              var(--cocoa);
+  --primary-foreground:   #241a10;  /* 7.87:1 on --primary                   */
+  --secondary:            #33291c;
+  --secondary-foreground: #f0e4d2;  /* 11.35:1 on --secondary                */
+  --secondary-hover:      color-mix(in srgb, var(--secondary), var(--foreground) 5%);
+                                    /* = #3D3326 · its ink 9.90:1 on it      */
+
+  --brand:                    var(--pine);
+  --brand-foreground:         #0b1a13;  /* 12.15:1 on --brand                */
+  --brand-subtle:             var(--market-mint);
+  --brand-subtle-foreground:  #a6dcc0;  /* 8.53:1 on the wash, 11.38:1 on --card */
+
+  --ready:            var(--tomato);
+  --ready-foreground: #2a1206;  /* 6.25:1 on --ready                         */
+
+  --success:                   #aef3b2;  /* 13.02:1 with its ink             */
+  --success-foreground:        #0f2116;  /* 13.02:1 on --success             */
+  --success-subtle:            #001c00;
+  --success-subtle-foreground: #a9ddb6;  /* 11.75:1 on the wash, 11.45:1 on --card */
+
+  --warning:                   var(--honey);
+  --warning-foreground:        #241a0a;  /* 10.32:1 on --warning             */
+  --warning-subtle:            #3b2f0f;
+  --warning-subtle-foreground: #ebc98a;  /* 8.29:1 on the wash, 11.07:1 on
+                              --card. dE 12.78 from --chart-5 — this is the
+                              amber that shares the Overview with the charts. */
+  --warning-border:            #705626;  /* OPAQUE chip edge, 1.91:1 on its wash */
+
+  --info:                   var(--cucumber);
+  --info-foreground:        #0b1e26;  /* 8.50:1 on --info                    */
+  --info-subtle:            #023547;
+  --info-subtle-foreground: #a5d5e6;  /* 8.27:1 on the wash, 11.08:1 on --card */
+
+  --destructive:                   var(--beet);
+  --destructive-foreground:        #2a0a16;  /* 6.79:1 on --destructive      */
+  --destructive-subtle:            #240e1a;
+  --destructive-subtle-foreground: #f3afc2;  /* 10.17:1 on the wash, 9.79:1 on --card */
+  --destructive-border:            #6b3040;  /* OPAQUE chip edge, 1.84:1 on its wash */
+
+  /* ── 3. Ink (dark) — warm in both themes, verified numerically ────────── */
+  --foreground:         #f4eadb;  /* 15.75:1 on --background, 14.74:1 on --card */
+  --card-foreground:    #f4eadb;  /* 14.74:1 on --card                       */
+  --popover-foreground: #f4eadb;  /* 13.43:1 on --popover                    */
+  --muted-foreground:   #b3a38c;  /* 7.62:1 on --background · 6.27:1 on --muted ·
+                                     7.13:1 on --card                        */
+  --accent-foreground:  #f4eadb;  /* 11.96:1 on --accent                     */
+  --ink-invert:         var(--background);  /* .card--ink / tooltip: 15.75:1  */
+
+  /* ── 4. Surfaces (dark) ────────────────────────────────────────────────
+     Warm again, and again by measurement: --background is L* 5.40 at hue
+     69°, not a neutral #111. There is no pure black anywhere — a true black
+     ground under a warm palette makes every surface look blue.            */
+  --background: #16110c;  /* L* 5.40 C* 3.36 h 69.10                         */
+  --card:       #1f1811;  /* L* 8.87 C* 6.11 h 69.73                         */
+  --popover:    #292017;  /* the raised layer                                */
+  --muted:      #2c2318;  /* L* 14.42 C* 9.27 h 75.86                        */
+  --accent:     #33291c;  /* HOVER SURFACE ONLY                              */
+
+  --border: #3a2e20;  /* 1.42:1 on --background — decorative hairline         */
+  --input:  #8a7654;  /* 4.29:1 on --background, 4.01:1 on --card — the
+                         1.4.11 control boundary                             */
+  --ring:   #f5e3c8;  /* 14.92:1 on --background, 13.95:1 on --card          */
+
+  --sidebar:                    #1b150e;
+  --sidebar-foreground:         #e8dcc8;  /* 13.36:1 on --sidebar            */
+  --sidebar-primary:            #c4ac95;  /* tracks --primary; dE 12.04 from --brand */
+  --sidebar-primary-foreground: #241a10;  /* 7.87:1 on --sidebar-primary     */
+  --sidebar-accent:             #2c2318;
+  --sidebar-accent-foreground:  #f4eadb;  /* 12.96:1 on --sidebar-accent     */
+  --sidebar-border:             #463825;
+  --sidebar-ring:               #f5e3c8;  /* 14.40:1 on --sidebar            */
+
+  /* ── 5. Semantic (dark) — the aliases are IDENTICAL to light ────────────
+     Every triple in §5 resolves through the family tokens above, so the
+     enum→role binding is declared exactly once for the whole system. The
+     only entries that need repeating here are the four that hold a hex of
+     their own: the two KPI deltas and the two FSSAI marks.
+     Chip ratios that follow from the aliases, measured on their own wash:
+       PENDING / CONFIRMED  8.27:1   PREPARING  8.29:1   READY  6.25:1
+       SERVED              11.75:1   PAID / CANCELLED    6.27:1             */
+
+  /* KPI delta (dark). dE 21.37 apart — the arrow glyph is still mandatory. */
+  --delta-up:   #aef3b2;  /* 13.59:1 on --card, 14.53:1 on --background      */
+  --delta-down: #de82a4;  /*  6.55:1 on --card,  7.00:1 on --background      */
+
+  /* ── 5c. FSSAI (dark) — the HUE is held to 0.15°, only lightness moves ──
+     Freezing the light marks across the flip is not an option: #A02724
+     measures 2.29:1 on the dark card — a legally mandated glyph below the
+     non-text floor.                                                       */
+  --veg:    #3ea95f;  /* 5.89:1 on --card, 6.29:1 on --background · Lab h 148.10 */
+  --nonveg: #d2564a;  /* 4.32:1 on --card, 4.62:1 on --background · Lab h  33.52 */
+
+  /* ── 5d. Chart ramp (dark) — same slot→hue map, still on --card ───────── */
+  --chart-1: #2d9a2c;  /* 4.82:1 on --card · L* 55.94 C* 69.78 h 138.00      */
+  --chart-2: #53bcff;  /* 8.36:1 on --card · L* 72.91 C* 43.02 h 256.85      */
+  --chart-3: #a87c71;  /* 4.83:1 on --card · L* 56.02 C* 20.07 h  39.28      */
+  --chart-4: #986ada;  /* 4.52:1 on --card · L* 54.08 C* 65.52 h 308.99      */
+  --chart-5: #fecc01;  /* 11.57:1 on --card · dE 6.53 from solid --warning —
+                          CONTAINED: solid --warning has zero consumers.     */
+  --chart-6: #ab6798;  /* 4.28:1 on --card · dE 12.82 from --delta-down      */
+  --chart-foreground: #16110c;  /* = --background. In-body label, worst of
+                          the six slots 4.58:1 — better than the out-of-
+                          palette #111814 on every slot.                     */
+  /* ⚠ OPEN, and written here so it cannot be forgotten: three dark slots
+     sit below the system's own dE ≥ 12 floor —
+       --chart-1 vs --veg 8.03 · --chart-5 vs --warning 8.63 ·
+       --chart-3 vs --ready 10.04.
+     They are CONTAINED by form and by rule (the FSSAI mark is a 12px dot in
+     a square outline and never appears in a chart; --ready and --warning
+     never appear in a chart legend or body). Containment is a mitigation,
+     not a pass — re-solve these three before the ramp is declared final.   */
+
+  /* ── 8. Shadows (dark) — the tint rule is SUSPENDED, and replaced ───────
+     Below the ground there is nothing to tint with: rgb(36 28 19 / α) over
+     #16110C is invisible. A dark UI expresses elevation with (a) a heavier,
+     blacker cast and (b) a LIT TOP RIM. Both are specified, and every
+     raised dark surface pairs them: box-shadow: var(--sh-rim), var(--sh-lg).
+     Any shadow token in here that is not rgb(0 0 0 / α) — apart from the
+     two deliberate colour blooms and the rim — is a bug.                   */
+  --sh-xs:    0 1px 2px          rgb(0 0 0 / .40);
+  --sh-sm:    0 2px 8px    -2px  rgb(0 0 0 / .50);
+  --sh:       0 10px 24px  -14px rgb(0 0 0 / .64);
+  --sh-lg:    0 22px 48px  -26px rgb(0 0 0 / .72);
+  --sh-xl:    0 40px 80px  -40px rgb(0 0 0 / .80);
+  --sh-brand: 0 12px 26px  -14px rgb(196 172 149 / .18);  /* dark --primary bloom */
+  --sh-ready: 0 12px 26px  -14px rgb(232 124 76 / .26);   /* dark --ready bloom   */
+  --sh-up:    0 -12px 30px -20px rgb(0 0 0 / .70);
+  --sh-rim:   inset 0 1px 0 0    rgb(244 234 219 / .07);  /* = --foreground at 7% */
+  --scrim:    rgb(0 0 0 / .62);   /* 10% black over #16110C is invisible;
+                                     62% is a real scrim.                    */
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Mirror of the block above, for the OS default. Guarded so an explicit
+     light choice (.light / [data-theme="light"]) still wins. Ratios and
+     rationale live in .dark — this block is values only, on purpose: two
+     copies of the same prose drift, two copies of the same hex do not.    */
+  :root:not(.light):not([data-theme="light"]) {
+    color-scheme: dark;
+    --pine:        #90e5c8;
+    --market-mint: #23342b;
+    --cocoa:       #c4ac95;
+    --tomato:      #e87c4c;
+    --cucumber:    #7fc0d8;
+    --beet:        #de82a4;
+    --honey:       #f5c15d;
+    --primary:              var(--cocoa);
+    --primary-foreground:   #241a10;
+    --secondary:            #33291c;
+    --secondary-foreground: #f0e4d2;
+    --secondary-hover:      color-mix(in srgb, var(--secondary), var(--foreground) 5%);
+    --brand:                    var(--pine);
+    --brand-foreground:         #0b1a13;
+    --brand-subtle:             var(--market-mint);
+    --brand-subtle-foreground:  #a6dcc0;
+    --ready:            var(--tomato);
+    --ready-foreground: #2a1206;
+    --success:                   #aef3b2;
+    --success-foreground:        #0f2116;
+    --success-subtle:            #001c00;
+    --success-subtle-foreground: #a9ddb6;
+    --warning:                   var(--honey);
+    --warning-foreground:        #241a0a;
+    --warning-subtle:            #3b2f0f;
+    --warning-subtle-foreground: #ebc98a;
+    --warning-border:            #705626;
+    --info:                   var(--cucumber);
+    --info-foreground:        #0b1e26;
+    --info-subtle:            #023547;
+    --info-subtle-foreground: #a5d5e6;
+    --destructive:                   var(--beet);
+    --destructive-foreground:        #2a0a16;
+    --destructive-subtle:            #240e1a;
+    --destructive-subtle-foreground: #f3afc2;
+    --destructive-border:            #6b3040;
+    --foreground:         #f4eadb;
+    --card-foreground:    #f4eadb;
+    --popover-foreground: #f4eadb;
+    --muted-foreground:   #b3a38c;
+    --accent-foreground:  #f4eadb;
+    --ink-invert:         var(--background);
+    --background: #16110c;
+    --card:       #1f1811;
+    --popover:    #292017;
+    --muted:      #2c2318;
+    --accent:     #33291c;
+    --border: #3a2e20;
+    --input:  #8a7654;
+    --ring:   #f5e3c8;
+    --sidebar:                    #1b150e;
+    --sidebar-foreground:         #e8dcc8;
+    --sidebar-primary:            #c4ac95;
+    --sidebar-primary-foreground: #241a10;
+    --sidebar-accent:             #2c2318;
+    --sidebar-accent-foreground:  #f4eadb;
+    --sidebar-border:             #463825;
+    --sidebar-ring:               #f5e3c8;
+    --delta-up:   #aef3b2;
+    --delta-down: #de82a4;
+    --veg:    #3ea95f;
+    --nonveg: #d2564a;
+    --chart-1: #2d9a2c;
+    --chart-2: #53bcff;
+    --chart-3: #a87c71;
+    --chart-4: #986ada;
+    --chart-5: #fecc01;
+    --chart-6: #ab6798;
+    --chart-foreground: #16110c;
+    --sh-xs:    0 1px 2px          rgb(0 0 0 / .40);
+    --sh-sm:    0 2px 8px    -2px  rgb(0 0 0 / .50);
+    --sh:       0 10px 24px  -14px rgb(0 0 0 / .64);
+    --sh-lg:    0 22px 48px  -26px rgb(0 0 0 / .72);
+    --sh-xl:    0 40px 80px  -40px rgb(0 0 0 / .80);
+    --sh-brand: 0 12px 26px  -14px rgb(196 172 149 / .18);
+    --sh-ready: 0 12px 26px  -14px rgb(232 124 76 / .26);
+    --sh-up:    0 -12px 30px -20px rgb(0 0 0 / .70);
+    --sh-rim:   inset 0 1px 0 0    rgb(244 234 219 / .07);
+    --scrim:    rgb(0 0 0 / .62);
+  }
+}
+
+/* ═══════════════════════════ BREAKPOINTS ═══════════════════════════════
+   Operato is used on a TABLET, mounted or held, in a kitchen, by someone
+   with wet hands. Tablet is a first-class citizen, not an afterthought.
+
+     ≤ 639px    Phone            secondary — the owner checking a number
+     640–1023   Tablet portrait  ← PRIMARY TARGET    768 × 1024
+     1024–1279  Tablet landscape ← PRIMARY TARGET   1024 × 768  (the counter)
+     ≥ 1280     Desktop          back office — reports, menu editing
+
+   HARD REQUIREMENT: every mockup must be fully usable with a FINGER at
+   768×1024 and 1024×768. If a control cannot be hit at 44px in those two
+   viewports, the layout is wrong — not the finger.
+
+   Shell shape at each range (implemented in _shell.css):
+     ≥1280      .shell grid-template-columns: var(--sidebar-w) minmax(0,1fr)
+     1024–1279  → var(--rail) minmax(0,1fr); labels CLIPPED (never
+                 display:none — they are the accessible name of every
+                 icon-only control); tooltips on hover/focus; the user menu
+                 opens to the right
+     ≤1023      → minmax(0,1fr); the sidebar becomes an off-canvas sheet
+                 (--sidebar-w-mobile, translateX(-102%), --sh-xl); .tabbar
+                 docks to the bottom with --sh-up; .main takes
+                 padding-bottom: calc(64px + env(safe-area-inset-bottom) + 16px)
+     ≤419       the KPI grid drops to ONE column: "₹4,86,300" cannot survive
+                 a ~150px box
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Reset ───────────────────────────────────────────────────────────────
+   Deliberately small. Anything that is not a browser-default correction
+   belongs in a primitive, where it can be named and argued with.          */
+*,
+*::before,
+*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font: var(--t-body);
+  color: var(--foreground);
+  background: var(--background);   /* NOT --app-bg: the wash belongs to
+                                      .main, behind the cards. See §6.      */
+  font-variant-numeric: tabular-nums;   /* ← THE ₹-COLUMN RULE. Set once,
+                                      here, so no money column can forget.  */
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+button { background: none; border: 0; cursor: pointer; }
+input, select, textarea, button { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+table { border-collapse: collapse; width: 100%; }
+[hidden] { display: none !important; }
+
+/* THE TWO-RING FOCUS CONSTRUCT — the focus ring is a construct, not a
+   colour. 2px core in --ring, then a 2px offset ring painted in
+   --background. No single hex clears 3:1 on every fill this product has;
+   the pair always does. Worst measured case 4.59:1 light (on the READY
+   chip) / 7.31:1 dark. Drop the offset ring and the worst case falls to
+   1.78:1 on --brand — which is why the box-shadow is not optional
+   decoration, it is half of the mechanism.                                */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--background);
+  border-radius: var(--r-xs);
+}
+
+/* ── The data-density="touch" scope (law L15) ────────────────────────────
+   The app's ambient control height is 32px — correct for the back-office
+   desktop, illegal for a floor tablet. Operational page roots (Orders,
+   Inventory, Staff) carry data-density="touch", which lifts every control
+   in the subtree to --tap. Overview, Ask AI, Menu, Customers and Billing
+   stay at ambient density because they are read, not tapped mid-service.
+   This is a real attribute the mockups must render, not an aspiration.    */
+[data-density="touch"] .btn,
+[data-density="touch"] button,
+[data-density="touch"] [role="button"],
+[data-density="touch"] .switch,
+[data-density="touch"] select,
+[data-density="touch"] input:not([type="checkbox"]):not([type="radio"]) {
+  min-height: var(--tap);
+}
+[data-density="touch"] .btn--icon { width: var(--tap); }
+[data-density="touch"] .btn        { padding-inline: 18px; }
+[data-density="touch"] td,
+[data-density="touch"] th { padding-block: 10px; }
+[data-density="touch"] .tile { min-height: 96px; }
+
+/* ══════════════════════════ PRIMITIVES ═════════════════════════════════
+   Everything below is shared by every mockup in this folder. The four
+   shell classes (.shell / .sidebar / .rail / .tabbar / .pagehead) live in
+   _shell.css — which IS linked by every screen, unlike the reference
+   system's, where it was written and then forgotten.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Cards ───────────────────────────────────────────────────────────────
+   The outline is not decoration. --card sits 1.07:1 above --background, so
+   the hairline — not the fill — is what makes a card a card. Keep the ring
+   and add the shadow beneath it; never trade one for the other.           */
+.card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border-radius: var(--r-md);
+  padding: var(--pad-card);
+  outline: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  box-shadow: var(--sh-rim), var(--sh);
+}
+.card--sm    { padding: var(--pad-card-sm); }
+.card--flat  { box-shadow: none; }            /* cards nested in a dialog   */
+.card--brand {                                 /* the identity / AI card     */
+  background: var(--grad-card-brand);
+  outline-color: color-mix(in srgb, var(--brand) 25%, transparent);
+}
+.card--warn {                                  /* the reorder banner         */
+  background: var(--grad-card-warn);
+  outline-color: var(--warning-border);        /* OPAQUE, per the chip rule  */
+  color: var(--warning-subtle-foreground);     /* 5.51:1 on the top stop     */
+}
+.card--ai   { background: var(--grad-ai); }    /* the Ask AI card, only      */
+/* The inverted spotlight card — and the tooltip surface, the app's only
+   inverted component. 15.32:1 light / 15.75:1 dark.                       */
+.card--ink {
+  background: var(--foreground);
+  color: var(--ink-invert);
+  outline: 0;
+  box-shadow: var(--sh-lg);
+}
+.card__head { display: flex; align-items: flex-start; justify-content: space-between;
+              gap: var(--gap-sm); margin-bottom: var(--gap-sm); }
+.card__body { display: grid; gap: var(--gap-sm); }
+/* The footer bleeds to the card's edge, so ALL FOUR RADII MOVE TOGETHER —
+   change --r-md and the footer squares off inside a rounder shell.        */
+.card__foot {
+  margin: var(--pad-card) calc(var(--pad-card) * -1) calc(var(--pad-card) * -1);
+  padding: var(--pad-card-sm) var(--pad-card);
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--muted) 50%, transparent);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  /* over --card = #F8F2E5 light / #261E15 dark · --foreground 14.99:1 / 13.87:1 */
+}
+.card__title { font: var(--t-h2); }            /* never more than once per card */
+.card__desc  { font: var(--t-small); color: var(--muted-foreground); }
+
+/* ── Label · metric · rules ──────────────────────────────────────────────
+   .label is REAL UI STRUCTURE ("Main", "Manage", a table <th>, a legend
+   key), not decoration: 11px uppercase at 0.12em tracking is small text
+   and needs 4.5:1. Its only legal colours are --muted-foreground (6.59:1
+   light / 7.62:1 dark) and --accent-foreground.                           */
+.label {
+  font: var(--t-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.metric {
+  font: var(--t-metric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+.metric__cur {                 /* the "₹" in "₹4,86,300" — smaller, and
+                                  NEVER a different hue: a coloured rupee
+                                  sign reads as a status.                  */
+  font-size: .62em; font-weight: 600; margin-left: 2px;
+  color: var(--muted-foreground);
+}
+.hint    { font: var(--t-small); color: var(--muted-foreground); }
+.err     { font: var(--t-small); color: var(--danger-fg); }   /* §5b, forms only */
+.divider { height: 1px; background: var(--border); border: 0; }
+
+/* ── .chip — one variant per REAL enum value ─────────────────────────────
+   A chip's border is ALWAYS opaque: an alpha edge composites differently
+   on --card, on --muted, on a tinted row and inside a dialog, and a status
+   edge that changes weight by context is not a status edge.               */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px 3px 6px;
+  border-radius: var(--r-pill);
+  border: 1px solid;
+  font: var(--t-chip);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.chip--pad { padding-left: 10px; }   /* no meter — reclaim the leading gap  */
+
+/* The five-segment meter. Bars are 6px wide with 3px gaps because the
+   redundancy has to exist AT THE PASS, not only at the design review: a
+   3×9px bar is sub-acuity beyond about a metre, and the whole argument is
+   a kitchen read at two. Filled bars use the chip's OWN foreground at
+   100%, the remainder at 25% — so every meter is ≥4.5:1 on its own chip BY
+   CONSTRUCTION and can never drift from the label beside it.              */
+.chip .meter { display: inline-flex; gap: 3px; }
+.chip .meter i {
+  width: 6px; height: 10px;
+  border-radius: var(--r-hair);
+  background: currentColor;
+  opacity: .25;
+}
+.chip .meter i[data-on] { opacity: 1; }
+
+/* OrderStatus — the ordinal set. Meter step in the trailing comment.      */
+.chip--placed    { background: var(--st-placed-bg);    color: var(--st-placed-fg);    border-color: var(--st-placed-bd); }    /* 1/5 */
+.chip--confirmed { background: var(--st-confirmed-bg); color: var(--st-confirmed-fg); border-color: var(--st-confirmed-bd); } /* 1/5 */
+.chip--preparing { background: var(--st-preparing-bg); color: var(--st-preparing-fg); border-color: var(--st-preparing-bd); } /* 2/5 */
+.chip--ready     { background: var(--st-ready-bg);     color: var(--st-ready-fg);     border-color: var(--st-ready-bd); }     /* 3/5 · THE ONLY SOLID CHIP */
+.chip--served    { background: var(--st-served-bg);    color: var(--st-served-fg);    border-color: var(--st-served-bd); }    /* 4/5 */
+.chip--paid      { background: var(--st-paid-bg);      color: var(--st-paid-fg);      border-color: var(--st-paid-bd); }      /* 5/5 */
+.chip--cancelled {                                                                                                            /* 0 — NO METER */
+  background: var(--st-cancelled-bg); color: var(--st-cancelled-fg);
+  border-color: var(--st-cancelled-bd);
+  text-decoration: line-through;
+}
+
+/* Staff isActive — the only success-subtle chip outside SERVED. They share
+   one green by design; a second green would imply a second meaning.       */
+.chip--active   { background: var(--staff-on-bg);  color: var(--staff-on-fg);  border-color: color-mix(in srgb, var(--success) 25%, transparent); }
+.chip--inactive { background: var(--staff-off-bg); color: var(--staff-off-fg); border-color: var(--border); }
+
+/* Derived stock state                                                     */
+.chip--reorder  { background: var(--warning-subtle); color: var(--warning-subtle-foreground); border-color: var(--warning-border); }
+
+/* TransactionType — direction, not severity. Pair each with its glyph.    */
+.chip--stock-in   { background: var(--tx-in-bg);     color: var(--tx-in-fg);     border-color: color-mix(in srgb, var(--success) 25%, transparent); }
+.chip--stock-out  { background: var(--tx-out-bg);    color: var(--tx-out-fg);    border-color: var(--border); }
+.chip--waste      { background: var(--tx-waste-bg);  color: var(--tx-waste-fg);  border-color: var(--tx-waste-bd); }
+.chip--stock-take { background: var(--tx-adjust-bg); color: var(--tx-adjust-fg); border-color: transparent; }
+
+/* Plan                                                                    */
+.chip--pro  { background: var(--plan-pro-bg);  color: var(--plan-pro-fg);  border-color: transparent; }
+.chip--free { background: var(--plan-free-bg); color: var(--plan-free-fg); border-color: transparent; }
+
+/* One neutral treatment for every NOMINAL vocabulary: seven StaffRoles,
+   four menu categories, free-form customer tags, "based on a sample".
+   This class is doing heavy lifting on purpose.                           */
+.chip--neutral,
+.chip--sample { background: var(--nominal-bg); color: var(--nominal-fg); border-color: transparent; }
+
+/* ── .btn ────────────────────────────────────────────────────────────────
+   Ambient height is 32px; under data-density="touch" every button becomes
+   --tap without touching the markup.                                      */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: var(--r);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  font: 500 14px/1 var(--font-sans);
+  transition: background var(--dur) var(--ease),
+              box-shadow  var(--dur) var(--ease),
+              transform   var(--dur) var(--ease);
+}
+/* A menu trigger must not shift under the finger while its popup opens —
+   the popup is anchored to it.                                            */
+.btn:active:not([aria-haspopup]) { transform: translateY(1px); }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+
+.btn--primary {
+  background: var(--grad-primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--sh-rim), var(--sh-brand);
+}
+.btn--primary:hover  { background: var(--grad-primary-hover); }  /* DARKENS on
+              hover — the old bg-primary/80 got lighter, i.e. it read as
+              disabled at exactly the moment of intent.                    */
+.btn--primary:active { background: var(--primary); }
+
+/* Identity, never a data-mutating action. Marketing and onboarding only.  */
+.btn--brand {
+  background: var(--grad-brand);
+  color: var(--brand-foreground);
+  box-shadow: var(--sh-rim), var(--sh-sm);
+}
+
+/* --input, NOT --border, carries the control boundary: 3.27:1 / 4.29:1
+   versus 1.27:1. An outline button edged in --border is a 1.4.11 failure. */
+.btn--outline {
+  background: var(--background);
+  color: var(--foreground);
+  border-color: var(--input);
+  box-shadow: var(--sh-xs);
+}
+.btn--outline:hover { background: var(--muted); }
+
+.btn--secondary        { background: var(--secondary); color: var(--secondary-foreground); }
+.btn--secondary:hover  { background: var(--secondary-hover); }
+
+.btn--ghost        { background: transparent; color: var(--muted-foreground); }
+.btn--ghost:hover  { background: var(--muted); color: var(--foreground); }
+
+/* A TINT, not a fill — a destructive row action must not shout louder than
+   a READY ticket. Ink on the tint: 7.45:1 light / 5.63:1 dark, and
+   6.19:1 / 4.68:1 on the hover step.                                      */
+.btn--destructive       { background: color-mix(in srgb, var(--destructive) 10%, transparent);
+                          color: var(--destructive); }
+.btn--destructive:hover { background: color-mix(in srgb, var(--destructive) 20%, transparent); }
+
+/* The ONLY solid red in the system: the confirming button inside an
+   AlertDialog, one per dialog, because it is the last chance to stop.     */
+.btn--danger-confirm {
+  background: var(--grad-destructive);
+  color: var(--destructive-foreground);
+  box-shadow: var(--sh-rim), var(--sh-sm);
+}
+
+.btn--sm   { min-height: 28px; padding: 0 11px; font-size: 12.5px; border-radius: var(--r-ctl); }
+            /* inside cards and rows — NEVER a page CTA                    */
+.btn--lg   { min-height: 36px; padding: 0 18px; }
+.btn--icon { width: 32px; padding: 0; border-radius: var(--r-ctl); }
+.btn--tap  { min-height: var(--tap); padding: 0 18px; }
+.btn--tap.btn--icon { width: var(--tap); }
+.btn--block { width: 100%; }
+
+/* ── Controls (input / textarea / select / switch) ───────────────────────
+   The same border / ring / aria-invalid recipe is duplicated across four
+   files in the app; here it is written once. The edge is --input, and an
+   invalid field switches to the §5b danger layer — never to a status
+   token, because a form error is not a CANCELLED order.                   */
+.input, .textarea, .sel {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--input);
+  background: var(--card);
+  color: var(--foreground);
+  font: var(--t-body);
+  width: 100%;
+}
+.textarea { min-height: 76px; resize: vertical; }
+.input::placeholder, .textarea::placeholder { color: var(--muted-foreground); }
+.input[aria-invalid="true"], .textarea[aria-invalid="true"], .sel[aria-invalid="true"] {
+  border-color: var(--danger-fg);
+  box-shadow: 0 0 0 3px var(--danger-ring);
+}
+.switch {
+  width: 38px; height: 22px; border-radius: var(--r-pill);
+  background: var(--input); position: relative; flex: none;
+  transition: background var(--dur) var(--ease);
+}
+.switch[aria-checked="true"] { background: var(--primary); }
+.switch::after {
+  content: ""; position: absolute; inset: 2px auto 2px 2px;
+  width: 18px; border-radius: 50%; background: var(--card);
+  transition: transform var(--dur) var(--ease);
+}
+.switch[aria-checked="true"]::after { transform: translateX(16px); }
+
+/* ── .av — avatar ────────────────────────────────────────────────────────
+   The tenant tile's ink is --brand-foreground, NOT white: the dark brand is
+   a light mint and white on it fails outright. --brand-foreground clears
+   12.15:1 at the near stop and 12.49:1 at the far stop of --grad-brand.   */
+.av {
+  width: 32px; height: 32px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  font: 700 12px/1 var(--font-sans);
+  background: var(--muted); color: var(--muted-foreground);
+}
+.av--brand { background: var(--grad-brand); color: var(--brand-foreground); }
+.av--lg    { width: 40px; height: 40px; font-size: 14px; }
+.av--sm    { width: 24px; height: 24px; font-size: 10px; }
+.av--ring  { box-shadow: 0 0 0 2px var(--background); }
+             /* stacked avatars: the cutout is punched out of --background.
+                If avatars ever move onto --card this MUST become
+                var(--card) — the two are 1.07:1 apart and the cutout would
+                simply vanish.                                             */
+
+/* ── .fssai — the statutory mark, its own primitive, deliberately ────────
+   Indian food law mandates it: a square outline with a round dot, 12px
+   minimum. It is NEVER a fill, NEVER a text colour, NEVER a control
+   border, and never larger than a 16px glyph. It always carries
+   title + aria-label "Vegetarian" / "Non-vegetarian" — the colour is not
+   the accessible name.
+   Corollary that constrains the rest of the system: no brand or status
+   green may be drawn as a standalone bordered glyph at 12–14px. That form
+   belongs to the veg mark alone.                                          */
+.fssai {
+  width: 12px; height: 12px;
+  border-radius: var(--r-2xs);
+  border: 1.5px solid;
+  display: grid; place-items: center; flex: none;
+}
+.fssai::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+}
+.fssai--veg    { color: var(--veg); }
+.fssai--nonveg { color: var(--nonveg); }
+
+/* ── .tile — the floor table card (Orders → Floor) ───────────────────────
+   The one place --ready is allowed outside the READY chip, and only under
+   touch density: a KDS is read at two metres.                             */
+.tile {
+  background: var(--tbl-free-bg);
+  color: var(--foreground);
+  min-height: 84px;
+  padding: 12px;
+  border-radius: var(--r-lg);
+  outline: 1px solid var(--tbl-free-bd);
+  box-shadow: var(--sh-rim), var(--sh-sm);
+  display: grid; align-content: space-between;
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.tile--free:hover { background: var(--muted); }
+.tile--live {
+  background: var(--tbl-live-bg);            /* 15.20:1 light / 13.57:1 dark */
+  outline-color: var(--tbl-live-bd);
+}
+.tile--reserved { background: var(--tbl-reserved-bg); color: var(--tbl-reserved-fg);
+                  outline-color: var(--tbl-reserved-bd); }
+.tile--inactive { background: var(--tbl-inactive-bg); color: var(--tbl-inactive-fg);
+                  outline-color: var(--tbl-inactive-bd); opacity: .6; }
+.tile--ready    { box-shadow: var(--sh-rim), var(--sh-ready); }
+.tile__no    { font: var(--t-h2); }
+.tile__seats { font: var(--t-small); color: var(--muted-foreground); }
+.tile__amt   { font: var(--t-body); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ── Row states (tables) ─────────────────────────────────────────────────
+   Three layered thresholds, three different channels, one amber.          */
+.row--reorder { background: var(--stock-reorder-row); }      /* needsReorder */
+.row--low     { color: var(--stock-low-fg); font-weight: 600; } /* daysLeft < 3 */
+.row--dim     { opacity: .6; }   /* isAvailable === false — the ONE status
+                                    expressed by dimming. Optimistic, and it
+                                    rolls back.                            */
+.row--live    { background: var(--tbl-live-bg); }
+
+/* ── Utilities ───────────────────────────────────────────────────────────  */
+.bg-app { background: var(--app-bg); background-attachment: fixed; }
+.wrap   { max-width: var(--measure); margin-inline: auto; }
+.tabular { font-variant-numeric: tabular-nums; }
+.truncate-1 {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.fade-x {                        /* pair with .scroll-x: a clipped column
+                                    must LOOK clipped on a tablet, where
+                                    there is no scrollbar to hint with.    */
+  position: absolute; inset: 0 0 0 auto; width: 36px; pointer-events: none;
+  background: var(--grad-fade-x);
+}
+/* The 2px meter — the Overview "known customers" bar and the days-left bar.
+   Distinct from .chip .meter: this one is a proportion, not an ordinal.   */
+.meter-bar { height: 2px; border-radius: var(--r-pill); background: var(--muted); overflow: hidden; }
+.meter-bar > i { display: block; height: 100%; background: var(--chart-1); }
+/* Loading. --muted is 1.12:1 from --background, so on a card a skeleton
+   needs the shimmer to be seen at all.                                    */
+.skel {
+  background: var(--muted); border-radius: var(--r-xs); min-height: 12px;
+  animation: shimmer 1.4s var(--ease-io) infinite;
+}
+/* Visible to screen readers, invisible on screen. Use this — never
+   display:none — whenever the hidden text is the element's only
+   accessible name (every icon-only rail button).                          */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────  */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise var(--dur-rise) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+@keyframes shimmer { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* The one motion that carries MEANING: an order chip advancing a step. It
+   is still redundant — the meter, the label and the fill all change too.  */
+@keyframes step-advance {
+  from { transform: scale(0.94); }
+  60%  { transform: scale(1.04); }
+  to   { transform: none; }
+}
+.chip[data-advanced] { animation: step-advance var(--dur) var(--ease); }
+
+/* READY, on a KDS only. BOX-SHADOW ONLY — no transform, no opacity, so it
+   can never make the text unreadable mid-pulse. Never the sole signal.    */
+@keyframes ready-pulse {
+  0%, 100% { box-shadow: var(--sh-rim), var(--sh-sm); }
+  50%      { box-shadow: var(--sh-rim), var(--sh-ready); }
+}
+[data-density="touch"] .tile--ready {
+  animation: ready-pulse 2.4s var(--ease-io) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    /* ↑ THE ONE PEOPLE MISS. Without it .rise still holds its `from`
+       keyframe — opacity 0 — for the whole staggered delay, so a
+       reduced-motion visitor watches the page appear row by row instead of
+       it simply being there. Any stagger built on
+       animation-delay: calc(var(--i) * Nms) MUST zero the delay here.     */
+  }
+  [data-density="touch"] .tile--ready { animation: none; }
+}
+/* prefers-reduced-motion cannot reach scroll-behavior, so it is scoped and
+   dropped separately — and only the marketing page ever asks for it.      */
+html:has(#marketing-root) { scroll-behavior: smooth; }
+html:has(#marketing-root) [id] { scroll-margin-top: 5rem; }
+@media (prefers-reduced-motion: reduce) {
+  html:has(#marketing-root) { scroll-behavior: auto; }
+}
+
+/* ── Print — a kitchen prints. Toner is the fifth theme. ─────────────────  */
+@media print {
+  body { background: #ffffff; }               /* kill the wash for toner. This
+                                                 is the light --popover, the
+                                                 palette only pure white, so
+                                                 even the paper is a token.    */
+  .print-hide { display: none !important; }   /* one opt-out class          */
+  .paper { box-shadow: none !important; outline: 0 !important; margin: 0 !important; }
+  .chip  { border-width: 1.5px; }             /* the meter and the chip edge
+                                                 must survive greyscale     */
+  .fssai { border-width: 2px; }               /* the statutory mark must
+                                                 print, legibly, in mono    */
+  .card  { box-shadow: none !important; }
+}

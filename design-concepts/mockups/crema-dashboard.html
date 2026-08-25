@@ -1,0 +1,1973 @@
+<!doctype html>
+<!--
+================================================================================
+  OPERATO · THEME "CREMA"  —  DIRECTION SPEC  (v1.0 · authored on the Overview)
+
+  A speciality coffee roaster's operating screen. Crema Coffee Roasters,
+  100 Feet Road, Indiranagar, Bengaluru. Espresso, filter, pastries, beans by
+  weight. Many small tickets. Regulars by name.
+
+  THIS COMMENT IS THE CONTRACT. Menu, Orders + Floor, Inventory, Customers,
+  Staff, Ask AI and Billing are built from it. If a value is here, use it
+  verbatim; if it is not here, derive it in the same spirit and add it here.
+
+  THE FEELING (read this before the numbers)
+  ------------------------------------------------------------------------------
+  Unhurried and precise. A well-run cafe at 7am: a wiped counter, warm light,
+  paper menus, ceramic, pale wood. CALM OVER DENSITY. When a layout choice is
+  between "fit one more thing in" and "let it breathe", Crema breathes.
+  Whitespace is the primary material. Colour is spent sparingly and always
+  means something.
+
+  The three at-a-glance signatures — a stranger must be able to name this theme
+  from across the room with the text blurred out:
+
+    1. PAPER, NOT GLASS.   No backdrop-filter anywhere in the theme. No blurred
+                           gradient blobs. Surfaces are flat warm paper
+                           separated by HAIRLINES and by very soft, very wide,
+                           very low-opacity warm-brown shadows. The sidebar is a
+                           panel of pale wood, the canvas is chalk, the cards
+                           are near-white ceramic.
+
+    2. LIGHT, LARGE FIGURES. Every headline number is font-weight 300 at
+                           clamp(30px,3.4vw,44px), tabular, -0.03em tracking.
+                           Big but quiet. Numbers are NEVER 700 in this theme.
+
+    3. RECTANGLES.         The radius vocabulary is small and square-ish
+                           (4/8/12/16/20). Chips are 6px rounded rects. Buttons
+                           are 10px rounded rects. Status dots are SQUARES.
+                           THE ONLY PILL IN THE ENTIRE THEME is the masthead
+                           eyebrow tag. No pill buttons, no pill chips, no pill
+                           anything else, on any screen, ever.
+
+  ==============================================================================
+  1. TOKENS — declare this whole block on :root at the top of EVERY file so the
+     screen stands alone when opened straight off disk. Hex values are literal.
+     Every contrast ratio quoted below was measured, not estimated, and is
+     quoted AGAINST THE SURFACE THE TEXT ACTUALLY SITS ON.
+  ==============================================================================
+
+  1.1 RAW PALETTE (the eight cues; never used directly as text colour)
+      --espresso   #2A1D16   deep roast — the darkest brand colour
+      --roast      #4A3428   mid roast
+      --caramel    #B07636   caramel — the primary brand accent
+      --crema      #D9A566   the golden crema on a shot; fills + ornament
+      --oat        #EFE3D2   oat milk
+      --cream      #F8F1E6   steamed cream
+      --chalk      #FBF8F3   chalk white — the page ground
+      --sage       #8CA089   eucalyptus / sage — the secondary
+
+  1.2 SURFACES
+      --chalk      #FBF8F3   page ground (the app canvas)
+      --surface    #FFFDFA   card / ceramic. Warm near-white — never #ffffff.
+      --surface-2  #F4EDE3   inset panel, row stripe, quiet well
+      --surface-3  #EAE0D2   pressed / hovered inset, meter track
+      --oat        #EFE3D2   masthead wash, top stop
+      --cream      #F8F1E6   masthead wash, mid stop
+      --wood-1     #F6EEE2   sidebar panel, top stop
+      --wood-2     #F2E9DB   sidebar panel, bottom stop
+      --app-bg     linear-gradient(180deg,#FBF8F3 0%,#F8F2E9 100%), fixed
+
+  1.3 BORDERS  (all are DECORATIVE structure — none of these is ever text)
+      --line        #E7DCCB  the default hairline. 1px. The workhorse.
+      --line-strong #D8C9B2  emphasised hairline, dot leaders, chart baseline
+      --line-sage   #D3DECE  hairline on sage surfaces
+      --line-dark   #412F24  hairline INSIDE an espresso card
+
+  1.4 INK RAMP (warm browns; pure black and neutral grey are banned)
+      --ink        #23180F   headings, values, primary text   16.40:1 on chalk
+      --ink-soft   #6B5747   secondary text, notes              6.44:1 on chalk
+      --ink-label  #7C6753   the .label convention              5.05:1 on chalk
+      --ink-faint  #BBAA96   2.13:1 — DECORATIVE STROKES ONLY. Never text,
+                             never an affordance, never a state carrier.
+      --ink-invert       #FBF6EE  text on espresso            15.18:1
+      --ink-on-dark-soft #C9B6A2  secondary text on espresso   8.32:1
+      --ink-on-dark-label#B7A18B  labels on espresso           6.60:1
+
+  1.5 BRAND RAMP — CARAMEL (the primary; every accent, every focus ring)
+      --caramel-50   #FDF5EA   wash
+      --caramel-100  #F7E8D2   tint / chip background / avatar
+      --caramel-200  #EDD4AC   border on tinted surfaces
+      --caramel-300  #D9A566   fill + ornament only        (2.17:1 — FILL ONLY)
+      --caramel-500  #B07636   chart series 1, graphic strokes. 3.77:1 on
+                               --surface: clears the 3:1 a meaningful graphical
+                               object needs, and is NOT legal as text.
+      --caramel-700  #7A4C17   THE ACCESSIBLE CARAMEL TEXT.
+                               7.20:1 on --surface · 6.90:1 on --chalk ·
+                               6.06:1 on --caramel-100 · 5.09:1 on --caramel-200
+
+  1.6 SECONDARY RAMP — SAGE
+      --sage-50   #F2F5F0
+      --sage-100  #E3EADF
+      --sage-200  #C9D6C3
+      --sage-400  #8CA089   fill / ornament only            (2.76:1)
+      --sage-500  #6E8566   chart series 2 (3.97:1 on --surface — graphic only)
+      --sage-600  #52664C   ACCESSIBLE sage text 6.15:1 on --surface,
+                            5.08:1 on --sage-100
+      --sage-700  #3C4C37   headings on --sage-100/200 (7.50 / 6.09)
+
+  1.7 SEMANTIC STATES — each is a {bg, fg, line} triple. The fg ALWAYS clears
+      4.5:1 on its own bg, because a chip carries 10.5px text.
+        settled / paid / good        --ok-bg   #E3EADF --ok-fg   #3C4C37 (7.50)
+                                     --ok-line #C9D6C3
+        working / brewing            --work-bg #F1E8DD --work-fg #5F4634 (7.18)
+                                     --work-line #DECFBD
+        ready · THE ONE SOLID CHIP   --ready-bg#D9A566 --ready-fg#2A1D16 (7.41)
+        attention / reorder          --warn-bg #FBEBDC --warn-fg #96501B (5.21)
+                                     --warn-line #E9C7A4
+        danger / void / out of stock --bad-bg  #F9E7E3 --bad-fg  #8B3626 (6.62)
+                                     --bad-line #E7C6BC
+        quiet / closed / archived    --mute-bg #F4EDE3 --mute-fg #6B5747 (5.87)
+
+      READY is the ONLY solid-filled chip in the system. Nothing else may
+      compete with it. It is how a barista finds the next cup at arm's length.
+
+      DELTA: --up #52664C · --down #8B3626 · --flat #6B5747. Colour is NEVER
+      the sole carrier — every delta prints an arrow glyph AND a signed number.
+      On an espresso card the up-green lightens to #A8C09E to hold 4.5:1.
+
+  1.8 FSSAI VEG / NON-VEG — LEGALLY FIXED, NOT THEMEABLE
+      --veg #1A7F3C   (4.99:1 on --surface)
+      --nonveg #8B1E1E (8.98:1 on --surface)
+      Rendered as a 14px square with a 1.6px outline in the colour, and a
+      filled Ø6px dot centred inside it in the same colour. These two hexes do
+      not change with the theme and are never tinted, washed or "harmonised
+      into the palette". Every food or drink item named on any screen carries
+      one — the espresso and the croissant both.
+
+  1.9 CHART TOKENS
+      --c-1   #B07636  (caramel-500)  primary series — takings
+      --c-2   #6E8566  (sage-500)     second category
+      --c-3   #6B5747  (ink-soft)     third category
+      --c-grid#EADFCE                 hairline gridlines (decorative)
+      Series colours are assigned in FIXED slot order for nominal categories —
+      never cycled, never assigned by rank.
+
+  ==============================================================================
+  2. TYPE
+  ==============================================================================
+      --font-serif : "Iowan Old Style","Palatino Linotype",Palatino,
+                     "Book Antiqua",Georgia,serif
+      --font-sans  : ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,
+                     "Helvetica Neue",Arial,sans-serif
+      --font-num   : the sans stack, ALWAYS with
+                     font-variant-numeric: tabular-nums
+
+      THE SPLIT — a rule, not a preference:
+        SERIF  → the masthead greeting, every section title, every card title.
+                 The editorial voice. Weight 300 or 400 only. Never bold serif.
+        SANS   → every label, every body string, every chip, every button.
+        NUMBERS are always SANS with tabular figures, never serif. (Serif
+        oldstyle figures ride the baseline and break column alignment, which is
+        the one thing a money column cannot survive.)
+
+      SCALE
+        --t-display 300 clamp(34px,5.2vw,58px)/1.02 serif  masthead greeting
+        --t-h1      400 clamp(22px,2.4vw,30px)/1.15 serif  section title
+        --t-h2      400 clamp(17px,1.6vw,20px)/1.25 serif  card title
+        --t-h3      600 13.5px/1.3 sans                    sub-head in a card
+        --t-body    400 14px/1.62 sans
+        --t-small   400 12.5px/1.55 sans
+        --t-micro   500 11px/1.45 sans
+        --t-label   600 10.5px/1.4 sans + letter-spacing .18em + UPPERCASE
+                    Crema tracks its labels WIDER than a stock dashboard —
+                    .18em, not .1em. That tracking is half the signature.
+        --metric    300 clamp(30px,3.4vw,44px)/1.05 num, letter-spacing -.03em
+        --metric-sm 300 clamp(21px,2.2vw,27px)/1.10 num, letter-spacing -.02em
+
+      Currency: Intl.NumberFormat('en-IN', {style:'currency', currency:'INR',
+      maximumFractionDigits:0}) → Indian lakh grouping, no paise: "₹38,420",
+      "₹10,65,420". The ₹ sign is rendered at .58em, weight 400, --ink-soft,
+      3px to the left of the digits, inside the same tabular run so columns of
+      money still align.
+
+  ==============================================================================
+  3. RADII · SHADOW · SPACING · MOTION
+  ==============================================================================
+      RADII    --r-xs 4 · --r-sm 8 · --r 12 · --r-md 16 · --r-lg 20 ·
+               --r-chip 6 · --r-btn 10 · --r-pill 999
+               Cards take --r-lg (20). An INNER panel takes --r (12) — it must
+               never carry its parent card's outer radius or the nesting reads
+               inverted. --r-pill is used exactly ONCE per screen: the masthead
+               eyebrow tag.
+
+      SHADOW   Warm, brown-tinted, wide and faint. Never neutral grey.
+               --sh-xs   0 1px 2px rgba(42,29,22,.04)
+               --sh-sm   0 2px 6px -2px rgba(42,29,22,.06)
+               --sh      0 10px 30px -18px rgba(42,29,22,.22)
+               --sh-lg   0 26px 60px -34px rgba(42,29,22,.28)
+               --sh-dark 0 18px 40px -22px rgba(42,29,22,.45)  espresso cards
+               A card is a HAIRLINE FIRST and a shadow second. If you delete
+               every shadow in the file the layout must still read. Test it.
+
+      SPACING  4px base.
+               --gap 14 · --gap-lg 22 · --pad-card 22
+               --pad-page clamp(16px,2.6vw,34px)
+               --sec-gap  clamp(34px,4.4vw,60px) — deliberately larger than a
+                          stock dashboard's 24–32. This is the whitespace
+                          budget and it is not negotiable downwards.
+               --tap 44   minimum touch target. These screens run on tablets on
+                          a working counter with wet hands. Nothing interactive
+                          is under 44px in any dimension it can be hit in.
+               Buttons are 46px tall. --btn-sm is 40px and is legal ONLY inside
+               a row that already provides a 44px+ hit area around it.
+
+      MOTION   --ease cubic-bezier(.22,1,.36,1) · --dur .22s
+               .rise entrance: translateY(8px) + opacity, .5s, staggered by an
+               inline --i at 60ms. Subtler than a stock stagger on purpose —
+               Crema does not bounce. Everything dies under
+               prefers-reduced-motion: reduce.
+
+  ==============================================================================
+  4. SHELL GEOMETRY  (identical on all eight screens)
+  ==============================================================================
+      --sidebar 268px   expanded sidebar (wider than stock; it is airy)
+      --rail     78px   collapsed icon rail
+      --wrap   1240px   max content measure, margin-inline auto
+      masthead          no fixed height — content-sized, min-height 208px at
+                        >=1024. It is FULL-BLEED inside the main column: it
+                        runs edge to edge and the page gutter begins below it.
+
+      RESPONSIVE LADDER
+        >= 1280       full sidebar, 268px
+        1024 – 1279   icon rail, 78px. Labels are CLIPPED (the sr-only recipe),
+                      never display:none — they are the accessible name of
+                      every icon-only control in the rail.
+        <= 1023       off-canvas drawer (282px) + a 5-slot bottom tab bar.
+                      Tabs: Overview · Orders · Ask AI · Inventory · More.
+                      "More" opens the drawer, which carries Menu, Staff,
+                      Customers, Billing and the account block.
+        <= 640        phone. Masthead CTAs go full width; KPI grid → 2 cols.
+        <= 430        KPI grid → 1 col.
+
+      THE SIDEBAR IS A PANEL OF PALE WOOD — not glass, not a flat white rail:
+        background: linear-gradient(180deg,var(--wood-1),var(--wood-2));
+        border-right: 1px solid var(--line);
+        NO backdrop-filter. NO shadow at >= 1024 (the drawer gets --sh-lg).
+      The ACTIVE nav item is a ceramic card lifted off that wood:
+        background var(--surface) + 1px var(--line) + var(--sh-sm)
+        + a 3px --espresso bar flush against its left inside edge
+        + a --caramel-700 icon.
+      Hover on an inactive item is background var(--surface-2) and nothing else.
+
+      The sidebar holds, top to bottom: the Operato wordmark + "for Crema"
+      tag · the BUSINESS SWITCHER (full-width, hairline, two-line: name over
+      role, with a chevron) · one primary CTA · nav group "Counter" (Overview,
+      Ask AI, Menu, Orders) · nav group "The shop" (Inventory, Staff,
+      Customers, Billing) · then, pushed to the foot, the user block.
+
+  ==============================================================================
+  5. THE SIGNATURE MOVES — copy these exactly onto the other seven screens
+  ==============================================================================
+
+  5.1 THE MASTHEAD  (every screen has one; only its content changes)
+      A full-bleed band at the top of the main column:
+        background: linear-gradient(158deg, var(--oat) 0%, var(--cream) 44%,
+                                    var(--chalk) 100%);
+      Left column, top to bottom:
+        · THE EYEBROW — the theme's one pill. 1px --line, --surface at 70%
+          opacity, 34px tall, holding the business name · the neighbourhood,
+          a hairline separator, then a live "Open · 7:00–21:00" state.
+        · THE GREETING — --t-display, serif, weight 300, --ink. It is a
+          sentence and it ends in a full stop. "Good morning, Anaya."
+        · THE DATE LINE — serif italic, clamp(15px,1.6vw,18px), --ink.
+        · THE CONTEXT LINE — sans, --ink, max 52ch. One honest sentence about
+          this shift with the day's real numbers set in <b> inside it.
+        · THE ACTIONS — one primary (espresso) plus one ghost. Never three.
+      Right column: THE AT-A-GLANCE PANEL — a --surface ceramic card, 1px
+      --line, --sh, three rows separated by hairlines, each row a --label and a
+      --metric-sm figure. It is the only card permitted inside a masthead.
+
+      ALL masthead copy is --ink, not --ink-soft: the band composites --oat
+      under the ring ornament, where --ink-soft drops to roughly 4.4:1 and has
+      no headroom. Hierarchy in the masthead is carried by FACE, SIZE and
+      WEIGHT — serif vs sans, 58px vs 14px, 300 vs 600 — never by tint.
+
+      ORNAMENT (budget: exactly 3 motif types in the masthead, and no more):
+        · THE RING (#o-ring) — a huge, faint, stroke-only set of concentric
+          arcs: the mark a wet cup leaves on paper. 460px, --caramel-300 at
+          .30 opacity, pinned top:-150px right:-110px, aria-hidden, clipped by
+          the band's overflow.
+        · THE STEAM (#o-steam) — three rising curls, --sage-400 at .55, 78px,
+          sitting above and left of the greeting. Used ONCE per screen.
+        · THE COUNTER RULE — the masthead's bottom edge is not one border but
+          THREE stacked hairlines with 3px gaps, running full bleed:
+            background: repeating-linear-gradient(180deg,
+              var(--line) 0 1px, transparent 1px 4px)
+              bottom / 100% 10px no-repeat;
+          This is the theme's edge treatment. It replaces the drop shadow, the
+          scallop, the wave. Every masthead has it. Nothing else in the theme
+          does.
+      NO blurred blobs. NO backdrop-filter. NO mascot. Crema has no cartoon.
+
+  5.2 THE SECTION HEAD — "the printed menu rule"
+      A single row: [ --label eyebrow stacked over a serif --t-h1 title ]
+      [ A DOUBLE HAIRLINE that stretches to the far right edge ] [ actions,
+      hard right ]. The double rule is one 3px-tall flex:1 element:
+        background: linear-gradient(180deg, var(--line) 0 1px,
+                    transparent 1px 2px, var(--line) 2px 3px);
+      It is the reason a Crema screen reads like a printed price list. Put it
+      on every section on every screen. A section with no title still gets the
+      rule — it simply starts at the left edge.
+
+  5.3 THE CARD
+      background --surface · 1px --line · --r-lg · --sh · padding --pad-card.
+      Four MEANINGFUL variants. Pick by what the card is SAYING, never for
+      decoration, and never more than three variants on one screen:
+        .card--oat      #FDF8F0 bg, --line border          quiet / reference
+        .card--sage     --sage-50 bg, --line-sage border   settled / healthy
+        .card--caramel  --caramel-50 bg, --caramel-200 br  money / retail
+        .card--espresso linear-gradient(155deg,#33241B,#231810), --line-dark
+                        border, --sh-dark, --ink-invert text.
+                        EXACTLY ONE espresso card per screen. It is the single
+                        dark object on a page of paper, and it must therefore
+                        be the most important number on that page. On the
+                        Overview that is Takings today. On Orders it is the
+                        open-tickets total. On Billing it is the plan.
+
+  5.4 THE CORNER RING — the card ornament
+      A quarter of #o-ring: 132px, absolutely positioned at top:-46px
+      right:-46px inside an overflow:hidden card, stroke-only, opacity .5,
+      in the card's own accent. It appears on KPI tiles and on the at-a-glance
+      panel. NEVER on a table, a list row, or inside a chart's plot area, and
+      never behind a number it would cross.
+
+  5.5 THE CHIP — a jar label, not a lozenge
+      display:inline-flex · min-height 26px · padding 4px 9px · --r-chip 6 ·
+      1px border in the state's line colour · 600 10.5px sans, UPPERCASE, .1em
+      tracking · and a 6px SQUARE dot (never a circle) in currentColor at .8
+      opacity, 6px to the left of the text. Squares, because Crema is
+      rectangular. The READY chip is the only one with a solid fill, and it
+      drops its border and goes to weight 700. Status is ALWAYS spelled out in
+      words as well; colour never carries it alone.
+
+  5.6 THE BUTTON
+      --r-btn 10 · min-height 46px · padding 0 20px · 600 13.5px sans · gap 9px
+      · transition on transform + box-shadow + background.
+        .btn--primary  --espresso fill, --ink-invert text, --sh-dark
+        .btn--ghost    --surface fill, 1px --line, --ink text, --sh-xs
+        .btn--quiet    transparent, --ink-soft text, hover --surface-2
+        .btn--warn     --surface fill, 1px --warn-line, --warn-fg text
+      :active { transform: translateY(1px) }. No pills. No gradient fills on
+      buttons — the only gradients in the theme are the masthead wash, the
+      sidebar wood, the espresso card and the chart area wash.
+
+  5.7 THE DOT-LEADER BOARD — the chalkboard menu row
+      Any ranked or priced list (top sellers, a price list, a bill, a stock
+      list) is a .board row:
+        [rank square 24px] [FSSAI mark] [name] [·············] [count] [₹price]
+      The leader is a flex:1 element carrying
+        border-bottom: 1px dotted var(--line-strong);
+      offset up 5px so it lands on the text baseline. Row min-height 52px so a
+      fingertip always clears. This is the single most recognisable Crema
+      component: use it anywhere a name is paired with a number.
+
+  5.8 THE HAIRLINE METER
+      Progress, stock level, share-of-total: a 3px track in --surface-3 at
+      --r-xs with a fill in the meaning's colour. 3px, never fatter — a fat
+      progress bar is the loudest object on a calm page and it has not earned
+      it. Multi-segment meters gap their segments by 2px. A meter is ALWAYS
+      paired with the printed number; the bar is never the only statement of
+      the value.
+
+  5.9 THE BREW METER — the order-lifecycle encoder
+      Five 3x10px --r-xs bars, 3px apart. Filled steps at full opacity, the
+      remainder at .22. Placed(1) → Brewing(2) → On the pass(3) → Served(4) →
+      Paid(5). Deliberately redundant with the chip: a counter screen is read
+      at arm's length, through glare, sometimes by someone who cannot separate
+      red from green. Position in a sequence is encoded twice, always.
+
+      CREMA'S ORDER VOCABULARY (maps 1:1 onto the Prisma OrderStatus enum):
+        PENDING/CONFIRMED → "Placed"        chip--mute   step 1
+        PREPARING         → "Brewing"       chip--work   step 2
+        READY             → "On the pass"   chip--ready  step 3
+        SERVED            → "Served"        chip--ok     step 4
+        PAID              → "Paid"          chip--mute   step 5
+        CANCELLED         → "Cancelled"     chip--bad    no meter, line-through
+
+  5.10 CHARTS
+      Inline SVG only, hand-authored paths over real numbers. No library, ever.
+      viewBox 0 0 900 300 for a full-width plot; the wrapper sets
+      min-width:760px and scrolls on narrow screens so no axis label is ever
+      downscaled below its authored size. Horizontal hairline gridlines only
+      (--c-grid) — no vertical grid, no plot border, no axis spines.
+      Series: 2px stroke in --c-1 with a 3-stop wash beneath at .22 → 0.
+      Points: Ø3.4 --surface discs stroked 1.8px in --c-1.
+      A PARTIAL, STILL-RUNNING PERIOD is drawn with a DASHED segment and a
+      HOLLOW final point and is labelled "so far". Crema never lets an
+      incomplete day masquerade as a finished one — not in a chart, not in a
+      KPI, not in a total.
+      Axis text: sans 11px 600 --ink-soft. Value callouts: sans 11px 700
+      --caramel-700 (never --caramel-500 — a callout is text).
+
+  5.11 ICONS
+      Inline SVG only, one per call site — no icon font, no sprite sheet fetched
+      from anywhere. 24x24 viewBox · fill:none · stroke:currentColor ·
+      STROKE-WIDTH 1.7 (thinner than a stock dashboard's 2, and part of the
+      calm) · stroke-linecap:round · stroke-linejoin:round. Rendered at 19px in
+      the nav, 18px in a button, 21px in the tab bar, 20px in an alert badge.
+      The four ORNAMENT marks (#o-ring, #o-steam, #o-bean) and the legal
+      #o-fssai mark live in one <defs> sprite at the top of every file so a
+      developer extracts them as four components.
+
+  5.12 WHAT CREMA NEVER DOES
+      backdrop-filter · blurred gradient blobs · pill buttons · pill chips ·
+      circular status dots · bold serif · 700-weight numerals · neutral grey ·
+      pure #000 or #ffffff · a mascot · decorative emoji in any string that
+      also carries money · a colour that is the only carrier of a state · a
+      chart drawn by a library · a control under 44px.
+================================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operato — Overview · Crema Coffee Roasters</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS — the full Crema contract, declared here so this file stands
+   alone when opened straight off disk.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* raw cues */
+  --espresso:#2A1D16; --roast:#4A3428; --caramel:#B07636; --crema:#D9A566;
+  --oat:#EFE3D2; --cream:#F8F1E6; --chalk:#FBF8F3; --sage:#8CA089;
+
+  /* surfaces */
+  --surface:#FFFDFA; --surface-2:#F4EDE3; --surface-3:#EAE0D2;
+  --wood-1:#F6EEE2; --wood-2:#F2E9DB;
+  --app-bg:linear-gradient(180deg,#FBF8F3 0%,#F8F2E9 100%);
+
+  /* borders — decorative structure, never text */
+  --line:#E7DCCB; --line-strong:#D8C9B2; --line-sage:#D3DECE; --line-dark:#412F24;
+
+  /* ink ramp */
+  --ink:#23180F; --ink-soft:#6B5747; --ink-label:#7C6753; --ink-faint:#BBAA96;
+  --ink-invert:#FBF6EE; --ink-on-dark-soft:#C9B6A2; --ink-on-dark-label:#B7A18B;
+
+  /* brand — caramel */
+  --caramel-50:#FDF5EA; --caramel-100:#F7E8D2; --caramel-200:#EDD4AC;
+  --caramel-300:#D9A566; --caramel-500:#B07636; --caramel-700:#7A4C17;
+
+  /* secondary — sage */
+  --sage-50:#F2F5F0; --sage-100:#E3EADF; --sage-200:#C9D6C3;
+  --sage-400:#8CA089; --sage-500:#6E8566; --sage-600:#52664C; --sage-700:#3C4C37;
+
+  /* semantic states {bg,fg,line} */
+  --ok-bg:#E3EADF;    --ok-fg:#3C4C37;    --ok-line:#C9D6C3;
+  --work-bg:#F1E8DD;  --work-fg:#5F4634;  --work-line:#DECFBD;
+  --ready-bg:#D9A566; --ready-fg:#2A1D16;
+  --warn-bg:#FBEBDC;  --warn-fg:#96501B;  --warn-line:#E9C7A4;
+  --bad-bg:#F9E7E3;   --bad-fg:#8B3626;   --bad-line:#E7C6BC;
+  --mute-bg:#F4EDE3;  --mute-fg:#6B5747;
+  --up:#52664C; --down:#8B3626; --flat:#6B5747;
+
+  /* FSSAI — legally fixed, not themeable */
+  --veg:#1A7F3C; --nonveg:#8B1E1E;
+
+  /* charts */
+  --c-1:#B07636; --c-2:#6E8566; --c-3:#6B5747; --c-grid:#EADFCE;
+
+  /* type */
+  --font-serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-num:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --t-body:400 14px/1.62 var(--font-sans);
+  --t-small:400 12.5px/1.55 var(--font-sans);
+  --t-micro:500 11px/1.45 var(--font-sans);
+  --t-label:600 10.5px/1.4 var(--font-sans);
+  --label-track:.18em;
+
+  /* radii */
+  --r-xs:4px; --r-sm:8px; --r:12px; --r-md:16px; --r-lg:20px; --r-pill:999px;
+  --r-chip:6px; --r-btn:10px;
+
+  /* shadow — warm, wide, faint */
+  --sh-xs:0 1px 2px rgba(42,29,22,.04);
+  --sh-sm:0 2px 6px -2px rgba(42,29,22,.06);
+  --sh:0 10px 30px -18px rgba(42,29,22,.22);
+  --sh-lg:0 26px 60px -34px rgba(42,29,22,.28);
+  --sh-dark:0 18px 40px -22px rgba(42,29,22,.45);
+
+  /* spacing + shell */
+  --gap:14px; --gap-lg:22px; --pad-card:22px;
+  --pad-page:clamp(16px,2.6vw,34px);
+  --sec-gap:clamp(34px,4.4vw,60px);
+  --tap:44px; --sidebar:268px; --rail:78px; --wrap:1240px;
+
+  /* motion */
+  --ease:cubic-bezier(.22,1,.36,1); --dur:.22s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · RESET
+   ══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink);
+  background:var(--app-bg); background-attachment:fixed;
+  min-height:100dvh; -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--caramel-700);outline-offset:2px;border-radius:var(--r-xs)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* entrance — subtler than a stock stagger, on purpose. Crema does not bounce. */
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rise{animation:rise .5s var(--ease) both;animation-delay:calc(var(--i,0) * 60ms)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · PRIMITIVES
+   ══════════════════════════════════════════════════════════════════════════ */
+.label{
+  font:var(--t-label); letter-spacing:var(--label-track);
+  text-transform:uppercase; color:var(--ink-label);
+}
+.metric{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums;
+  font-weight:300; font-size:clamp(30px,3.4vw,44px); line-height:1.05;
+  letter-spacing:-.03em; color:var(--ink); white-space:nowrap;
+}
+.metric-sm{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums;
+  font-weight:300; font-size:clamp(21px,2.2vw,27px); line-height:1.1;
+  letter-spacing:-.02em; color:var(--ink); white-space:nowrap;
+}
+.cur{font-size:.58em;font-weight:400;color:var(--ink-soft);margin-right:3px;letter-spacing:0}
+
+.card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:var(--pad-card); box-shadow:var(--sh);
+}
+.card--oat{background:#FDF8F0}
+.card--sage{background:var(--sage-50);border-color:var(--line-sage)}
+.card--caramel{background:var(--caramel-50);border-color:var(--caramel-200)}
+.card--espresso{
+  background:linear-gradient(155deg,#33241B,#231810);
+  border-color:var(--line-dark); box-shadow:var(--sh-dark); color:var(--ink-invert);
+}
+.card--espresso .label{color:var(--ink-on-dark-label)}
+.card--espresso .metric,.card--espresso .metric-sm{color:var(--ink-invert)}
+.card--espresso .cur{color:var(--ink-on-dark-soft)}
+
+.card__title{
+  font-family:var(--font-serif); font-weight:400;
+  font-size:clamp(17px,1.6vw,20px); line-height:1.25; color:var(--ink);
+}
+.card__sub{font:var(--t-small);color:var(--ink-soft);margin-top:3px}
+.card__head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.card__head .card__act{margin-left:auto}
+
+/* 5.5 THE CHIP — a jar label. Square dot. 6px radius. Never a pill. */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:26px;padding:4px 9px;border-radius:var(--r-chip);
+  border:1px solid transparent;
+  font:600 10.5px/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";width:6px;height:6px;background:currentColor;opacity:.8;flex:0 0 auto}
+.chip--ok{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-line)}
+.chip--work{background:var(--work-bg);color:var(--work-fg);border-color:var(--work-line)}
+.chip--warn{background:var(--warn-bg);color:var(--warn-fg);border-color:var(--warn-line)}
+.chip--bad{background:var(--bad-bg);color:var(--bad-fg);border-color:var(--bad-line)}
+.chip--mute{background:var(--mute-bg);color:var(--mute-fg);border-color:var(--line)}
+/* the ONE solid chip in the whole system */
+.chip--ready{background:var(--ready-bg);color:var(--ready-fg);border-color:transparent;font-weight:700}
+.chip--ready::before{opacity:1}
+
+/* 5.6 THE BUTTON — rectangles, 46px, never a pill */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:46px;padding:0 20px;border-radius:var(--r-btn);
+  font:600 13.5px/1 var(--font-sans);
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),
+             background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.btn svg{width:18px;height:18px;flex:0 0 auto}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--espresso);color:var(--ink-invert);box-shadow:var(--sh-dark)}
+.btn--primary:hover{background:#3A2A20}
+.btn--ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--sh-xs)}
+.btn--ghost:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.btn--quiet{background:transparent;color:var(--ink-soft)}
+.btn--quiet:hover{background:var(--surface-2);color:var(--ink)}
+.btn--warn{background:var(--surface);color:var(--warn-fg);border:1px solid var(--warn-line);box-shadow:var(--sh-xs)}
+.btn--warn:hover{background:#FFF7EE}
+.btn--sm{min-height:40px;padding:0 14px;font-size:12.5px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+
+/* FSSAI mark — 14px square outline + Ø6 filled dot. The colours are legal. */
+.fssai{width:14px;height:14px;flex:0 0 auto}
+.fssai--veg{color:var(--veg)}
+.fssai--nonveg{color:var(--nonveg)}
+
+/* 5.8 THE HAIRLINE METER — 3px, never fatter */
+.meter{height:3px;border-radius:var(--r-xs);background:var(--surface-3);overflow:hidden;display:block}
+.meter>i{display:block;height:100%;border-radius:var(--r-xs);background:var(--c-1)}
+.meter--ok>i{background:var(--sage-500)}
+.meter--warn>i{background:var(--warn-fg)}
+.meter--seg{display:flex;gap:2px;background:none;overflow:visible}
+.meter--seg>i{border-radius:var(--r-xs)}
+
+/* 5.9 THE BREW METER — 5 bars, redundant with the chip on purpose */
+.brew{display:inline-flex;gap:3px;align-items:flex-end;color:var(--ink-soft)}
+.brew>i{width:3px;height:10px;border-radius:var(--r-xs);background:currentColor;opacity:.22}
+.brew>i.on{opacity:1}
+
+/* delta — arrow glyph AND signed number; colour never carries it alone */
+.delta{display:inline-flex;align-items:center;gap:5px;font:600 12px/1 var(--font-sans);font-variant-numeric:tabular-nums}
+.delta svg{width:13px;height:13px}
+.delta--up{color:var(--up)} .delta--down{color:var(--down)} .delta--flat{color:var(--flat)}
+.card--espresso .delta--up{color:#A8C09E}
+.delta em{font-style:normal;font-weight:500;color:var(--ink-soft)}
+.card--espresso .delta em{color:var(--ink-on-dark-soft)}
+
+/* avatar — initials in a rounded SQUARE, because Crema is rectangular */
+.av{
+  width:36px;height:36px;flex:0 0 auto;border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  font:600 12px/1 var(--font-sans);letter-spacing:.02em;
+  background:var(--caramel-100);color:var(--caramel-700);
+  box-shadow:inset 0 0 0 1px var(--caramel-200);
+}
+.av--sage{background:var(--sage-100);color:var(--sage-700);box-shadow:inset 0 0 0 1px var(--sage-200)}
+.av--ink{background:var(--espresso);color:var(--ink-invert);box-shadow:none}
+.av--sm{width:30px;height:30px;font-size:11px;border-radius:var(--r-xs)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE — the reference convention, in Crema's rectangles
+   ══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:12px;right:12px;z-index:99;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 12px;border-radius:var(--r-chip);
+  background:var(--surface);border:1px solid var(--line-strong);
+  box-shadow:var(--sh-sm);
+  font:700 10.5px/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--caramel-700);pointer-events:none;
+}
+.variant-badge svg{width:14px;height:14px;color:var(--caramel-500)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · SHELL — sidebar >=1280 · icon rail 1024–1279 · drawer + tabbar <=1023
+   ══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+/* THE SIDEBAR IS A PANEL OF PALE WOOD — no glass, no backdrop-filter. */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;
+  display:flex;flex-direction:column;gap:20px;
+  padding:22px 16px 18px;
+  background:linear-gradient(180deg,var(--wood-1),var(--wood-2));
+  border-right:1px solid var(--line);
+  overflow-y:auto;scrollbar-width:none;z-index:50;
+}
+.sidebar::-webkit-scrollbar{display:none}
+
+.brand{display:flex;align-items:center;gap:12px;padding:2px 4px}
+.brand-logo{
+  width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r);background:var(--espresso);color:var(--crema);
+  box-shadow:var(--sh-dark);
+}
+.brand-logo svg{width:22px;height:22px}
+.brand-text{min-width:0;display:block}
+.brand-name{
+  display:block;font-family:var(--font-serif);font-weight:400;
+  font-size:19px;line-height:1.1;letter-spacing:.005em;color:var(--ink);white-space:nowrap;
+}
+.brand-tag{
+  display:block;margin-top:3px;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);white-space:nowrap;
+}
+
+/* the business switcher */
+.switcher{
+  width:100%;display:flex;align-items:center;gap:11px;
+  min-height:58px;padding:9px 11px;
+  border-radius:var(--r);border:1px solid var(--line);
+  background:var(--surface);box-shadow:var(--sh-xs);text-align:left;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.switcher:hover{background:#FFFFFF;border-color:var(--line-strong)}
+.switcher-ico{
+  width:32px;height:32px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--caramel-100);color:var(--caramel-700);
+  box-shadow:inset 0 0 0 1px var(--caramel-200);
+}
+.switcher-ico svg{width:17px;height:17px}
+.switcher-meta{min-width:0;flex:1;display:block}
+.switcher-name{display:block;font:600 13px/1.25 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.switcher-role{display:block;margin-top:2px;font:var(--t-label);
+  letter-spacing:var(--label-track);text-transform:uppercase;color:var(--ink-label)}
+.switcher>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+
+.side-cta{width:100%}
+
+.nav-group+.nav-group{margin-top:20px}
+.nav-group>.label{display:block;padding:0 12px 9px;color:var(--ink-label)}
+.nav-list{list-style:none;display:grid;gap:2px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-height:var(--tap);padding:0 12px;border-radius:var(--r-sm);
+  color:var(--ink-soft);font:600 13.5px/1 var(--font-sans);
+  border:1px solid transparent;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:19px;height:19px;flex:0 0 auto;opacity:.9}
+.nav-link:hover{background:var(--surface-2);color:var(--ink)}
+/* the ACTIVE item is a ceramic card lifted off the wood, with a 3px espresso
+   bar flush to its left inside edge */
+.nav-link[aria-current="page"]{
+  background:var(--surface);border-color:var(--line);box-shadow:var(--sh-sm);
+  color:var(--ink);padding-left:18px;
+}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;
+  border-radius:0 var(--r-xs) var(--r-xs) 0;background:var(--espresso);
+}
+.nav-link[aria-current="page"] svg{color:var(--caramel-700);opacity:1}
+.nav-badge{
+  margin-left:auto;font:600 10.5px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  background:var(--caramel-100);color:var(--caramel-700);
+  box-shadow:inset 0 0 0 1px var(--caramel-200);
+  padding:4px 7px;border-radius:var(--r-xs);
+}
+.nav-badge--warn{background:var(--warn-bg);color:var(--warn-fg);box-shadow:inset 0 0 0 1px var(--warn-line)}
+
+.side-foot{margin-top:auto;padding-top:16px;position:relative}
+.side-foot::before{content:"";display:block;height:1px;background:var(--line);margin-bottom:14px}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:11px;
+  min-height:var(--tap);padding:8px 10px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-xs);
+  text-align:left;transition:background var(--dur) var(--ease);
+}
+.user-btn:hover{background:#FFFFFF}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:600 12.5px/1.25 var(--font-sans);color:var(--ink)}
+.user-mail{display:block;margin-top:2px;font:400 11px/1.3 var(--font-sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* --ink-soft, NOT --ink-faint: this chevron is the only signal that the button
+   expands a menu, so it is an affordance and needs 3:1, not an ornament. */
+.user-btn>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+.user-menu{
+  list-style:none;margin-top:6px;padding:6px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-lg);
+  display:grid;gap:2px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);
+  padding:0 10px;border-radius:var(--r-sm);font:600 12.5px/1 var(--font-sans);color:var(--ink-soft)}
+.user-menu a:hover{background:var(--surface-2);color:var(--ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu[hidden]{display:none!important}
+
+.main{min-width:0;padding-bottom:52px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · THE MASTHEAD (5.1) — full-bleed band, the ring, the steam,
+   and the three-hairline COUNTER RULE at its foot.
+   ══════════════════════════════════════════════════════════════════════════ */
+.mast{
+  position:relative;overflow:hidden;isolation:isolate;
+  background:linear-gradient(158deg,var(--oat) 0%,var(--cream) 44%,var(--chalk) 100%);
+  padding:clamp(20px,2.8vw,34px) var(--pad-page) clamp(30px,3.4vw,46px);
+}
+/* THE COUNTER RULE — three stacked hairlines, 3px apart. The theme's edge. */
+.mast::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:10px;pointer-events:none;
+  background:repeating-linear-gradient(180deg,var(--line) 0 1px,transparent 1px 4px);
+}
+/* THE RING — the mark a wet cup leaves on paper. Decorative, aria-hidden. */
+.mast-ring{
+  position:absolute;top:-150px;right:-110px;width:460px;height:460px;
+  color:var(--caramel-300);opacity:.30;pointer-events:none;z-index:-1;
+}
+.mast-in{
+  position:relative;max-width:var(--wrap);margin-inline:auto;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:clamp(18px,3vw,44px);flex-wrap:wrap;
+}
+.mast-l{min-width:0;flex:1 1 420px}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  min-height:34px;padding:6px 14px;
+  border-radius:var(--r-pill); /* the theme's ONE pill */
+  background:rgba(255,253,250,.72);border:1px solid var(--line);
+  box-shadow:var(--sh-xs);
+  font:600 11.5px/1.3 var(--font-sans);color:var(--ink);white-space:nowrap;
+}
+.eyebrow em{font-style:normal;font-weight:500;color:var(--ink-soft)}
+.eyebrow .bar{width:1px;height:14px;background:var(--line-strong);flex:0 0 auto}
+.eyebrow .live{display:inline-flex;align-items:center;gap:6px;color:var(--sage-600);font-weight:600}
+.eyebrow .live i{width:6px;height:6px;background:currentColor;flex:0 0 auto}
+
+/* THE STEAM — three rising curls. Once per screen, above the greeting. */
+.steam{width:78px;height:34px;color:var(--sage-400);opacity:.55;margin:16px 0 -2px 3px}
+
+.greeting{
+  font-family:var(--font-serif);font-weight:300;
+  font-size:clamp(34px,5.2vw,58px);line-height:1.02;letter-spacing:-.015em;
+  color:var(--ink);margin-top:6px;
+}
+.greeting em{font-style:italic;color:var(--caramel-700);font-weight:400}
+/* Every string in the masthead is --ink, not --ink-soft: the band composites
+   --oat under the ring, where --ink-soft has no headroom over 4.5:1. */
+.mast-date{
+  margin-top:14px;font-family:var(--font-serif);font-style:italic;
+  font-size:clamp(15px,1.6vw,18px);line-height:1.4;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.mast-line{
+  margin-top:9px;font-size:clamp(13.5px,1.3vw,15px);line-height:1.62;
+  color:var(--ink);max-width:52ch;font-variant-numeric:tabular-nums;
+}
+.mast-line b{font-weight:700}
+.mast-line .warn{color:var(--warn-fg);font-weight:600}
+.mast-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+/* THE AT-A-GLANCE PANEL — the only card allowed inside a masthead */
+.glance{
+  flex:0 0 auto;width:min(300px,100%);position:relative;overflow:hidden;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--sh);padding:6px 20px;
+}
+.glance-ring{position:absolute;top:-46px;right:-46px;width:132px;height:132px;
+  color:var(--sage-400);opacity:.5;pointer-events:none}
+.glance-row{
+  position:relative;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:15px 0;
+}
+.glance-row+.glance-row{border-top:1px solid var(--line)}
+.glance-row .label{display:block}
+.glance-row small{display:block;margin-top:4px;font:var(--t-small);color:var(--ink-soft)}
+.glance-val{text-align:right;flex:0 0 auto}
+.glance-val b{display:block;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:26px;line-height:1.05;letter-spacing:-.02em;color:var(--ink)}
+.glance-val .of{font-size:.55em;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+
+.hamburger{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · PAGE COLUMN + SECTION HEAD (5.2 — "the printed menu rule")
+   ══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--wrap);margin-inline:auto;padding:0 var(--pad-page)}
+.sec{margin-top:var(--sec-gap)}
+.sec--tight{margin-top:clamp(18px,2vw,26px)}
+.sec__head{display:flex;align-items:flex-end;gap:16px;margin-bottom:clamp(16px,2vw,24px);flex-wrap:wrap}
+.sec__titles{min-width:0}
+.sec__titles .label{display:block;margin-bottom:7px}
+.sec__title{
+  font-family:var(--font-serif);font-weight:400;
+  font-size:clamp(22px,2.4vw,30px);line-height:1.15;letter-spacing:-.01em;color:var(--ink);
+}
+/* THE DOUBLE HAIRLINE that runs to the far right edge */
+.sec__rule{
+  flex:1 1 60px;height:3px;min-width:40px;margin-bottom:10px;
+  background:linear-gradient(180deg,var(--line) 0 1px,transparent 1px 2px,var(--line) 2px 3px);
+}
+.sec__act{flex:0 0 auto;display:flex;align-items:center;gap:9px;margin-bottom:2px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · KPI TILES — corner ring, light oversized figure, a foot visual each
+   ══════════════════════════════════════════════════════════════════════════ */
+.kpis{display:grid;gap:var(--gap);grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:1000px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{position:relative;overflow:hidden;min-height:212px;display:flex;flex-direction:column;gap:8px}
+.kpi-ring{position:absolute;top:-46px;right:-46px;width:132px;height:132px;
+  opacity:.5;pointer-events:none;color:var(--caramel-300)}
+.kpi--sage .kpi-ring{color:var(--sage-400)}
+.kpi--espresso .kpi-ring{color:var(--crema);opacity:.34}
+.kpi .label{padding-right:52px}
+.kpi__val{margin-top:4px}
+.kpi__delta{margin-top:2px}
+.kpi__foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.card--espresso .kpi__foot{border-top-color:var(--line-dark)}
+.kpi__scale{
+  display:flex;justify-content:space-between;gap:8px;margin-top:8px;
+  font:600 10.5px/1.2 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-soft);
+}
+.card--espresso .kpi__scale{color:var(--ink-on-dark-soft)}
+.kpi__foot-label{display:block;margin-bottom:9px;font:var(--t-label);
+  letter-spacing:var(--label-track);text-transform:uppercase;color:var(--ink-label)}
+.card--espresso .kpi__foot-label{color:var(--ink-on-dark-label)}
+
+/* the hour-of-day column strip inside the Tickets tile */
+.hours{display:flex;align-items:flex-end;gap:6px;height:34px}
+.hours i{flex:1;background:var(--caramel-300);border-radius:var(--r-xs) var(--r-xs) 0 0;min-height:3px}
+.hours i.now{background:var(--caramel-500)}
+.hours i.ahead{background:var(--surface-3)}
+
+/* An espresso card needs its own inset tracks — a --surface-3 track on a dark
+   card reads as a bar that is already full. */
+.card--espresso .meter{background:rgba(251,246,238,.16)}
+.card--espresso .meter>i{background:var(--crema)}
+.card--espresso .range{background:rgba(251,246,238,.16)}
+.card--espresso .hours i.ahead{background:rgba(251,246,238,.16)}
+.card--espresso .brew{color:var(--ink-on-dark-soft)}
+
+/* the ticket-range rule inside the Average tile */
+.range{position:relative;height:3px;border-radius:var(--r-xs);background:var(--surface-3)}
+.range i{position:absolute;top:-3px;width:2px;height:9px;background:var(--sage-500);border-radius:1px}
+.range i.mark{background:var(--espresso);width:3px;height:13px;top:-5px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · THE REORDER RAIL — the "needs attention" module
+   ══════════════════════════════════════════════════════════════════════════ */
+.alert{
+  background:var(--warn-bg);border:1px solid var(--warn-line);
+  border-radius:var(--r-lg);box-shadow:var(--sh);padding:var(--pad-card);
+}
+.alert__top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.alert__ico{
+  width:40px;height:40px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--surface);color:var(--warn-fg);
+  box-shadow:inset 0 0 0 1px var(--warn-line);
+}
+.alert__ico svg{width:20px;height:20px}
+.alert__txt{min-width:0;flex:1 1 260px}
+.alert__txt h3{font-family:var(--font-serif);font-weight:400;font-size:19px;line-height:1.25;color:var(--ink)}
+.alert__txt p{margin-top:4px;font:var(--t-small);color:var(--warn-fg)}
+.alert__act{flex:0 0 auto;margin-left:auto}
+.reorders{
+  list-style:none;margin-top:18px;display:grid;gap:2px;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+}
+.reorder{
+  display:grid;gap:8px;padding:14px 16px;min-height:96px;
+  background:var(--surface);border:1px solid var(--warn-line);border-radius:var(--r);
+}
+.reorder__top{display:flex;align-items:center;gap:10px}
+.reorder__name{flex:1;min-width:0;font:600 13.5px/1.3 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reorder__left{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:300;
+  font-size:20px;letter-spacing:-.02em;color:var(--ink);
+}
+.reorder__left small{font-size:.6em;font-weight:500;color:var(--ink-soft);margin-left:2px}
+.reorder__meta{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.reorder__meta b{color:var(--warn-fg);font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   10 · THE TREND CHART
+   ══════════════════════════════════════════════════════════════════════════ */
+.duo{display:grid;gap:var(--gap-lg);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1080px){.duo{grid-template-columns:minmax(0,1.62fr) minmax(0,1fr)}}
+.chart-wrap{margin:18px -6px 0;padding:0 6px}
+.chart-wrap svg{min-width:760px;width:100%;height:auto;display:block}
+.chart-foot{
+  display:flex;align-items:center;gap:12px 26px;flex-wrap:wrap;
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+}
+.chart-foot .lg{display:inline-flex;align-items:center;gap:7px;font:var(--t-small);color:var(--ink-soft)}
+.chart-foot .lg i{width:10px;height:10px;border-radius:var(--r-xs);display:block;flex:0 0 auto}
+.chart-foot .stat{display:block}
+.chart-foot .stat span{display:block;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);margin-bottom:4px}
+.chart-foot .stat b{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
+.chart-foot .stat b em{font-style:normal;font-size:.62em;font-weight:500;color:var(--ink-soft);margin-left:5px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11 · THE DOT-LEADER BOARD (5.7) — the chalkboard menu row
+   ══════════════════════════════════════════════════════════════════════════ */
+.board{list-style:none;margin-top:14px}
+.board li{display:flex;align-items:baseline;gap:10px;min-height:52px;padding:9px 0}
+.board li+li{border-top:1px solid var(--line)}
+.board .rank{
+  width:24px;height:24px;flex:0 0 auto;display:grid;place-items:center;
+  align-self:center;border-radius:var(--r-xs);
+  font:600 11px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  background:var(--surface-2);color:var(--ink-soft);box-shadow:inset 0 0 0 1px var(--line);
+}
+.board li:first-child .rank{background:var(--caramel-300);color:var(--espresso);box-shadow:none;font-weight:700}
+.board .fssai{align-self:center}
+.board .name{font:600 13.5px/1.35 var(--font-sans);color:var(--ink);flex:0 1 auto;min-width:0}
+.board .leader{flex:1 1 12px;min-width:12px;border-bottom:1px dotted var(--line-strong);
+  transform:translateY(-5px);align-self:baseline}
+.board .n{flex:0 0 auto;font:500 12px/1.2 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.board .amt{flex:0 0 auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:16px;letter-spacing:-.02em;color:var(--ink);min-width:66px;text-align:right}
+.board .amt .cur{font-size:.66em}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12 · THE REGULARS CARD (known-name share of takings)
+   ══════════════════════════════════════════════════════════════════════════ */
+.share{margin-top:16px}
+.share .metric{display:block}
+.share p{margin-top:12px;font:var(--t-small);color:var(--ink-soft);text-wrap:balance}
+.share p b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.share .meter{margin-top:14px}
+.share .kpi__scale{margin-top:8px}
+.regulars{list-style:none;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:grid;gap:2px}
+.regulars li a{display:flex;align-items:center;gap:11px;min-height:var(--tap);
+  padding:0 8px;border-radius:var(--r-sm);transition:background var(--dur) var(--ease)}
+.regulars li a:hover{background:var(--surface-2)}
+.regulars .who{flex:1;min-width:0;font:600 12.5px/1.3 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.regulars .who small{display:block;margin-top:1px;font:400 11px/1.3 var(--font-sans);color:var(--ink-soft)}
+.regulars .n{flex:0 0 auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:400;font-size:13px;color:var(--ink)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   13 · THE PASS — the live ticket strip
+   ══════════════════════════════════════════════════════════════════════════ */
+.pass{display:flex;gap:var(--gap);padding:4px 4px 14px;margin:0 -4px}
+.ticket{
+  flex:0 0 274px;display:flex;flex-direction:column;gap:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh-sm);padding:16px;min-height:196px;
+}
+.ticket--live{border-color:var(--caramel-200);box-shadow:var(--sh)}
+.ticket__top{display:flex;align-items:center;gap:10px}
+.ticket__no{font:600 12px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  color:var(--caramel-700);letter-spacing:.04em}
+.ticket__time{margin-left:auto;font:500 11.5px/1 var(--font-num);font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.ticket__who{display:flex;align-items:center;gap:9px}
+.ticket__who b{font:600 13.5px/1.3 var(--font-sans);color:var(--ink);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket__who .tag{font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);margin-left:auto;flex:0 0 auto}
+.ticket__items{list-style:none;display:grid;gap:5px}
+.ticket__items li{display:flex;align-items:center;gap:7px;font:var(--t-small);color:var(--ink-soft)}
+.ticket__items li b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.ticket__items li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket__foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:10px}
+.ticket__total{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:300;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+.ticket__total .cur{font-size:.6em}
+.ticket__foot .brew{margin-left:auto}
+.pass-more{
+  flex:0 0 148px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;min-height:196px;border-radius:var(--r-md);
+  border:1px dashed var(--line-strong);background:transparent;color:var(--ink-soft);
+  font:600 12.5px/1.3 var(--font-sans);text-align:center;padding:16px;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.pass-more:hover{background:var(--surface-2);color:var(--ink)}
+.pass-more svg{width:20px;height:20px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   14 · OFF-CANVAS CHROME
+   ══════════════════════════════════════════════════════════════════════════ */
+.backdrop{
+  position:fixed;inset:0;background:rgba(35,24,15,.42);z-index:45;
+  opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease);
+}
+body.nav-open .backdrop{opacity:1;pointer-events:auto}
+body.nav-open{overflow:hidden}
+.tabbar{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   15 · RESPONSIVE LADDER
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Tablet landscape 1024–1279 → the 78px icon rail */
+@media (max-width:1279px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:20px 12px 16px;align-items:center;overflow:visible;gap:16px}
+  .brand{justify-content:center;padding:2px 0}
+  .switcher{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .switcher-ico{width:26px;height:26px}
+  .switcher>svg:last-child{display:none}
+  .nav-link{justify-content:center;padding:0;width:var(--tap);margin:0 auto}
+  .nav-link[aria-current="page"]{padding-left:0}
+  .nav-link[aria-current="page"]::before{left:-1px;top:9px;bottom:9px}
+  .side-cta{width:var(--tap);padding:0}
+  .nav-badge{position:absolute;top:2px;right:-2px;padding:2px 5px;font-size:9.5px}
+  /* Labels are CLIPPED, never display:none — they are the accessible name of
+     every icon-only control in the rail. */
+  .brand-text,.nav-group>.label,.nav-link span,.side-cta span,.switcher-meta{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .nav-group+.nav-group{margin-top:14px;position:relative;padding-top:14px}
+  .nav-group+.nav-group::before{content:"";position:absolute;top:0;left:16%;right:16%;height:1px;background:var(--line)}
+  .side-foot::before{margin-bottom:12px}
+  .user-btn{width:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .user-meta,.user-btn>svg:last-child{display:none}
+  .user-menu{position:absolute;bottom:0;left:calc(100% + 10px);width:208px;margin-top:0;z-index:70}
+}
+
+/* Below 1024 → off-canvas drawer + bottom tab bar */
+@media (max-width:1023px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:282px;
+    padding:22px 16px 18px;align-items:stretch;gap:20px;
+    background:linear-gradient(180deg,var(--wood-1),var(--wood-2));
+    box-shadow:var(--sh-lg);overflow-y:auto;
+    transform:translateX(-102%);transition:transform .28s var(--ease);z-index:60;
+  }
+  body.nav-open .sidebar{transform:none}
+  .brand{justify-content:flex-start;padding:2px 4px}
+  .brand-text,.nav-group>.label,.nav-link span,.side-cta span,.switcher-meta{
+    position:static;width:auto;height:auto;margin:0;overflow:visible;clip-path:none;
+  }
+  .switcher{width:100%;min-height:58px;padding:9px 11px;justify-content:flex-start;border-radius:var(--r)}
+  .switcher-ico{width:32px;height:32px}
+  .switcher>svg:last-child{display:block}
+  .nav-link{justify-content:flex-start;padding:0 12px;width:auto}
+  .nav-link[aria-current="page"]{padding-left:18px}
+  .nav-link[aria-current="page"]::before{left:0;top:7px;bottom:7px}
+  .nav-badge{position:static;padding:4px 7px;font-size:10.5px}
+  .side-cta{width:100%;padding:0 20px}
+  .nav-group+.nav-group{position:static;padding-top:0;margin-top:20px}
+  .nav-group+.nav-group::before{content:none}
+  .user-btn{width:100%;padding:8px 10px;justify-content:flex-start;border-radius:var(--r)}
+  .user-meta{display:block}
+  .user-btn>svg:last-child{display:block}
+  .user-menu{display:grid;position:static;width:auto;margin-top:6px}
+
+  .main{padding-bottom:calc(78px + env(safe-area-inset-bottom,0px) + 24px)}
+  .hamburger{display:inline-flex}
+  .glance{width:100%}
+
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:55;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+    background:var(--surface);border-top:1px solid var(--line);
+    box-shadow:0 -10px 30px -22px rgba(42,29,22,.35);
+  }
+  .tab{
+    display:grid;place-items:center;gap:4px;min-height:var(--tap);padding:6px 2px;
+    border-radius:var(--r-sm);color:var(--ink-soft);
+    font:600 10px/1.2 var(--font-sans);
+    transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+  }
+  .tab svg{width:21px;height:21px}
+  .tab:hover{color:var(--ink);background:var(--surface-2)}
+  .tab[aria-current="page"],.tab[aria-expanded="true"]{color:var(--caramel-700);background:var(--caramel-50)}
+}
+
+/* Phone */
+@media (max-width:640px){
+  /* the fixed .variant-badge floats top-right; drop the eyebrow below it */
+  .mast{padding-top:56px}
+  .mast-in{align-items:flex-start}
+  .mast-cta{width:100%}
+  .mast-cta .btn{flex:1 1 auto}
+  .eyebrow em,.eyebrow .bar{display:none}
+  .sec__act{width:100%;margin-left:0}
+  .sec__act .btn{flex:1 1 auto}
+  .board .name{flex:1 1 auto}
+  .board .leader{display:none}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:minmax(0,1fr)}
+  .ticket{flex:0 0 248px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ ORNAMENT SPRITE ══════════════════════════════════════════════════════
+     Crema's whole ornament vocabulary is three marks and one legal glyph.
+     Every ornament consumer is aria-hidden + pointer-events:none.
+     ICON RULE for the whole theme: 24x24 viewBox, fill:none, stroke:currentColor,
+     stroke-width 1.7 (thinner than a stock dashboard's 2 — it is part of the
+     calm), stroke-linecap:round, stroke-linejoin:round.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- THE RING — the mark a wet cup leaves on paper. Masthead backdrop,
+         KPI corner ornament, at-a-glance panel corner. Stroke only, always. -->
+    <symbol id="o-ring" viewBox="0 0 200 200">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <circle cx="100" cy="100" r="94" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="80" stroke-width="6" opacity=".45"/>
+        <circle cx="100" cy="100" r="62" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="44" stroke-width="3" opacity=".6"/>
+        <circle cx="100" cy="100" r="25" stroke-width="1.4"/>
+      </g>
+    </symbol>
+
+    <!-- THE STEAM — three rising curls. Once per screen, above the greeting. -->
+    <symbol id="o-steam" viewBox="0 0 78 34">
+      <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path d="M13 32c-5.5-6.5 4-9.5 0-16S11.5 6 16 2"/>
+        <path d="M38 32c-5.5-6.5 4-9.5 0-16S36.5 6 41 2"/>
+        <path d="M63 32c-5.5-6.5 4-9.5 0-16S61.5 6 66 2"/>
+      </g>
+    </symbol>
+
+    <!-- THE BEAN — the Operato brand tile's glyph inside this theme -->
+    <symbol id="o-bean" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <ellipse cx="12" cy="12" rx="6.3" ry="9.1" transform="rotate(-34 12 12)"/>
+        <path d="M8.1 18.6c2.6-2.9 5.3-10.4 7.8-13.2"/>
+      </g>
+    </symbol>
+
+    <!-- FSSAI MARK — one symbol, two callers. The class supplies the LEGAL
+         colour: .fssai--veg #1A7F3C, .fssai--nonveg #8B1E1E. Not themeable. -->
+    <symbol id="o-fssai" viewBox="0 0 24 24">
+      <rect x="2.3" y="2.3" width="19.4" height="19.4" rx="2"
+            fill="none" stroke="currentColor" stroke-width="2.6"/>
+      <circle cx="12" cy="12" r="5.1" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="variant-badge">
+  <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#o-ring"/></svg>
+  Overview · Crema
+</div>
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+
+    <a class="brand" href="#" title="Operato">
+      <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#o-bean"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Operato</span>
+        <span class="brand-tag">for Crema</span>
+      </span>
+    </a>
+
+    <!-- business switcher -->
+    <button class="switcher" type="button" aria-haspopup="menu" aria-expanded="false"
+            aria-label="Switch business — currently Crema Coffee Roasters, you are the owner">
+      <span class="switcher-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5 4.6 4.5A1.6 1.6 0 0 1 6.1 3.4h11.8a1.6 1.6 0 0 1 1.5 1.1L21 9.5"/>
+          <path d="M3 9.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>
+          <path d="M4.6 12.4V20a.9.9 0 0 0 .9.9h13a.9.9 0 0 0 .9-.9v-7.6"/>
+        </svg>
+      </span>
+      <span class="switcher-meta">
+        <span class="switcher-name">Crema Coffee Roasters</span>
+        <span class="switcher-role">Owner</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m8 8 4-4 4 4M16 16l-4 4-4-4"/>
+      </svg>
+    </button>
+
+    <button class="btn btn--primary side-cta" type="button" title="New ticket" aria-label="New ticket">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      <span>New ticket</span>
+    </button>
+
+    <nav class="nav-group">
+      <span class="label" id="nav-counter">Counter</span>
+      <ul class="nav-list" aria-labelledby="nav-counter">
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7.5" height="8.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.8"/>
+            <rect x="13.5" y="11" width="7.5" height="10" rx="1.8"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.8"/>
+          </svg><span>Overview</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3.2 13.7 8 18.5 9.7 13.7 11.4 12 16.2 10.3 11.4 5.5 9.7 10.3 8z"/>
+            <path d="M18.4 15.6l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+          </svg><span>Ask AI</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 6.5h12.2v6.2a6.1 6.1 0 0 1-12.2 0z"/>
+            <path d="M15.7 8.2h1.9a2.6 2.6 0 0 1 0 5.2h-1.9"/>
+            <path d="M3 20.6h14"/>
+          </svg><span>Menu</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5.5 2.8v18.4l2.2-1.4 2.1 1.4 2.2-1.4 2.1 1.4 2.2-1.4 2.2 1.4V2.8L16.3 4.2 14.1 2.8 12 4.2 9.8 2.8 7.7 4.2z"/>
+            <path d="M9 9h6M9 13h4"/>
+          </svg><span>Orders</span><span class="nav-badge num">7</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group">
+      <span class="label" id="nav-shop">The shop</span>
+      <ul class="nav-list" aria-labelledby="nav-shop">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 7.9v8.2a1.6 1.6 0 0 1-.85 1.4l-6.85 3.8a1.6 1.6 0 0 1-1.6 0L4.35 17.5a1.6 1.6 0 0 1-.85-1.4V7.9a1.6 1.6 0 0 1 .85-1.4l6.85-3.8a1.6 1.6 0 0 1 1.6 0l6.85 3.8a1.6 1.6 0 0 1 .85 1.4z"/>
+            <path d="m3.8 7 8.2 4.5L20.2 7M12 21V11.5"/>
+          </svg><span>Inventory</span><span class="nav-badge nav-badge--warn num">3</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="7.5" r="3.6"/><path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/>
+          </svg><span>Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="8" r="3.3"/><path d="M2.8 20a6.2 6.2 0 0 1 12.4 0"/>
+            <path d="M16.4 5.4a3.1 3.1 0 0 1 0 5.8M18 20a6.2 6.2 0 0 0-2.7-5.1"/>
+          </svg><span>Customers</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2.6" y="5.2" width="18.8" height="13.6" rx="2.4"/><path d="M2.6 10h18.8M6.4 14.8h3.4"/>
+          </svg><span>Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <button class="user-btn" type="button" id="userBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
+        <span class="av av--ink" aria-hidden="true">AR</span>
+        <span class="user-meta">
+          <span class="user-name">Anaya Rao</span>
+          <span class="user-mail">anaya@cremacoffee.in</span>
+        </span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m8 8 4-4 4 4M16 16l-4 4-4-4"/>
+        </svg>
+      </button>
+      <ul class="user-menu" id="userMenu" role="menu" hidden>
+        <li role="none"><a role="menuitem" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.2"/><path d="M19.6 14.4a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06A2 2 0 1 1 4.14 16.9l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 7.1 4.14l.06.06a1.7 1.7 0 0 0 1.87.34H9.1a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9.1a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.56 1.03z"/>
+          </svg>Settings</a></li>
+        <li role="none"><a role="menuitem" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/>
+          </svg>Theme</a></li>
+        <li role="none"><a role="menuitem" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.5 21H5.4A1.9 1.9 0 0 1 3.5 19.1V4.9A1.9 1.9 0 0 1 5.4 3h4.1"/><path d="m16 16.5 4.5-4.5L16 7.5M20.5 12H9.5"/>
+          </svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════ MAIN ══════════════════════ -->
+  <main class="main">
+
+    <!-- ─────────── 5.1 THE MASTHEAD ─────────── -->
+    <header class="mast">
+      <svg class="mast-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+
+      <div class="mast-in">
+        <div class="mast-l">
+          <div class="eyebrow rise" style="--i:0">
+            <button class="hamburger btn btn--icon btn--quiet" type="button" id="hamburger"
+                    aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar"
+                    style="min-height:32px;width:32px;margin:-6px 2px -6px -8px">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16"/>
+              </svg>
+            </button>
+            <strong>Crema Coffee Roasters</strong>
+            <em>Indiranagar, Bengaluru</em>
+            <span class="bar" aria-hidden="true"></span>
+            <span class="live"><i aria-hidden="true"></i>Open · 7:00–21:00</span>
+          </div>
+
+          <svg class="steam rise" style="--i:1" viewBox="0 0 78 34" aria-hidden="true" focusable="false"><use href="#o-steam"/></svg>
+
+          <h1 class="greeting rise" style="--i:2">Good morning, <em>Anaya</em>.</h1>
+
+          <p class="mast-date rise" style="--i:3">Tuesday, 25 August 2026 · 11:42 · the grinder was dialled in at 6:52</p>
+
+          <p class="mast-line rise" style="--i:4">
+            <b>186 tickets</b> on the board already — 32 more than last Tuesday at this hour, and the
+            9-to-11 rush ran <b>₹22,140</b> of it. <span class="warn">Three things want ordering before the roastery van at 4.</span>
+          </p>
+
+          <div class="mast-cta rise" style="--i:5">
+            <button class="btn btn--primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              New ticket
+            </button>
+            <button class="btn btn--ghost" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3.2 13.7 8 18.5 9.7 13.7 11.4 12 16.2 10.3 11.4 5.5 9.7 10.3 8z"/><path d="M18.4 15.6l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+              </svg>
+              Ask the assistant
+            </button>
+          </div>
+        </div>
+
+        <!-- THE AT-A-GLANCE PANEL — the only card allowed inside a masthead -->
+        <aside class="glance rise" style="--i:3" aria-label="On the counter right now">
+          <svg class="glance-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+          <div class="glance-row">
+            <span><span class="label">On the pass</span><small>waiting to be called</small></span>
+            <span class="glance-val"><b class="num">4</b></span>
+          </div>
+          <div class="glance-row">
+            <span><span class="label">Brewing</span><small>on the bar now</small></span>
+            <span class="glance-val"><b class="num">3</b></span>
+          </div>
+          <div class="glance-row">
+            <span><span class="label">Seats taken</span><small>indoor + the two benches</small></span>
+            <span class="glance-val"><b class="num">17<span class="of"> / 26</span></b></span>
+          </div>
+        </aside>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ═══════════ TODAY, SO FAR — the four tiles ═══════════ -->
+      <section class="sec sec--tight" aria-labelledby="sec-today">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Tuesday, so far</span>
+            <h2 class="sec__title" id="sec-today">Over the counter</h2>
+          </div>
+          <div class="sec__rule" aria-hidden="true"></div>
+          <div class="sec__act"><span class="chip chip--mute">Since 07:00</span></div>
+        </div>
+
+        <div class="kpis">
+
+          <!-- 1 · TAKINGS — the screen's ONE espresso card, per 5.3 -->
+          <article class="card card--espresso kpi kpi--espresso rise" style="--i:0">
+            <svg class="kpi-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+            <span class="label">Takings today</span>
+            <span class="metric kpi__val"><span class="cur">₹</span>38,420</span>
+            <span class="delta delta--up kpi__delta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+              +9.2%<em>vs last Tuesday</em>
+            </span>
+            <div class="kpi__foot">
+              <span class="kpi__foot-label">Toward a good Tuesday</span>
+              <span class="meter" role="img" aria-label="62 percent of a typical Tuesday's ₹62,000"><i style="width:62%"></i></span>
+              <div class="kpi__scale"><span>62% of ₹62,000</span><span>9h 18m left</span></div>
+            </div>
+          </article>
+
+          <!-- 2 · TICKETS — the hour-of-day strip -->
+          <article class="card kpi rise" style="--i:1">
+            <svg class="kpi-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+            <span class="label">Tickets</span>
+            <span class="metric kpi__val">186</span>
+            <span class="delta delta--up kpi__delta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+              +32<em>vs last Tuesday</em>
+            </span>
+            <div class="kpi__foot">
+              <span class="kpi__foot-label">By the hour</span>
+              <div class="hours" role="img" aria-label="Tickets by hour — 7am 12, 8am 28, 9am 44, 10am 52, 11am 50 so far; noon and 1pm still to come">
+                <i style="height:8px"></i><i style="height:18px"></i><i style="height:29px"></i>
+                <i style="height:34px"></i><i class="now" style="height:33px"></i>
+                <i class="ahead" style="height:3px"></i><i class="ahead" style="height:3px"></i>
+              </div>
+              <div class="kpi__scale"><span>07:00</span><span>peak 10:00 · 52</span></div>
+            </div>
+          </article>
+
+          <!-- 3 · AVERAGE TICKET — the range rule -->
+          <article class="card card--sage kpi kpi--sage rise" style="--i:2">
+            <svg class="kpi-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+            <span class="label">Average ticket</span>
+            <span class="metric kpi__val"><span class="cur">₹</span>207</span>
+            <span class="delta delta--down kpi__delta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+              −2.1%<em>vs last Tuesday</em>
+            </span>
+            <div class="kpi__foot">
+              <span class="kpi__foot-label">Ticket size today</span>
+              <div class="range" role="img" aria-label="Smallest ticket ₹90, average ₹207, largest ₹980 — a 500 gram bag of House Blend">
+                <i style="left:0"></i>
+                <i class="mark" style="left:13%"></i>
+                <i style="left:calc(100% - 2px)"></i>
+              </div>
+              <div class="kpi__scale"><span>₹90 smallest</span><span>₹980 largest</span></div>
+            </div>
+          </article>
+
+          <!-- 4 · BEANS — the theme's own metric: retail bags by weight -->
+          <article class="card card--caramel kpi rise" style="--i:3">
+            <svg class="kpi-ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#o-ring"/></svg>
+            <span class="label">Beans over the counter</span>
+            <span class="metric kpi__val">6.4<span class="cur" style="margin:0 0 0 4px">kg</span></span>
+            <span class="delta delta--up kpi__delta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+              +1.2 kg<em>vs last Tuesday</em>
+            </span>
+            <div class="kpi__foot">
+              <span class="kpi__foot-label">Bags by blend</span>
+              <span class="meter meter--seg" role="img" aria-label="House Blend 3.0 kilos, Baba Budangiri 2.2 kilos, Attikan Estate 1.2 kilos">
+                <i style="width:47%;background:var(--c-1)"></i>
+                <i style="width:34%;background:var(--c-2)"></i>
+                <i style="width:19%;background:var(--c-3)"></i>
+              </span>
+              <div class="kpi__scale"><span>House 3.0</span><span>Budangiri 2.2</span><span>Attikan 1.2</span></div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ═══════════ NEEDS ATTENTION — the reorder rail ═══════════ -->
+      <section class="sec sec--tight" aria-labelledby="sec-reorder">
+        <div class="alert rise" style="--i:0">
+          <div class="alert__top">
+            <span class="alert__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.3 3.9 1.9 18a1.9 1.9 0 0 0 1.7 2.9h16.8A1.9 1.9 0 0 0 22.1 18L13.7 3.9a1.9 1.9 0 0 0-3.4 0z"/><path d="M12 9.5v4.2M12 17.4h.01"/>
+              </svg>
+            </span>
+            <div class="alert__txt">
+              <h3 id="sec-reorder">Three lines run out before the van comes</h3>
+              <p>The roastery van is at 16:00. Anything not on today's sheet waits until Friday.</p>
+            </div>
+            <div class="alert__act">
+              <button class="btn btn--warn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20.5 7.9v8.2a1.6 1.6 0 0 1-.85 1.4l-6.85 3.8a1.6 1.6 0 0 1-1.6 0L4.35 17.5a1.6 1.6 0 0 1-.85-1.4V7.9a1.6 1.6 0 0 1 .85-1.4l6.85-3.8a1.6 1.6 0 0 1 1.6 0l6.85 3.8a1.6 1.6 0 0 1 .85 1.4z"/><path d="m3.8 7 8.2 4.5L20.2 7M12 21V11.5"/>
+                </svg>
+                Open the order sheet
+              </button>
+            </div>
+          </div>
+
+          <ul class="reorders">
+            <li class="reorder">
+              <div class="reorder__top">
+                <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                <span class="reorder__name">Baba Budangiri, washed</span>
+                <span class="reorder__left num">2.4<small>kg</small></span>
+              </div>
+              <span class="meter meter--warn" role="img" aria-label="2.4 kilos of a 6 kilo reorder line"><i style="width:40%"></i></span>
+              <div class="reorder__meta"><span>Reorder line 6.0 kg</span><b>1.1 days left</b></div>
+            </li>
+            <li class="reorder">
+              <div class="reorder__top">
+                <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                <span class="reorder__name">Oat milk, barista 1 L</span>
+                <span class="reorder__left num">7<small>ctn</small></span>
+              </div>
+              <span class="meter meter--warn" role="img" aria-label="7 cartons of an 18 carton reorder line"><i style="width:39%"></i></span>
+              <div class="reorder__meta"><span>Reorder line 18 ctn</span><b>1.6 days left</b></div>
+            </li>
+            <li class="reorder">
+              <div class="reorder__top">
+                <svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>
+                <span class="reorder__name">Almond croissant, par-baked</span>
+                <span class="reorder__left num">14<small>pc</small></span>
+              </div>
+              <span class="meter meter--warn" role="img" aria-label="14 pieces of a 48 piece reorder line"><i style="width:29%"></i></span>
+              <div class="reorder__meta"><span>Reorder line 48 pc</span><b>0.8 days left</b></div>
+            </li>
+            <li class="reorder" style="border-color:var(--line)">
+              <div class="reorder__top">
+                <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                <span class="reorder__name">Attikan Estate, natural</span>
+                <span class="reorder__left num">5.8<small>kg</small></span>
+              </div>
+              <span class="meter meter--ok" role="img" aria-label="5.8 kilos of a 6 kilo reorder line"><i style="width:97%"></i></span>
+              <div class="reorder__meta"><span>Reorder line 6.0 kg</span><span style="color:var(--sage-600);font-weight:600">3.2 days · watching</span></div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ═══════════ THE FORTNIGHT — trend + board + regulars ═══════════ -->
+      <section class="sec" aria-labelledby="sec-trend">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">The fortnight</span>
+            <h2 class="sec__title" id="sec-trend">How the till has been running</h2>
+          </div>
+          <div class="sec__rule" aria-hidden="true"></div>
+          <div class="sec__act">
+            <button class="btn btn--ghost" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+              Change the range
+            </button>
+          </div>
+        </div>
+
+        <div class="duo">
+
+          <!-- ── the trend, hand-drawn SVG over real numbers ── -->
+          <article class="card rise" style="--i:0">
+            <div class="card__head">
+              <div>
+                <h3 class="card__title">Takings, last 14 days</h3>
+                <p class="card__sub">Paid tickets · 12–24 August are complete days · today is to 11:42</p>
+              </div>
+            </div>
+
+            <div class="chart-wrap scroll-x" tabindex="0" role="group" aria-label="Takings trend, scrollable">
+              <svg viewBox="0 0 900 300" role="img"
+                   aria-label="Line chart of daily takings in rupees, 12 to 25 August 2026. Peak ₹98,400 on Saturday 22 August. The two Mondays, 17 and 24 August, are the roastery days when the counter opens at 9 and takings fall to ₹54,800 and ₹56,300. Today, Tuesday 25 August, stands at ₹38,420 so far and is drawn dashed because the day is not finished. Fourteen day total ₹10,65,420.">
+                <defs>
+                  <linearGradient id="cremaArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stop-color="var(--c-1)" stop-opacity=".22"/>
+                    <stop offset="55%"  stop-color="var(--caramel-300)" stop-opacity=".10"/>
+                    <stop offset="100%" stop-color="var(--caramel-300)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- Monday bands — the roastery days. --sage-500 dashed outline is
+                     the mark that carries these: the --sage-50 fill alone is about
+                     1.1:1 on the card and simply is not there. -->
+                <rect x="366" y="30" width="30" height="206" rx="5" fill="var(--sage-50)" stroke="var(--c-2)" stroke-width="1" stroke-dasharray="3 3"/>
+                <rect x="793" y="30" width="30" height="206" rx="5" fill="var(--sage-50)" stroke="var(--c-2)" stroke-width="1" stroke-dasharray="3 3"/>
+
+                <!-- horizontal hairlines only. No vertical grid, no axis spines. -->
+                <g stroke="var(--c-grid)" stroke-width="1">
+                  <line x1="70" y1="30"    x2="880" y2="30"/>
+                  <line x1="70" y1="81.5"  x2="880" y2="81.5"/>
+                  <line x1="70" y1="133"   x2="880" y2="133"/>
+                  <line x1="70" y1="184.5" x2="880" y2="184.5"/>
+                </g>
+                <line x1="70" y1="236" x2="880" y2="236" stroke="var(--line-strong)" stroke-width="1"/>
+
+                <!-- y axis · compact INR, lakh-aware -->
+                <g fill="var(--ink-soft)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="end">
+                  <text x="58" y="34">₹1.0L</text>
+                  <text x="58" y="85.5">₹75K</text>
+                  <text x="58" y="137">₹50K</text>
+                  <text x="58" y="188.5">₹25K</text>
+                  <text x="58" y="240">0</text>
+                </g>
+
+                <!-- area wash · STOPS at 24 Aug. The unfinished day gets no fill. -->
+                <path fill="url(#cremaArea)" d="M76,91 L137,83.2 L198,53.5 L259,37.6 L320,47.1 L381,123.1 L442,99.6 L503,87.9 L564,78.4 L625,52.5 L686,33.3 L747,45.2 L808,120 L808,236 L76,236 Z"/>
+
+                <!-- the series · complete days, solid -->
+                <path fill="none" stroke="var(--c-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      d="M76,91 L137,83.2 L198,53.5 L259,37.6 L320,47.1 L381,123.1 L442,99.6 L503,87.9 L564,78.4 L625,52.5 L686,33.3 L747,45.2 L808,120"/>
+                <!-- the running day · dashed, because it has not finished -->
+                <path fill="none" stroke="var(--c-1)" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"
+                      d="M808,120 L869,156.9"/>
+
+                <!-- points -->
+                <g fill="var(--surface)" stroke="var(--c-1)" stroke-width="1.8">
+                  <circle cx="76"  cy="91"    r="3.4"/><circle cx="137" cy="83.2"  r="3.4"/>
+                  <circle cx="198" cy="53.5"  r="3.4"/><circle cx="259" cy="37.6"  r="3.4"/>
+                  <circle cx="320" cy="47.1"  r="3.4"/><circle cx="381" cy="123.1" r="3.4"/>
+                  <circle cx="442" cy="99.6"  r="3.4"/><circle cx="503" cy="87.9"  r="3.4"/>
+                  <circle cx="564" cy="78.4"  r="3.4"/><circle cx="625" cy="52.5"  r="3.4"/>
+                  <circle cx="686" cy="33.3"  r="3.4"/><circle cx="747" cy="45.2"  r="3.4"/>
+                  <circle cx="808" cy="120"   r="3.4"/>
+                </g>
+
+                <!-- the peak · Saturday 22 August. The callout sits ABOVE the top
+                     gridline, outside the plot band, and touches no data mark. -->
+                <text x="686" y="20" fill="var(--caramel-700)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" text-anchor="middle">₹98,400</text>
+
+                <!-- today · Tuesday 25 August, still running. Hollow point + a
+                     dashed marker + the words "so far". Never a finished dot. -->
+                <line x1="869" y1="30" x2="869" y2="236" stroke="var(--caramel-300)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <circle cx="869" cy="156.9" r="5" fill="var(--surface)" stroke="var(--c-1)" stroke-width="2.2"/>
+                <text x="861" y="147" fill="var(--caramel-700)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" text-anchor="end">₹38,420 so far</text>
+
+                <!-- x axis · days of August -->
+                <g fill="var(--ink-soft)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">
+                  <text x="76"  y="258">12</text><text x="137" y="258">13</text><text x="198" y="258">14</text>
+                  <text x="259" y="258">15</text><text x="320" y="258">16</text>
+                  <text x="381" y="258" fill="var(--sage-600)">17</text>
+                  <text x="442" y="258">18</text><text x="503" y="258">19</text><text x="564" y="258">20</text>
+                  <text x="625" y="258">21</text><text x="686" y="258">22</text><text x="747" y="258">23</text>
+                  <text x="808" y="258" fill="var(--sage-600)">24</text>
+                  <text x="869" y="258" fill="var(--caramel-700)" font-weight="700">25</text>
+                </g>
+                <text x="475" y="284" fill="var(--ink-soft)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10.5" font-weight="600" letter-spacing="2.6" text-anchor="middle">AUGUST 2026</text>
+              </svg>
+            </div>
+
+            <div class="chart-foot">
+              <span class="lg"><i style="background:var(--c-1)"></i> Takings, paid tickets</span>
+              <span class="lg"><i style="background:var(--sage-50);box-shadow:inset 0 0 0 1px var(--c-2)"></i> Monday · roastery day, counter opens 9:00</span>
+              <span class="lg"><i style="background:var(--caramel-300)"></i> Today, still running</span>
+              <span class="stat"><span>14-day total</span><b class="num"><span class="cur">₹</span>10,65,420</b></span>
+              <span class="stat"><span>Best day</span><b class="num"><span class="cur">₹</span>98,400<em>Sat 22 Aug</em></b></span>
+              <span class="stat"><span>Quietest</span><b class="num"><span class="cur">₹</span>54,800<em>Mon 17 Aug</em></b></span>
+            </div>
+          </article>
+
+          <!-- ── right column: the board, then the regulars ── -->
+          <div style="display:grid;gap:var(--gap-lg);align-content:start">
+
+            <!-- 5.7 THE DOT-LEADER BOARD -->
+            <article class="card card--oat rise" style="--i:1">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">Today's board</h3>
+                  <p class="card__sub">Units sold since 07:00</p>
+                </div>
+              </div>
+              <ol class="board">
+                <li><span class="rank num">1</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                  <span class="name">Filter Coffee</span><span class="leader" aria-hidden="true"></span>
+                  <span class="n">62</span><span class="amt"><span class="cur">₹</span>5,580</span></li>
+                <li><span class="rank num">2</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                  <span class="name">Flat White</span><span class="leader" aria-hidden="true"></span>
+                  <span class="n">41</span><span class="amt"><span class="cur">₹</span>8,610</span></li>
+                <li><span class="rank num">3</span>
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>
+                  <span class="name">Almond Croissant</span><span class="leader" aria-hidden="true"></span>
+                  <span class="n">34</span><span class="amt"><span class="cur">₹</span>6,460</span></li>
+                <li><span class="rank num">4</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                  <span class="name">Cortado</span><span class="leader" aria-hidden="true"></span>
+                  <span class="n">29</span><span class="amt"><span class="cur">₹</span>5,220</span></li>
+                <li><span class="rank num">5</span>
+                  <svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg>
+                  <span class="name">Cold Brew 300 ml</span><span class="leader" aria-hidden="true"></span>
+                  <span class="n">22</span><span class="amt"><span class="cur">₹</span>5,280</span></li>
+                <li><span class="rank num">6</span>
+                  <svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg>
+                  <span class="name">Cardamom Bun</span><span class="leader" aria-hidden="true"></span>
+                  <span class="n">18</span><span class="amt"><span class="cur">₹</span>3,060</span></li>
+              </ol>
+              <p class="card__sub" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+                206 of the 341 items sold today sit in these six lines.
+              </p>
+            </article>
+
+            <!-- known-name share of takings -->
+            <article class="card card--sage rise" style="--i:2">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">Known by name</h3>
+                  <p class="card__sub">Share of today's takings</p>
+                </div>
+              </div>
+              <div class="share">
+                <span class="metric">58<span class="cur" style="margin:0 0 0 2px">%</span></span>
+                <span class="meter meter--ok" role="img" aria-label="58 percent of today's takings are attached to a named customer"><i style="width:58%"></i></span>
+                <div class="kpi__scale"><span>₹22,280 named</span><span>₹38,420 total</span></div>
+                <p>
+                  <b>₹22,280</b> of <b>₹38,420</b> is attached to a phone number or a saved name.
+                  The rest is real money from walk-ins who never left one — counted in the takings,
+                  never in the customer list.
+                </p>
+              </div>
+              <ul class="regulars">
+                <li><a href="#"><span class="av av--sage av--sm" aria-hidden="true">KM</span>
+                  <span class="who">Kavya Menon<small>4th visit this week · cortado</small></span>
+                  <span class="n"><span class="cur">₹</span>1,480</span></a></li>
+                <li><a href="#"><span class="av av--sm" aria-hidden="true">AB</span>
+                  <span class="who">Arjun Bhat<small>flat white, no sugar, 08:10</small></span>
+                  <span class="n"><span class="cur">₹</span>2,120</span></a></li>
+                <li><a href="#"><span class="av av--sage av--sm" aria-hidden="true">TI</span>
+                  <span class="who">Tara Iyer<small>two bags of Attikan this month</small></span>
+                  <span class="n"><span class="cur">₹</span>1,860</span></a></li>
+              </ul>
+              <p class="card__sub" style="margin-top:14px">Spend this month, top three regulars.</p>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ AT THE PASS — the live ticket strip ═══════════ -->
+      <section class="sec" aria-labelledby="sec-pass">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Live · updated 11:42</span>
+            <h2 class="sec__title" id="sec-pass">At the pass</h2>
+          </div>
+          <div class="sec__rule" aria-hidden="true"></div>
+          <div class="sec__act">
+            <span class="chip chip--ready">4 on the pass</span>
+            <button class="btn btn--ghost" type="button">All orders</button>
+          </div>
+        </div>
+
+        <div class="pass scroll-x rise" style="--i:0">
+
+          <article class="ticket ticket--live">
+            <div class="ticket__top">
+              <span class="ticket__no">#1183</span>
+              <span class="chip chip--ready">On the pass</span>
+              <span class="ticket__time">11:36</span>
+            </div>
+            <div class="ticket__who"><b>Walk-in</b><span class="tag">Takeaway</span></div>
+            <ul class="ticket__items">
+              <li><b>2×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg><span>Filter Coffee</span></li>
+            </ul>
+            <div class="ticket__foot">
+              <span class="ticket__total"><span class="cur">₹</span>180</span>
+              <span class="brew" role="img" aria-label="Step 3 of 5 — on the pass"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+            </div>
+          </article>
+
+          <article class="ticket">
+            <div class="ticket__top">
+              <span class="ticket__no">#1182</span>
+              <span class="chip chip--work">Brewing</span>
+              <span class="ticket__time">11:33</span>
+            </div>
+            <div class="ticket__who"><span class="av av--sm" aria-hidden="true">AB</span><b>Arjun Bhat</b><span class="tag">Table 4</span></div>
+            <ul class="ticket__items">
+              <li><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg><span>Flat White</span></li>
+              <li><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg><span>Banana Bread</span></li>
+            </ul>
+            <div class="ticket__foot">
+              <span class="ticket__total"><span class="cur">₹</span>360</span>
+              <span class="brew" role="img" aria-label="Step 2 of 5 — brewing"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+            </div>
+          </article>
+
+          <article class="ticket">
+            <div class="ticket__top">
+              <span class="ticket__no">#1181</span>
+              <span class="chip chip--ok">Served</span>
+              <span class="ticket__time">11:29</span>
+            </div>
+            <div class="ticket__who"><span class="av av--sage av--sm" aria-hidden="true">TI</span><b>Tara Iyer</b><span class="tag">Table 2</span></div>
+            <ul class="ticket__items">
+              <li><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg><span>Pour-over · Attikan</span></li>
+              <li><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg><span>Cardamom Bun</span></li>
+            </ul>
+            <div class="ticket__foot">
+              <span class="ticket__total"><span class="cur">₹</span>430</span>
+              <span class="brew" role="img" aria-label="Step 4 of 5 — served"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+            </div>
+          </article>
+
+          <article class="ticket">
+            <div class="ticket__top">
+              <span class="ticket__no">#1184</span>
+              <span class="chip chip--mute">Paid</span>
+              <span class="ticket__time">11:38</span>
+            </div>
+            <div class="ticket__who"><span class="av av--sage av--sm" aria-hidden="true">KM</span><b>Kavya Menon</b><span class="tag">Counter</span></div>
+            <ul class="ticket__items">
+              <li><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg><span>Cortado</span></li>
+              <li><b>1×</b><svg class="fssai fssai--nonveg" viewBox="0 0 24 24" role="img" aria-label="Non-vegetarian — contains egg"><use href="#o-fssai"/></svg><span>Almond Croissant</span></li>
+            </ul>
+            <div class="ticket__foot">
+              <span class="ticket__total"><span class="cur">₹</span>370</span>
+              <span class="brew" role="img" aria-label="Step 5 of 5 — paid"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+            </div>
+          </article>
+
+          <article class="ticket">
+            <div class="ticket__top">
+              <span class="ticket__no">#1180</span>
+              <span class="chip chip--mute">Paid</span>
+              <span class="ticket__time">11:24</span>
+            </div>
+            <div class="ticket__who"><span class="av av--sm" aria-hidden="true">NS</span><b>Nikhil Suresh</b><span class="tag">Beans</span></div>
+            <ul class="ticket__items">
+              <li><b>1×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg><span>House Blend · 500 g</span></li>
+            </ul>
+            <div class="ticket__foot">
+              <span class="ticket__total"><span class="cur">₹</span>980</span>
+              <span class="brew" role="img" aria-label="Step 5 of 5 — paid"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+            </div>
+          </article>
+
+          <article class="ticket">
+            <div class="ticket__top">
+              <span class="ticket__no">#1179</span>
+              <span class="chip chip--mute">Paid</span>
+              <span class="ticket__time">11:19</span>
+            </div>
+            <div class="ticket__who"><b>Walk-in</b><span class="tag">Takeaway</span></div>
+            <ul class="ticket__items">
+              <li><b>2×</b><svg class="fssai fssai--veg" viewBox="0 0 24 24" role="img" aria-label="Vegetarian"><use href="#o-fssai"/></svg><span>Cold Brew 300 ml</span></li>
+            </ul>
+            <div class="ticket__foot">
+              <span class="ticket__total"><span class="cur">₹</span>480</span>
+              <span class="brew" role="img" aria-label="Step 5 of 5 — paid"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+            </div>
+          </article>
+
+          <button class="pass-more" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            180 more tickets today
+          </button>
+        </div>
+      </section>
+
+    </div><!-- /.wrap -->
+  </main>
+</div>
+
+<!-- ═══ BOTTOM TAB BAR (below 1024) — "More" opens the drawer, which carries
+     Menu, Staff, Customers, Billing and the account block. ═══ -->
+<nav class="tabbar" aria-label="Primary">
+  <a class="tab" href="#" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7.5" height="8.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.8"/>
+      <rect x="13.5" y="11" width="7.5" height="10" rx="1.8"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.8"/>
+    </svg>Overview</a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5.5 2.8v18.4l2.2-1.4 2.1 1.4 2.2-1.4 2.1 1.4 2.2-1.4 2.2 1.4V2.8L16.3 4.2 14.1 2.8 12 4.2 9.8 2.8 7.7 4.2z"/><path d="M9 9h6M9 13h4"/>
+    </svg>Orders</a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3.2 13.7 8 18.5 9.7 13.7 11.4 12 16.2 10.3 11.4 5.5 9.7 10.3 8z"/><path d="M18.4 15.6l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>
+    </svg>Ask AI</a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20.5 7.9v8.2a1.6 1.6 0 0 1-.85 1.4l-6.85 3.8a1.6 1.6 0 0 1-1.6 0L4.35 17.5a1.6 1.6 0 0 1-.85-1.4V7.9a1.6 1.6 0 0 1 .85-1.4l6.85-3.8a1.6 1.6 0 0 1 1.6 0l6.85 3.8a1.6 1.6 0 0 1 .85 1.4z"/><path d="m3.8 7 8.2 4.5L20.2 7M12 21V11.5"/>
+    </svg>Inventory</a>
+  <button class="tab" type="button" id="tabMore" aria-label="More — Menu, Staff, Customers, Billing and your account" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    More
+  </button>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  var body = document.body;
+  var backdrop = document.getElementById('backdrop');
+  var hamburger = document.getElementById('hamburger');
+  var tabMore = document.getElementById('tabMore');
+
+  function setNav(open) {
+    body.classList.toggle('nav-open', open);
+    if (hamburger) hamburger.setAttribute('aria-expanded', String(open));
+    if (tabMore) tabMore.setAttribute('aria-expanded', String(open));
+  }
+  function toggleNav() { setNav(!body.classList.contains('nav-open')); }
+
+  if (hamburger) hamburger.addEventListener('click', toggleNav);
+  if (tabMore) tabMore.addEventListener('click', toggleNav);
+  if (backdrop) backdrop.addEventListener('click', function () { setNav(false); });
+
+  /* the account menu */
+  var userBtn = document.getElementById('userBtn');
+  var userMenu = document.getElementById('userMenu');
+  if (userBtn && userMenu) {
+    userBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = userMenu.hidden;
+      userMenu.hidden = !open;
+      userBtn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', function (e) {
+      if (!userMenu.hidden && !userMenu.contains(e.target) && e.target !== userBtn) {
+        userMenu.hidden = true;
+        userBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    setNav(false);
+    if (userMenu && !userMenu.hidden) {
+      userMenu.hidden = true;
+      userBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+}());
+</script>
+</body>
+</html>

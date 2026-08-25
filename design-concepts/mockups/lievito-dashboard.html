@@ -1,0 +1,2042 @@
+<!doctype html>
+<!--
+================================================================================
+  OPERATO · THEME "LIEVITO"  —  DIRECTION SPEC  (v1.0 · authored on the Overview)
+
+  Lievito, Kala Ghoda, Mumbai. A modern-minimal Neapolitan room: a marble
+  counter, eight pizzas on a single-page menu, a short antipasti list, natural
+  wine by the glass. Twelve tables and eight counter seats. Low cover count,
+  medium-high ticket, slow service, regulars, no delivery.
+
+  THIS COMMENT IS THE CONTRACT. Menu, Orders + Floor, Inventory, Customers,
+  Staff, Ask AI and Billing are built from it. If a value is written here, use
+  it verbatim. If it is not here, derive it in the same spirit and then WRITE IT
+  BACK INTO THIS BLOCK so the next screen inherits it.
+
+  ------------------------------------------------------------------------------
+  0. THE FEELING — read this before you read a single hex
+  ------------------------------------------------------------------------------
+  A 72-hour ferment is the opposite of fast food. Lievito is PATIENT AND
+  CONFIDENT, never urgent. The room is flour-white and charcoal with one dusty
+  San Marzano red and one grey-olive. Nothing shouts. Nothing floats. Everything
+  is ruled, aligned and printed.
+
+  Lievito is Crema's disciplined sibling — same calm, same whitespace budget —
+  but where Crema is a WARM BROWN, SERIF, SOFT-CORNERED, SHADOWED cafe, Lievito
+  is a COOL BONE, ALL-SANS, SQUARE-CORNERED, SHADOWLESS marble counter.
+
+  The four at-a-glance signatures. A stranger must be able to name this theme
+  from across the room with all the text blurred out:
+
+    1. THE LEDGER GRID.  Content is not made of floating cards. It is made of
+       CELLS IN A PRINTED GRID: a 1px hairline background showing through 1px
+       gaps between flat paper cells. A KPI row is ONE ruled slab, not four
+       tiles. Corollary: THERE ARE NO SHADOWS IN THE CONTENT AREA. Not faint
+       ones, not wide ones. Shadow exists only on the mobile drawer, on popover
+       menus, and on the single charcoal slab. Delete every shadow declaration
+       in the file and the design is unchanged — that is the test.
+
+    2. THE MEASURE MARK.  Every horizontal rule that separates a section, a
+       masthead or a card head is overprinted at its LEFT END by a short 2px
+       terracotta segment (64px on a section, 88px on the masthead, 28px on a
+       card head). It is a printer's registration measure. It appears on every
+       rule of that class on every screen and nowhere else.
+
+    3. SQUARE CORNERS, WIDE-SET CAPS.  The radius vocabulary is 0 / 2 / 3 and
+       nothing else. There is NO PILL ANYWHERE IN LIEVITO — not one, not in the
+       masthead, not on a badge. Against that hard geometry, every label is
+       10px uppercase tracked at .24em, and the display face is set LIGHT and
+       OPEN — Lievito never uses negative tracking on display type.
+
+    4. LIGHT DISPLAY / MEDIUM DATA.  Headings are a geometric sans at weight
+       200–300 and large. Numbers are a grotesque at weight 500, tabular,
+       slightly tightened. The two faces never swap jobs. (Crema's numerals are
+       weight 300 and never 700; Lievito's are weight 500 and NEVER 300. If you
+       find a 300-weight numeral on a Lievito screen it is a bug.)
+
+  ==============================================================================
+  1. TOKENS — declare this entire :root block at the top of EVERY Lievito file
+     so each screen stands alone opened straight off disk. Hexes are literal.
+     Every ratio quoted was computed against the surface the text actually sits
+     on, not against white.
+  ==============================================================================
+
+  1.1 RAW CUES (the six materials; never used directly as a text colour)
+      --flour       #EFEDE6   bone / limestone — the app canvas
+      --paper       #FDFCF9   the sheet — sidebar, masthead
+      --charcoal    #22211D   ink slab — the one dark object
+      --sanmarzano  #A65A44   dusty San Marzano — the brand
+      --basil-ash   #8A968C   grey-olive — the secondary
+      --semolina    #E8DCC0   toasted crust / semolina — the warm mid
+
+  1.2 SURFACES
+      --flour     #EFEDE6  page ground (the app canvas). NO texture, NO noise,
+                           NO speckle, NO gradient. Matte stone.
+      --paper     #FDFCF9  sidebar + masthead sheet (the LIGHTEST surface —
+                           note Lievito inverts Crema, whose sidebar is DARKER
+                           than its canvas)
+      --surface   #FCFBF7  the card / ledger cell face
+      --surface-2 #F5F3EC  inset well, row stripe, quiet panel
+      --surface-3 #E9E6DC  pressed state, meter track, disabled fill
+      --slab      #22211D  the charcoal slab (see 5.4)
+      --slab-2    #2E2C27  raised panel inside the slab
+
+  1.3 BORDERS — all decorative structure. None of these is ever a text colour.
+      --line        #E2DFD4  the default hairline, 1px. The workhorse. It is
+                             also the BACKGROUND of every ledger grid.
+      --line-strong #CFCABA  emphasised rule, chart baseline, ruler ticks
+      --line-olive  #C7D0C6  hairline on an olive surface
+      --line-terra  #E6CDC1  hairline on a terracotta surface
+      --line-slab   #3B3831  hairline INSIDE the charcoal slab
+
+  1.4 INK RAMP — CHARCOAL, faintly warm, deliberately NOT brown.
+      (Crema's ink ramp is warm brown #23180F/#6B5747; Lievito's is charcoal.
+       Never import a Crema ink value into a Lievito screen.)
+      --ink        #1B1A17  headings, values, primary text
+                            14.99:1 on --flour · 16.82:1 on --surface
+      --ink-soft   #5C574E  secondary text, notes, chart axis
+                             6.18:1 on --flour ·  6.92:1 on --surface
+      --ink-label  #6E6759  the .label convention
+                             4.83:1 on --flour ·  5.41:1 on --surface
+      --ink-faint  #B3AC9E  2.2:1 — DECORATIVE STROKES ONLY. Never text, never
+                            an affordance, never the carrier of a state.
+      --ink-invert       #FBF9F4  text on --slab      15.43:1
+      --ink-on-slab-soft #C3BDB0  secondary on --slab   8.7:1
+      --ink-on-slab-label#ABA496  labels on --slab      6.6:1
+
+  1.5 BRAND RAMP — TERRACOTTA (San Marzano). Every accent, every focus ring.
+      --terra-50   #FAF0EC  wash
+      --terra-100  #F2DFD7  tint / chip bed / avatar
+      --terra-200  #E3C4B7  border on a tinted surface
+      --terra-300  #C98E78  FILL AND ORNAMENT ONLY (2.4:1)
+      --terra-500  #A65A44  THE SIGNATURE. Chart series 1, the measure mark,
+                            ruler current-step, meter fill. 4.0:1 on --surface —
+                            clears the 3:1 a meaningful graphic needs, and is
+                            NOT legal as text.
+      --terra-700  #8A3F2C  THE ACCESSIBLE TERRACOTTA TEXT.
+                            6.92:1 on --surface · 6.18:1 on --flour ·
+                            6.25:1 on --terra-50 · 5.1:1 on --terra-100
+      --terra-900  #5E2A1D  deep — dark-on-dark rules, print marks
+
+      HOW THIS IS NOT FORNO'S TOMATO — this is the single most important
+      colour decision in the theme and it is measured, not asserted:
+        Forno   #E23B14 = HSL  11.4° / 84% sat / 48% light
+        Lievito #A65A44 = HSL  13.5° / 42% sat / 46% light
+      Same family, HALF THE SATURATION (-42 percentage points) at the same
+      lightness. Side by side Forno reads as a blistered fresh tomato and
+      Lievito reads as unglazed terracotta. If a Lievito red ever measures
+      above 55% saturation it has drifted and must be pulled back.
+
+  1.6 SECONDARY RAMP — BASIL ASH (grey-olive)
+      --olive-50   #F1F3EF
+      --olive-100  #E2E7E1
+      --olive-200  #C7D0C6
+      --olive-400  #8A968C  fill / ornament only (2.2:1)
+      --olive-500  #6C7A6E  chart series 2, graphic strokes (3.6:1 on surface)
+      --olive-600  #4E5C50  ACCESSIBLE olive text
+                            6.82:1 on --surface · 6.09:1 on --flour ·
+                            5.70:1 on --olive-100
+      --olive-700  #3A463C  headings on --olive-100 (8.2:1)
+
+      HOW THIS IS NOT CREMA'S SAGE — also measured:
+        Crema   #8CA089 = HSL 112.2° / 10.8% sat / 58.2% light
+        Lievito #8A968C = HSL 130.0° /  5.4% sat / 56.5% light
+      Hue moved 17.8° COOLER (away from yellow-green, toward a blue-green) and
+      saturation is EXACTLY HALVED. Crema's sage still reads as a herb;
+      Lievito's basil ash reads as a grey that happens to lean green — the
+      colour of dried basil on a white plate.
+
+  1.7 WARM MID — CRUST / SEMOLINA (the only warm-yellow in the theme)
+      --crust-50   #FAF4E9   --crust-100 #F0E4CC   --crust-200 #DFCBA6
+      --crust-400  #C09A62  fill / ornament only (2.5:1 — never text)
+      --crust-600  #9A7A3E  chart series 3 (3.9:1 on --surface — graphic only)
+      --crust-700  #7A5518  ACCESSIBLE crust text
+                            6.46:1 on --surface · 6.13:1 on --crust-50 ·
+                            5.65:1 on --prove-bg
+
+  1.8 SEMANTIC STATES — each is a {bg, fg, line} triple. The fg ALWAYS clears
+      4.5:1 on its own bg because a chip carries 10px text.
+        settled / paid / healthy   --ok-bg   #E4E9E2  --ok-fg  #3A463C (8.20)
+                                   --ok-line #C7D0C6
+        proving / firing / working --prove-bg#F5EAD4  --prove-fg #7A5518 (5.65)
+                                   --prove-line #E2CFA6
+        READY · THE ONE SOLID CHIP --ready-bg #22211D --ready-fg #FBF9F4 (15.43)
+                                   with a 3px --terra-500 rule down its left
+                                   edge. Lievito's solid chip is INK, not fire.
+        attention / reorder        --warn-bg #F8ECE6  --warn-fg #8A3F2C (6.25)
+                                   --warn-line #E6CDC1
+        danger / void / out        --bad-bg  #F6E4E0  --bad-fg  #7A2A22 (7.89)
+                                   --bad-line #E3C1B9
+        quiet / closed / archived  --mute-bg #F5F3EC  --mute-fg #5C574E (6.47)
+                                   --mute-line #E2DFD4
+
+      READY is the ONLY solid-filled chip in the entire system. Nothing else
+      may compete with it — no solid buttons in a row of chips, no filled
+      badges in a table. It is how a pizzaiolo finds the next plate at arm's
+      length across a dim room.
+
+      DELTA: --up #4E5C50 · --down #7A2A22 · --flat #5C574E. Colour is NEVER
+      the sole carrier: every delta prints an ARROW GLYPH and a SIGNED NUMBER
+      and names its comparison basis in words. On the charcoal slab the
+      up-olive lightens to #A9BCA9 to hold 4.5:1.
+
+  1.9 FSSAI VEG / NON-VEG — LEGALLY FIXED, NOT THEMEABLE, NOT NEGOTIABLE
+      --veg #1A7F3C  ·  --nonveg #8B1E1E
+      A 14px square with a 1.5px outline in the colour and a filled 6px dot
+      centred inside it in the same colour. These two hexes are identical in
+      every Operato theme; they are not a design surface. Never tint them,
+      never "harmonise them into the palette", never render them as a bare dot
+      without the square. Every food or wine item named on any screen carries
+      one, plus a title/aria-label, so the mark never speaks by colour alone.
+
+  1.10 CHART TOKENS
+      --c-1 #A65A44 (terra-500)   series 1 — takings
+      --c-2 #6C7A6E (olive-500)   series 2 — second category
+      --c-3 #9A7A3E (crust-600)   series 3 — third category
+      --c-grid #E3DFD3            horizontal hairline gridlines (decorative)
+      Nominal categories take slots 1-2-3 in FIXED order — never cycled, never
+      re-assigned by rank, never re-ordered to "look better".
+
+  ==============================================================================
+  2. TYPE — the second-largest identity decision after the terracotta.
+     LIEVITO HAS NO SERIF. Anywhere. Not in a masthead, not in a quote, not in
+     a card title. (Crema is serif-led; Saffron is a display serif. The absence
+     of a serif is a positive design statement here, not an omission.)
+  ==============================================================================
+      --font-display : Futura,"Century Gothic","Avenir Next",Avenir,
+                       "Trebuchet MS",ui-rounded,system-ui,sans-serif
+                       A GEOMETRIC sans. Used only at weight 200/300/400.
+      --font-sans    : Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",
+                       Roboto,"Helvetica Neue",Arial,sans-serif
+                       A neutral GROTESQUE. Every label, body string, chip,
+                       button and form control.
+      --font-num     : the grotesque stack, ALWAYS with
+                       font-variant-numeric: tabular-nums
+
+      THE SPLIT — a rule, not a preference:
+        DISPLAY (geometric) → the masthead date line, every section title,
+                       every card title, the wordmark. Weight 200–400 only.
+                       NEVER bold. NEVER negative tracking.
+        GROTESQUE      → every label, body string, chip, button, table header.
+        NUMBERS        → grotesque, tabular, weight 500. Never the display face
+                       (geometric digits have inconsistent widths and will not
+                       hold a money column), never weight 300, never weight 700.
+
+      SCALE
+        --t-display  200 clamp(38px,5.6vw,62px)/1.04 display  +.012em
+        --t-h1       300 clamp(24px,2.6vw,32px)/1.18 display  +.02em
+        --t-h2       400 clamp(16px,1.5vw,18px)/1.3  display  +.03em
+        --t-h3       600 12.5px/1.35 grotesque                +.02em
+        --t-body     400 14px/1.65   grotesque
+        --t-small    400 12.5px/1.55 grotesque
+        --t-micro    500 11px/1.45   grotesque
+        --t-label    600 10px/1.4    grotesque  +.24em  UPPERCASE
+                     Lievito tracks its labels WIDER than Crema does (.24em vs
+                     .18em) and one step SMALLER (10px vs 10.5px). At that
+                     tracking a label reads as an engraved caption, not a form
+                     legend. It is half the signature — do not "fix" it.
+        --metric     500 clamp(30px,3.5vw,42px)/1.02 num  -.012em
+        --metric-sm  500 clamp(19px,2vw,24px)/1.10   num  -.008em
+        --metric-xs  500 15px/1.2                    num  -.004em
+
+      CASE CONVENTIONS
+        · Display headings are SENTENCE CASE and carry no terminal full stop
+          (they are titles on a printed menu, not sentences).
+        · Labels, the wordmark, the eyebrow and the variant badge are UPPERCASE
+          at .24em.
+        · Body copy is sentence case with normal punctuation.
+
+      CURRENCY — Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',
+      maximumFractionDigits:0}). Indian lakh grouping, no paise: "₹68,400",
+      "₹25,75,900". The ₹ glyph renders at .56em, weight 400, --ink-soft, 2px
+      to the left of the digits, INSIDE the same tabular run so money columns
+      still align down the page. Never abbreviate to "68.4K" in a KPI or a
+      table cell; compact form is permitted ONLY on a chart axis.
+
+  ==============================================================================
+  3. RADII · SHADOW · SPACING · MOTION
+  ==============================================================================
+      RADII    --r-0 0 · --r-xs 2px · --r-sm 3px · --r-in 2px
+               Cards and ledger cells take --r-sm (3px). Chips, buttons, inputs,
+               avatars, swatches and the variant badge all take --r-xs (2px).
+               Inner panels take --r-in (2px). THERE IS NO --r-pill TOKEN IN
+               THIS THEME. If you need a pill, you have misread the brief.
+
+      SHADOW   Lievito is a SHADOWLESS theme in the content area.
+               --sh-none 0 0 0 rgba(0,0,0,0)        every card, every cell
+               --sh-pop  0 18px 44px -28px rgba(34,33,29,.30)   popovers only
+               --sh-slab 0 20px 48px -30px rgba(34,33,29,.42)   the slab only
+               --sh-drawer 0 0 0 100vmax rgba(27,26,23,.34)     mobile scrim
+               A card is a HAIRLINE, full stop. Separation is achieved by rules
+               and by whitespace, never by elevation.
+
+      SPACING  4px base. The ledger gap is literally 1px — that is the point.
+               --gap-hair 1px   the ledger grid gap (hairline shows through)
+               --gap      12px
+               --gap-md   20px
+               --gap-lg   28px
+               --pad-card 24px
+               --pad-cell clamp(18px,2vw,24px)
+               --pad-page clamp(18px,3vw,40px)
+               --sec-gap  clamp(40px,5vw,68px)  the whitespace budget. Larger
+                          than Crema's already-generous 34–60. NOT negotiable
+                          downwards to fit more in.
+               --tap      44px  minimum touch target, every axis it can be hit
+                          in. This runs on a tablet on a working counter.
+               Buttons are 46px tall; --btn-sm is 40px and is legal only inside
+               a row that already provides a 44px hit area around it.
+
+      MOTION   --ease cubic-bezier(.2,.8,.2,1) · --dur .18s
+               .rise entrance: translateY(4px) + opacity over .42s, staggered
+               by an inline --i at 45ms. Even quieter than Crema's. Lievito
+               never bounces, never scales, never slides horizontally.
+               Everything collapses under prefers-reduced-motion: reduce.
+
+  ==============================================================================
+  4. SHELL GEOMETRY — identical on all eight screens
+  ==============================================================================
+      --sidebar 244px   expanded sidebar
+      --rail     72px   collapsed icon rail
+      --wrap   1180px   max content measure, margin-inline auto
+      masthead          content-sized, min-height 190px at >=1024. FULL-BLEED
+                        inside the main column, on --paper, closed by THE
+                        MEASURE RULE (a 1px --line hairline overprinted at the
+                        left gutter by an 88px 2px --terra-500 segment).
+
+      RESPONSIVE LADDER  (deliberately different stops from Crema's)
+        >= 1280       full sidebar, 244px
+        1080 – 1279   icon rail, 72px. Labels are CLIPPED with the .sr-only
+                      recipe, never display:none — they are the accessible
+                      name of every icon-only control in the rail.
+        <= 1079       off-canvas drawer (272px, scrim) plus a 5-slot bottom tab
+                      bar: Overview · Orders · Ask AI · Inventory · More.
+                      "More" opens the drawer, which carries Menu, Staff,
+                      Customers, Billing and the account block.
+        <= 680        KPI ledger -> 2 columns; masthead actions go full width;
+                      the two-column sections stack.
+        <= 440        KPI ledger -> 1 column.
+
+      THE SIDEBAR IS A SHEET OF PAPER LAID ON STONE — the inverse of Crema:
+        background: var(--paper);           /* LIGHTER than the canvas */
+        border-right: 1px solid var(--line);
+        no gradient, no texture, no backdrop-filter, no shadow at >= 1080.
+      The ACTIVE nav item has NO FILL AND NO CARD. It is marked by:
+        · a 2px --terra-500 rule flush to its left inside edge, full item height
+        · text stepping from --ink-soft/400 to --ink/500
+        · the icon stepping to --terra-700
+      Hover on an inactive item is background var(--surface-2) and nothing else.
+      Nav groups are separated by a FULL-BLEED hairline that runs edge to edge
+      of the sidebar (negative margin past the padding), like the rules on a
+      printed index page.
+      Every nav label is wrapped in <span class="nav-txt"> so the 1080-1279 rail
+      can clip it with the sr-only recipe while it remains the accessible name
+      of the icon. Never display:none a nav label.
+
+      The sidebar holds, top to bottom: the LIEVITO wordmark with an "OPERATO"
+      tag · the BUSINESS SWITCHER (full-width, hairline, two-line: name over
+      role, with a chevron) · nav group "SERVICE" (Overview, Ask AI, Menu,
+      Orders) · nav group "THE ROOM" (Inventory, Staff, Customers, Billing) ·
+      then, pushed to the foot, the user block.
+
+  ==============================================================================
+  5. THE SIGNATURE MOVES — reproduce these exactly on the other seven screens
+  ==============================================================================
+
+  5.1 THE MASTHEAD — every screen has one; only the content changes.
+      A full-bleed --paper band. NOT tinted, NOT a gradient, NOT washed.
+      Left column, top to bottom:
+        · THE EYEBROW — NOT a pill, NOT a chip: a single line of --t-label
+          uppercase text with 1px --line-strong vertical separators between its
+          parts, e.g.  LIEVITO — KALA GHODA | OPEN 19:00-23:30 | SECOND SEATING
+          The live-state segment carries a 6px SQUARE in --olive-600.
+        · THE DATE — the masthead's LARGEST type, in --t-display: "Tuesday,
+          25 August". Lievito LEADS WITH THE DATE, not with a greeting — a
+          dated single-page menu. (Crema leads with a serif greeting; do not
+          copy that inversion back.)
+        · THE GREETING LINE — grotesque 15px --ink, directly under the date.
+          "Good evening, Aditi." Small on purpose.
+        · THE CONTEXT LINE — grotesque 14px --ink, max 54ch. One honest
+          sentence about this service with the real numbers set in <b>.
+        · THE ACTIONS — one primary (charcoal) and one ghost. Never three.
+      Right column: THE LEDGER READOUT — three rows of [label / value]
+      separated by 1px hairlines, sitting DIRECTLY ON THE PAPER with no border,
+      no fill and no shadow. It is not a card. Lievito's masthead contains no
+      cards at all.
+
+      All masthead copy is --ink, never --ink-soft: hierarchy in the masthead
+      is carried by SIZE, WEIGHT and FACE (62px/200 geometric against
+      14px/400 grotesque), never by tint.
+
+      ORNAMENT — budget: exactly TWO motif types in a masthead, and no more.
+        · THE PROOFING GRID (#o-proof) — a stroke-only 3x3 grid of squares,
+          one cell filled: dough trays on a rack. 300px, --terra-300 at .30
+          opacity, pinned top-right, aria-hidden, clipped by the band.
+        · THE LEAVEN CURVE (#o-rise) — a single thin rising S-curve, the
+          fermentation curve, 84px, --olive-400 at .55, used ONCE per screen
+          above the eyebrow.
+      NO blurred blobs. NO backdrop-filter. NO gradient washes. NO mascot.
+      NO speckle or paper texture. Lievito's surfaces are perfectly flat.
+
+  5.2 THE SECTION HEAD — "the dated page rule"
+      One row: [ --t-label eyebrow stacked over a --t-h1 display title ]
+      [ spacer ] [ actions, hard right ] — and the WHOLE ROW is closed by a
+      single full-width 1px --line rule with THE MEASURE MARK (5.3) at its left
+      end. The title sits ABOVE the rule, not beside it. (Crema runs its rule
+      BETWEEN the title and the actions; Lievito runs it UNDER everything. That
+      difference is what makes a Lievito page read like a printed page rather
+      than a price list.)
+
+  5.3 THE MEASURE MARK — the theme's most repeated gesture
+      A 2px-tall --terra-500 segment absolutely positioned at the LEFT END of a
+      rule, overprinting it, offset -1px so it sits exactly on the hairline.
+        section rule  64px    masthead rule  88px    card-head rule  28px
+      It appears on: the masthead foot, every section head, every card head
+      that carries a title, and the chart's baseline. It appears NOWHERE else —
+      not under a table row, not under a nav item, not under a chip.
+
+  5.4 THE LEDGER GRID + THE CHARCOAL SLAB
+      .ledger { display:grid; gap:1px; background:var(--line);
+                border:1px solid var(--line); }
+      .ledger > .cell { background:var(--surface); padding:var(--pad-cell); }
+      The hairline background shows through the 1px gaps, so N cells read as
+      one ruled slab. Use it for the KPI row, for any 2-4 up module row, and
+      for any table-like list.
+
+      EXACTLY ONE CELL PER SCREEN may be .cell--slab:
+        background var(--slab) · color var(--ink-invert) · --sh-slab
+      It is the single dark object on a page of paper and must therefore be the
+      single most important number on that page. On the Overview that is
+      Revenue today. On Orders it is the open-tickets total. On Inventory it is
+      the value at risk. On Billing it is the plan. Never two.
+
+  5.5 THE BATCH TICK — the cell ornament
+      A 2px x 12px --terra-500 vertical mark sitting directly above the label
+      of every KPI cell and every card title in a ledger, with 10px beneath it.
+      A chalk mark on the counter edge. It replaces the icon-in-a-tinted-square
+      that a stock dashboard puts on a stat tile. On .cell--slab it lightens to
+      --terra-300 to stay visible.
+
+  5.6 THE CHIP — an engraved caption, not a lozenge
+      display:inline-flex · min-height 24px · padding 4px 9px 4px 7px ·
+      --r-xs (2px) · 1px border in the state's line colour · 600 10px grotesque
+      UPPERCASE at .18em tracking · and a 3px-wide FULL-HEIGHT RULE down its
+      LEFT edge in the state's fg at .85 opacity — a left rule, never a dot,
+      never a circle. (Crema's chip carries a 6px square dot; Forno's is a
+      sticker with a hard offset. Lievito's is a ruled margin.)
+      The READY chip is the only solid one: --slab bed, --ink-invert text, no
+      border, and its left rule steps to a solid 3px --terra-500.
+      Status is ALWAYS spelled out in words as well as being placed on the
+      step ruler (5.8). Colour never carries a state alone.
+
+  5.7 THE BUTTON
+      --r-xs (2px) · min-height 46px · padding 0 20px · 600 13px grotesque at
+      .04em tracking · gap 9px · transition on background and border only.
+        .btn--primary  --slab fill, --ink-invert text, no shadow
+        .btn--ghost    --surface fill, 1px --line, --ink text
+        .btn--quiet    transparent, --ink-soft text, hover --surface-2
+        .btn--warn     --surface fill, 1px --warn-line, --warn-fg text
+      :active { transform: translateY(1px) }. No pills, no gradients, no
+      shadows, no icon-only buttons under 44px.
+
+  5.8 THE STEP RULER — the order-lifecycle position cue
+      A drawn ruler, not a row of bars: a 1px --line-strong baseline 58px wide
+      carrying five ticks 12px apart.
+        completed step  2px wide, 10px tall, --ink
+        current step    2px wide, 14px tall, --terra-500
+        future step     1px wide,  6px tall, --line-strong
+      Always rendered alongside the chip, never instead of it — a service
+      screen is read at arm's length, through glare, sometimes by someone who
+      cannot separate red from green, so position in a sequence is encoded
+      twice, always.
+
+      LIEVITO'S ORDER VOCABULARY (maps 1:1 onto the Prisma OrderStatus enum):
+        PENDING / CONFIRMED -> "Ordered"       chip--mute   step 1
+        PREPARING           -> "Firing"        chip--prove  step 2
+        READY               -> "Ready"         chip--ready  step 3  (THE SOLID)
+        SERVED              -> "At the table"  chip--ok     step 4
+        PAID                -> "Settled"       chip--mute   step 5
+        CANCELLED           -> "Cancelled"     chip--bad    no ruler, strike
+
+  5.9 THE SHARE RULE — Lievito's meter
+      Progress, stock level, share-of-total: a 2px track in --surface-3 with a
+      2px fill in the meaning's colour. 2px, never fatter — a thick progress
+      bar would be the loudest object on the page and it has not earned that.
+      A share rule is ALWAYS paired with the printed number; the bar is never
+      the only statement of the value. Multi-segment rules gap by 2px and are
+      squared off (no rounded caps anywhere).
+      THE ONE EXCEPTION: a SEGMENTED DISTRIBUTION rule — one that is itself the
+      primary statement of a whole-to-parts split, like the order-mix bar under
+      the trend chart — may go to 4px. Nothing else ever exceeds 2px.
+
+  5.10 THE LEDGER ROW — Lievito's ranked list (top sellers, prices, stock)
+      NOT a dot-leader board (that is Crema's). A ruled ledger line:
+        [rank "01" in --t-label] [FSSAI mark] [name over a 2px share rule]
+        [units, tabular, right] [₹ amount, tabular, right]
+      Rows are separated by 1px --line, min-height 58px, and the two numeric
+      columns are FIXED WIDTH so they form real columns down the page. The
+      rank is set in the label style — small, wide, uppercase, zero-padded.
+
+  5.11 CHARTS
+      Inline SVG only, hand-authored paths over real numbers. No library, ever.
+      viewBox 0 0 920 300 for a full-width plot; the wrapper sets
+      min-width:720px and scrolls on narrow screens so no axis label is ever
+      downscaled below its authored size.
+      Horizontal hairline gridlines only (--c-grid). No vertical grid, no plot
+      border, no axis spines — except the BASELINE, which is a 1px
+      --line-strong rule carrying THE MEASURE MARK at its left end.
+      Series: 1.6px stroke in --c-1 (thinner than a stock 2px) with a 3-stop
+      wash beneath at .16 -> 0. Points are 5px SQUARES (--surface fill, 1.2px
+      --c-1 stroke), placed sparingly — peaks and the final point only.
+      A PARTIAL, STILL-RUNNING PERIOD is drawn as a DASHED segment ending in a
+      HOLLOW square and is labelled "so far". Lievito never lets an incomplete
+      day masquerade as a finished one — not in a chart, not in a KPI, not in
+      a total, not in a delta.
+      Axis text: grotesque 10.5px 600 --ink-soft. Value callouts: grotesque
+      10.5px 700 --terra-700 (never --terra-500 — a callout is text).
+
+  5.12 ICONS
+      Inline SVG only, one per call site. No icon font, no sprite fetched from
+      anywhere. 24x24 viewBox · fill:none · stroke:currentColor ·
+      STROKE-WIDTH 1.25 (thinner than Crema's 1.7 and much thinner than
+      Forno's 2 — the thinness is part of the calm) · linecap and linejoin
+      round. Rendered at 18px in the nav, 17px in a button, 20px in the tab
+      bar, 18px in an alert. The two ornament marks (#o-proof, #o-rise) and the
+      legal #o-fssai mark live in one <defs> sprite at the top of every file so
+      a developer lifts them out as three components.
+
+  5.14 THE PAGE RHYTHM — how a Lievito screen is laid out, top to bottom
+      masthead (full bleed) · then, inside .wrap, a stack of <section class="sec">
+      each of which is:  .sec__head  ->  .rule  ->  .sec__body
+      and each separated by --sec-gap. Nothing else goes between sections.
+
+      Two body layouts, and only two:
+        .ledger        a hairline grid of equal cells — the KPI row, the service
+                       strip, any 2-4 up module row.
+        .split         a two-column row. Default is 1.55fr / 1fr for a wide
+                       object beside a narrow one; .split--even is 1fr / 1fr
+                       for two peers. Both collapse to one column below 900px
+                       and both set min-width:0 on their children so a wide
+                       child (a chart, a table) scrolls inside itself instead
+                       of widening the page.
+
+      A FULL-WIDTH OBJECT GETS A FULL-WIDTH SECTION. The trend chart authors
+      its labels at 10.5px inside a 920-unit viewBox; squeezed into a 1.55fr
+      column it renders those labels at roughly 7px, which is a bug, not a
+      trade-off. If a chart cannot have the whole measure, it gets its own
+      section. This is why the Overview runs: KPI ledger · the chart alone ·
+      two peer ledgers · the reorder banner + one wide ledger · the service
+      strip. Copy that cadence.
+
+  5.13 WHAT LIEVITO NEVER DOES
+      a serif · a pill · a circle (except the legally-required FSSAI dot) ·
+      a shadow in the content area · a texture or speckle · a gradient anywhere
+      except the single chart area wash (the only linearGradient in the theme) ·
+      backdrop-filter · negative tracking on display type · a 300-weight
+      numeral · a 700-weight heading · warm brown ink · a saturation above 55%
+      on any red · a status carried by colour alone · an incomplete period
+      drawn as if it were complete · a chart from a library · a control under
+      44px · decorative emoji in any string that also carries money.
+================================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operato — Overview · Lievito, Kala Ghoda</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS — the full Lievito contract, declared here so this file stands
+   alone when opened straight off disk.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* raw cues */
+  --flour:#EFEDE6; --paper:#FDFCF9; --charcoal:#22211D;
+  --sanmarzano:#A65A44; --basil-ash:#8A968C; --semolina:#E8DCC0;
+
+  /* surfaces */
+  --surface:#FCFBF7; --surface-2:#F5F3EC; --surface-3:#E9E6DC;
+  --slab:#22211D; --slab-2:#2E2C27;
+
+  /* borders — decorative structure, never text */
+  --line:#E2DFD4; --line-strong:#CFCABA; --line-olive:#C7D0C6;
+  --line-terra:#E6CDC1; --line-slab:#3B3831;
+
+  /* ink ramp — charcoal, faintly warm, never brown */
+  --ink:#1B1A17; --ink-soft:#5C574E; --ink-label:#6E6759; --ink-faint:#B3AC9E;
+  --ink-invert:#FBF9F4; --ink-on-slab-soft:#C3BDB0; --ink-on-slab-label:#ABA496;
+
+  /* brand — terracotta (San Marzano) */
+  --terra-50:#FAF0EC; --terra-100:#F2DFD7; --terra-200:#E3C4B7;
+  --terra-300:#C98E78; --terra-500:#A65A44; --terra-700:#8A3F2C; --terra-900:#5E2A1D;
+
+  /* secondary — basil ash */
+  --olive-50:#F1F3EF; --olive-100:#E2E7E1; --olive-200:#C7D0C6;
+  --olive-400:#8A968C; --olive-500:#6C7A6E; --olive-600:#4E5C50; --olive-700:#3A463C;
+
+  /* warm mid — crust / semolina */
+  --crust-50:#FAF4E9; --crust-100:#F0E4CC; --crust-200:#DFCBA6;
+  --crust-400:#C09A62; --crust-600:#9A7A3E; --crust-700:#7A5518;
+
+  /* semantic states {bg,fg,line} */
+  --ok-bg:#E4E9E2;    --ok-fg:#3A463C;    --ok-line:#C7D0C6;
+  --prove-bg:#F5EAD4; --prove-fg:#7A5518; --prove-line:#E2CFA6;
+  --ready-bg:#22211D; --ready-fg:#FBF9F4;
+  --warn-bg:#F8ECE6;  --warn-fg:#8A3F2C;  --warn-line:#E6CDC1;
+  --bad-bg:#F6E4E0;   --bad-fg:#7A2A22;   --bad-line:#E3C1B9;
+  --mute-bg:#F5F3EC;  --mute-fg:#5C574E;  --mute-line:#E2DFD4;
+  --up:#4E5C50; --down:#7A2A22; --flat:#5C574E;
+
+  /* FSSAI — legally fixed, not themeable */
+  --veg:#1A7F3C; --nonveg:#8B1E1E;
+
+  /* charts */
+  --c-1:#A65A44; --c-2:#6C7A6E; --c-3:#9A7A3E; --c-grid:#E3DFD3;
+
+  /* type */
+  --font-display:Futura,"Century Gothic","Avenir Next",Avenir,"Trebuchet MS",ui-rounded,system-ui,sans-serif;
+  --font-sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-num:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --t-body:400 14px/1.65 var(--font-sans);
+  --t-small:400 12.5px/1.55 var(--font-sans);
+  --t-micro:500 11px/1.45 var(--font-sans);
+  --t-label:600 10px/1.4 var(--font-sans);
+  --label-track:.24em;
+
+  /* radii — 0 / 2 / 3. There is no pill token in this theme. */
+  --r-0:0; --r-xs:2px; --r-sm:3px; --r-in:2px;
+
+  /* shadow — none in the content area */
+  --sh-none:0 0 0 rgba(0,0,0,0);
+  --sh-pop:0 18px 44px -28px rgba(34,33,29,.30);
+  --sh-slab:0 20px 48px -30px rgba(34,33,29,.42);
+
+  /* spacing + shell */
+  --gap-hair:1px; --gap:12px; --gap-md:20px; --gap-lg:28px;
+  --pad-card:24px; --pad-cell:clamp(18px,2vw,24px);
+  --pad-page:clamp(18px,3vw,40px);
+  --sec-gap:clamp(40px,5vw,68px);
+  --tap:44px; --sidebar:244px; --rail:72px; --wrap:1180px;
+
+  /* motion */
+  --ease:cubic-bezier(.2,.8,.2,1); --dur:.18s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · RESET
+   ══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink);
+  background:var(--flour);            /* flat stone. no gradient, no texture. */
+  min-height:100dvh; -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--terra-700);outline-offset:2px;border-radius:var(--r-xs)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-.004em}
+
+/* entrance — quieter than Crema's. Lievito never bounces. */
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.rise{animation:rise .42s var(--ease) both;animation-delay:calc(var(--i,0) * 45ms)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · PRIMITIVES
+   ══════════════════════════════════════════════════════════════════════════ */
+.label{
+  font:var(--t-label); letter-spacing:var(--label-track);
+  text-transform:uppercase; color:var(--ink-label);
+}
+.disp{font-family:var(--font-display);font-weight:300;letter-spacing:.02em}
+.metric{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:clamp(30px,3.5vw,42px);line-height:1.02;
+  letter-spacing:-.012em;color:var(--ink);white-space:nowrap;
+}
+.metric-sm{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:clamp(19px,2vw,24px);line-height:1.1;
+  letter-spacing:-.008em;color:var(--ink);white-space:nowrap;
+}
+.metric-xs{
+  font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:15px;line-height:1.2;letter-spacing:-.004em;color:var(--ink);
+}
+.cur{font-size:.56em;font-weight:400;color:var(--ink-soft);margin-right:2px;letter-spacing:0}
+.of{font-size:.55em;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+
+/* 5.3 THE MEASURE MARK — the theme's most repeated gesture. */
+.rule{position:relative;height:1px;background:var(--line);width:100%}
+.rule::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:64px;background:var(--terra-500)}
+.rule--mast::before{width:88px}
+.rule--card::before{width:28px}
+
+/* 5.5 THE BATCH TICK — a chalk mark on the counter edge */
+.tick{display:block;width:2px;height:12px;background:var(--terra-500);margin-bottom:10px}
+.cell--slab .tick{background:var(--terra-300)}
+
+/* 5.4 THE LEDGER GRID — hairline shows through 1px gaps */
+.ledger{
+  display:grid;gap:var(--gap-hair);background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;
+}
+.ledger>.cell{background:var(--surface);padding:var(--pad-cell);min-width:0}
+.ledger>.cell--slab,.cell--slab{background:var(--slab);color:var(--ink-invert);box-shadow:var(--sh-slab)}
+.cell--slab .label{color:var(--ink-on-slab-label)}
+.cell--slab .metric,.cell--slab .metric-sm,.cell--slab .metric-xs{color:var(--ink-invert)}
+.cell--slab .cur,.cell--slab .of{color:var(--ink-on-slab-soft)}
+.cell--slab .sub{color:var(--ink-on-slab-soft)}
+.cell--slab .delta--up{color:#A9BCA9}
+.cell--slab .delta em{color:var(--ink-on-slab-soft)}
+.cell--slab .share{background:#3B3831}
+.cell--slab .share>i{background:var(--terra-300)}
+
+/* the plain card, for modules that are not a grid of cells */
+.card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:var(--pad-card);box-shadow:var(--sh-none);
+}
+.card--flush{padding:0}
+.card--warn{background:var(--warn-bg);border-color:var(--warn-line)}
+.card--olive{background:var(--olive-50);border-color:var(--line-olive)}
+.card__title{
+  font-family:var(--font-display);font-weight:400;
+  font-size:clamp(16px,1.5vw,18px);line-height:1.3;letter-spacing:.03em;color:var(--ink);
+}
+.card__sub{font:var(--t-small);color:var(--ink-soft);margin-top:4px}
+.card__head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.card__head .card__act{margin-left:auto;display:flex;gap:8px;align-items:center}
+.card__headline{padding:var(--pad-card) var(--pad-card) 14px}
+.card__headline+.rule{margin-bottom:6px}
+
+/* 5.6 THE CHIP — a ruled margin, never a dot, never a pill */
+.chip{
+  position:relative;display:inline-flex;align-items:center;
+  min-height:24px;padding:4px 9px 4px 11px;border-radius:var(--r-xs);
+  border:1px solid transparent;
+  font:600 10px/1.2 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:currentColor;opacity:.85}
+.chip--ok{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-line)}
+.chip--prove{background:var(--prove-bg);color:var(--prove-fg);border-color:var(--prove-line)}
+.chip--warn{background:var(--warn-bg);color:var(--warn-fg);border-color:var(--warn-line)}
+.chip--bad{background:var(--bad-bg);color:var(--bad-fg);border-color:var(--bad-line)}
+.chip--mute{background:var(--mute-bg);color:var(--mute-fg);border-color:var(--mute-line)}
+/* THE ONE SOLID CHIP IN THE SYSTEM. Ink, not fire. */
+.chip--ready{background:var(--ready-bg);color:var(--ready-fg);border-color:transparent}
+.chip--ready::before{background:var(--terra-500);opacity:1}
+
+/* 5.7 THE BUTTON */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:46px;padding:0 20px;border-radius:var(--r-xs);
+  font:600 13px/1 var(--font-sans);letter-spacing:.04em;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.btn svg{width:17px;height:17px;flex:0 0 auto}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--slab);color:var(--ink-invert)}
+.btn--primary:hover{background:#31302A}
+.btn--ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn--ghost:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.btn--quiet{background:transparent;color:var(--ink-soft)}
+.btn--quiet:hover{background:var(--surface-2);color:var(--ink)}
+.btn--warn{background:var(--surface);color:var(--warn-fg);border:1px solid var(--warn-line)}
+.btn--warn:hover{background:var(--warn-bg)}
+.btn--sm{min-height:40px;padding:0 14px;font-size:12px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+
+/* FSSAI — 14px square outline + 6px filled dot. The colours are legal. */
+.fssai{width:14px;height:14px;flex:0 0 auto}
+.fssai--veg{color:var(--veg)}
+.fssai--nonveg{color:var(--nonveg)}
+
+/* 5.9 THE SHARE RULE — 2px, never fatter, never rounded */
+.share{height:2px;background:var(--surface-3);display:block;overflow:hidden}
+.share>i{display:block;height:100%;background:var(--terra-500)}
+.share--ok>i{background:var(--olive-500)}
+.share--warn>i{background:var(--crust-700)}
+.share--bad>i{background:var(--bad-fg)}
+.share--seg{display:flex;gap:2px;background:none;overflow:visible}
+.share--seg>i{height:100%}
+
+/* 5.8 THE STEP RULER — a drawn ruler, not a row of bars */
+.ruler{position:relative;width:58px;height:16px;flex:0 0 auto}
+.ruler::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line-strong)}
+.ruler>i{position:absolute;bottom:0;width:1px;height:6px;background:var(--line-strong)}
+.ruler>i:nth-child(1){left:0} .ruler>i:nth-child(2){left:13px}
+.ruler>i:nth-child(3){left:27px} .ruler>i:nth-child(4){left:41px}
+.ruler>i:nth-child(5){left:56px}
+.ruler>i.done{width:2px;height:10px;background:var(--ink)}
+.ruler>i.now{width:2px;height:14px;background:var(--terra-500)}
+
+/* delta — arrow glyph AND signed number AND a named basis. Never colour alone */
+.delta{display:inline-flex;align-items:center;gap:6px;font:600 11.5px/1 var(--font-sans);
+  font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.delta svg{width:13px;height:13px;flex:0 0 auto}
+.delta--up{color:var(--up)} .delta--down{color:var(--down)} .delta--flat{color:var(--flat)}
+.delta em{font-style:normal;font-weight:400;color:var(--ink-soft);letter-spacing:0}
+
+/* avatar — a square. Lievito has no circles. */
+.av{
+  width:34px;height:34px;flex:0 0 auto;border-radius:var(--r-xs);
+  display:grid;place-items:center;
+  font:600 11px/1 var(--font-sans);letter-spacing:.06em;
+  background:var(--terra-100);color:var(--terra-700);
+  box-shadow:inset 0 0 0 1px var(--terra-200);
+}
+.av--olive{background:var(--olive-100);color:var(--olive-700);box-shadow:inset 0 0 0 1px var(--olive-200)}
+.av--ink{background:var(--slab);color:var(--ink-invert);box-shadow:none}
+.av--sm{width:28px;height:28px;font-size:10px}
+
+.sub{font:var(--t-small);color:var(--ink-soft)}
+.mono-note{font:var(--t-micro);color:var(--ink-soft);letter-spacing:.02em}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE — square corners, wide caps
+   ══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:14px;right:14px;z-index:99;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:var(--r-xs);
+  background:var(--paper);border:1px solid var(--line-strong);
+  font:700 10px/1 var(--font-sans);letter-spacing:var(--label-track);text-transform:uppercase;
+  color:var(--terra-700);pointer-events:none;
+}
+.variant-badge i{display:block;width:2px;height:12px;background:var(--terra-500);flex:0 0 auto}
+.variant-badge span{color:var(--ink-label);font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · SHELL — sidebar >=1280 · rail 1080–1279 · drawer + tabbar <=1079
+   ══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+/* THE SIDEBAR IS A SHEET OF PAPER LAID ON STONE — lighter than the canvas. */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;
+  display:flex;flex-direction:column;
+  padding:24px 14px 16px;
+  background:var(--paper);border-right:1px solid var(--line);
+  overflow-y:auto;scrollbar-width:none;z-index:50;
+}
+.sidebar::-webkit-scrollbar{display:none}
+
+.brand{display:flex;align-items:center;gap:11px;padding:0 6px 20px}
+.brand-mark{
+  width:36px;height:36px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-xs);background:var(--slab);color:var(--terra-300);
+}
+.brand-mark svg{width:20px;height:20px}
+.brand-text{min-width:0;display:block}
+.brand-name{
+  display:block;font-family:var(--font-display);font-weight:300;
+  font-size:17px;line-height:1.1;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--ink);white-space:nowrap;
+}
+.brand-tag{
+  display:block;margin-top:5px;font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label);white-space:nowrap;
+}
+
+/* full-bleed hairline: runs edge to edge of the sidebar, past the padding */
+.side-rule{height:1px;background:var(--line);margin:0 -14px}
+
+.switcher{
+  width:100%;display:flex;align-items:center;gap:10px;
+  min-height:56px;padding:9px 10px;margin:16px 0;
+  border-radius:var(--r-xs);border:1px solid var(--line);
+  background:var(--surface);text-align:left;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.switcher:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.switcher-ico{
+  width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-xs);background:var(--terra-100);color:var(--terra-700);
+  box-shadow:inset 0 0 0 1px var(--terra-200);
+}
+.switcher-ico svg{width:16px;height:16px}
+.switcher-meta{min-width:0;flex:1;display:block}
+.switcher-name{display:block;font:600 12.5px/1.25 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.switcher-role{display:block;margin-top:3px;font:var(--t-label);
+  letter-spacing:var(--label-track);text-transform:uppercase;color:var(--ink-label)}
+.switcher>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+
+.nav-group{padding:16px 0}
+.nav-group>.label{display:block;padding:0 10px 10px}
+.nav-list{list-style:none;display:grid;gap:1px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-height:var(--tap);padding:0 12px;border-radius:var(--r-xs);
+  color:var(--ink-soft);font:400 13.5px/1 var(--font-sans);letter-spacing:.01em;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:18px;height:18px;flex:0 0 auto}
+.nav-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-link:hover{background:var(--surface-2);color:var(--ink)}
+/* the ACTIVE item: NO fill, NO card. A 2px terracotta rule and a weight step. */
+.nav-link[aria-current="page"]{color:var(--ink);font-weight:500;padding-left:15px}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--terra-500);
+}
+.nav-link[aria-current="page"] svg{color:var(--terra-700)}
+.nav-badge{
+  margin-left:auto;font:600 10px/1 var(--font-num);font-variant-numeric:tabular-nums;
+  letter-spacing:.06em;color:var(--ink-label);
+  padding:4px 6px;border-radius:var(--r-xs);box-shadow:inset 0 0 0 1px var(--line);
+}
+.nav-badge--warn{color:var(--warn-fg);box-shadow:inset 0 0 0 1px var(--warn-line);background:var(--warn-bg)}
+
+.side-foot{margin-top:auto;padding-top:16px}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:10px;
+  min-height:var(--tap);padding:8px 10px;margin-top:14px;border-radius:var(--r-xs);
+  border:1px solid var(--line);background:var(--surface);
+  text-align:left;transition:background var(--dur) var(--ease);
+}
+.user-btn:hover{background:var(--surface-2)}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:600 12.5px/1.25 var(--font-sans);color:var(--ink)}
+.user-mail{display:block;margin-top:2px;font:400 11px/1.3 var(--font-sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* --ink-soft, not --ink-faint: this chevron is the only signal the button
+   opens a menu, so it is an affordance and needs 3:1, not an ornament. */
+.user-btn>svg:last-child{width:15px;height:15px;color:var(--ink-soft);flex:0 0 auto}
+.user-menu{
+  list-style:none;margin-top:6px;padding:5px;border-radius:var(--r-xs);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh-pop);
+  display:grid;gap:1px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);
+  padding:0 10px;border-radius:var(--r-xs);font:500 12.5px/1 var(--font-sans);color:var(--ink-soft)}
+.user-menu a:hover{background:var(--surface-2);color:var(--ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu[hidden]{display:none!important}
+
+.main{min-width:0;padding-bottom:56px}
+.hamburger{display:none}
+.scrim{display:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · THE MASTHEAD (5.1) — flat paper, leads with the DATE, closed by the
+   measure rule. No card, no tint, no gradient inside it.
+   ══════════════════════════════════════════════════════════════════════════ */
+.mast{
+  position:relative;overflow:hidden;isolation:isolate;
+  background:var(--paper);
+  padding:clamp(22px,3vw,36px) var(--pad-page) clamp(28px,3.4vw,42px);
+}
+.mast::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+/* THE MEASURE MARK on the masthead foot — starts at the page gutter */
+.mast::before{
+  content:"";position:absolute;bottom:0;left:var(--pad-page);width:88px;height:2px;
+  background:var(--terra-500);z-index:2;
+}
+/* THE PROOFING GRID — dough trays on a rack. Decorative, aria-hidden. */
+.mast-proof{
+  position:absolute;top:-128px;right:-58px;width:288px;height:288px;
+  color:var(--terra-300);opacity:.26;pointer-events:none;z-index:-1;
+}
+.mast-in{
+  position:relative;max-width:var(--wrap);margin-inline:auto;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:clamp(20px,4vw,56px);flex-wrap:wrap;
+}
+.mast-l{min-width:0;flex:1 1 440px}
+/* THE LEAVEN CURVE — used once per screen */
+.rise-mark{width:84px;height:26px;color:var(--olive-400);opacity:.55;margin-bottom:14px}
+
+.eyebrow{
+  display:flex;align-items:center;flex-wrap:wrap;gap:12px;
+  font:var(--t-label);letter-spacing:var(--label-track);text-transform:uppercase;
+  color:var(--ink);
+}
+.eyebrow .bar{width:1px;height:12px;background:var(--line-strong);flex:0 0 auto}
+.eyebrow .live{display:inline-flex;align-items:center;gap:7px;color:var(--olive-600)}
+.eyebrow .live i{width:6px;height:6px;background:currentColor;flex:0 0 auto}
+.eyebrow .dim{color:var(--ink-label)}
+
+/* THE DATE — the masthead's largest type. Light, open, geometric, no serif. */
+.mast-date{
+  font-family:var(--font-display);font-weight:200;
+  font-size:clamp(38px,5.6vw,62px);line-height:1.04;letter-spacing:.012em;
+  color:var(--ink);margin-top:16px;
+}
+.mast-greet{margin-top:16px;font:400 15px/1.5 var(--font-sans);color:var(--ink)}
+.mast-greet b{font-weight:600}
+.mast-line{
+  margin-top:8px;font:400 14px/1.7 var(--font-sans);color:var(--ink);
+  max-width:54ch;font-variant-numeric:tabular-nums;
+}
+.mast-line b{font-weight:600}
+.mast-line .warn{color:var(--warn-fg);font-weight:600}
+.mast-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+
+/* THE LEDGER READOUT — rows on bare paper. Not a card. */
+.readout{flex:0 0 auto;width:min(304px,100%)}
+.readout>.label{display:block;padding-bottom:10px}
+.readout-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  padding:13px 0;border-top:1px solid var(--line);
+}
+.readout-row:last-child{border-bottom:1px solid var(--line)}
+.readout-row .k{font:400 12.5px/1.4 var(--font-sans);color:var(--ink)}
+.readout-row .k small{display:block;margin-top:3px;font:var(--t-micro);color:var(--ink-soft)}
+.readout-row .v{text-align:right;flex:0 0 auto}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · PAGE COLUMN + SECTION HEAD (5.2 — "the dated page rule")
+   ══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--wrap);margin-inline:auto;padding:0 var(--pad-page)}
+.sec{margin-top:var(--sec-gap)}
+.sec--tight{margin-top:clamp(24px,2.6vw,32px)}
+.sec__head{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:14px}
+.sec__titles{min-width:0}
+.sec__titles .label{display:block;margin-bottom:9px}
+.sec__title{
+  font-family:var(--font-display);font-weight:300;
+  font-size:clamp(24px,2.6vw,32px);line-height:1.18;letter-spacing:.02em;color:var(--ink);
+}
+.sec__act{flex:0 0 auto;margin-left:auto;display:flex;align-items:center;gap:9px}
+.sec__body{margin-top:24px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · KPI LEDGER
+   ══════════════════════════════════════════════════════════════════════════ */
+.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:900px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:440px){.kpis{grid-template-columns:minmax(0,1fr)}}
+.kpi{display:flex;flex-direction:column;gap:0;min-height:172px}
+.kpi .label{display:block}
+.kpi .metric{margin-top:14px}
+.kpi .kpi-foot{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:9px}
+.kpi .sub{font:var(--t-micro);color:var(--ink-soft)}
+.kpi.cell--slab .sub{color:var(--ink-on-slab-soft)}
+.kpi-split{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · CHART (5.11)
+   ══════════════════════════════════════════════════════════════════════════ */
+.chart-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 2px}
+.chart{min-width:720px;width:100%;height:auto;display:block}
+.chart text{font-family:var(--font-sans);font-variant-numeric:tabular-nums}
+.ax{font-size:10.5px;font-weight:600;fill:var(--ink-soft);letter-spacing:.02em}
+.callout{font-size:10.5px;font-weight:700;fill:var(--terra-700);letter-spacing:.02em}
+.chart-legend{
+  display:flex;flex-wrap:wrap;gap:18px;align-items:center;
+  padding:16px var(--pad-card) 0;
+}
+.legend-item{display:flex;align-items:baseline;gap:0;font:var(--t-micro);color:var(--ink-soft)}
+.legend-item i{margin-right:8px;position:relative;top:1px}
+.legend-item i{width:10px;height:10px;flex:0 0 auto;display:block}
+.legend-item i.hollow{background:none;box-shadow:inset 0 0 0 1.2px var(--c-1)}
+.legend-item b{color:var(--ink);font-weight:600}
+
+/* the order-mix segmented rule under the chart */
+.mix{padding:20px var(--pad-card) var(--pad-card)}
+.mix .share--seg{height:4px;margin-top:12px}
+.mix-legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px}
+.mix-legend div{display:flex;align-items:baseline;gap:0;font:var(--t-small);color:var(--ink-soft)}
+.mix-legend div i{margin-right:9px;position:relative;top:1px}
+.mix-legend b+.num{margin-left:6px}
+.mix-legend i{width:9px;height:9px;flex:0 0 auto;display:block}
+.mix-legend b{color:var(--ink);font-weight:600}
+.mix-legend .num{color:var(--ink)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   10 · THE LEDGER ROW (5.10) — ranked lists
+   ══════════════════════════════════════════════════════════════════════════ */
+.rows{list-style:none;display:block}
+.row{
+  display:grid;grid-template-columns:26px 14px minmax(0,1fr) 56px 92px;
+  align-items:center;gap:12px;min-height:58px;padding:12px var(--pad-card);
+  border-top:1px solid var(--line);
+}
+.rows>li:first-child .row{border-top:0}
+.row:hover{background:var(--surface-2)}
+.row-rank{font:var(--t-label);letter-spacing:.14em;color:var(--ink-label);font-variant-numeric:tabular-nums}
+.row-main{min-width:0}
+.row-name{font:500 13.5px/1.35 var(--font-sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-main .share{margin-top:8px;max-width:220px}
+.row-units{text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:13px;color:var(--ink-soft)}
+.row-money{text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:13.5px;color:var(--ink);letter-spacing:-.004em}
+.rows-head{
+  display:grid;grid-template-columns:26px 14px minmax(0,1fr) 56px 92px;
+  gap:12px;padding:0 var(--pad-card) 12px;
+}
+.rows-head span{font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label)}
+.rows-head .r{text-align:right}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11 · NEEDS ATTENTION
+   ══════════════════════════════════════════════════════════════════════════ */
+.attn-grid{display:grid;gap:var(--gap-md);grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.attn-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+.attn-banner{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:16px var(--pad-card);border:1px solid var(--warn-line);
+  background:var(--warn-bg);border-radius:var(--r-sm);margin-bottom:var(--gap-md);
+}
+.attn-banner svg{width:18px;height:18px;color:var(--warn-fg);flex:0 0 auto}
+.attn-banner p{font:400 13.5px/1.5 var(--font-sans);color:var(--ink);min-width:0}
+.attn-banner p b{font-weight:600}
+.attn-banner .btn{margin-left:auto}
+
+.stock-row{
+  display:grid;grid-template-columns:14px minmax(0,1fr) auto;
+  align-items:center;gap:14px;min-height:64px;padding:12px var(--pad-card);
+  border-top:1px solid var(--line);
+}
+.stock-row:first-of-type{border-top:0}
+.stock-name{font:500 13.5px/1.35 var(--font-sans);color:var(--ink)}
+.stock-meta{margin-top:5px;font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.stock-main .share{margin-top:8px;max-width:420px}
+.stock-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.stock-days{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:500;font-size:13px}
+.stock-days.crit{color:var(--bad-fg)}
+.stock-days.warn{color:var(--warn-fg)}
+
+/* the prove clock — the 24/48/72h ferment ruler */
+.prove{padding:4px var(--pad-card) var(--pad-card)}
+.prove-item{padding:16px 0;border-top:1px solid var(--line)}
+.prove-item:first-child{border-top:0}
+.prove-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.prove-name{font:500 13.5px/1.3 var(--font-sans);color:var(--ink)}
+.prove-top .chip{margin-left:auto}
+.prove-scale{position:relative;margin-top:14px;height:30px}
+.prove-scale .track{position:absolute;left:0;right:0;top:9px;height:2px;background:var(--surface-3)}
+.prove-scale .fill{position:absolute;left:0;top:9px;height:2px;background:var(--terra-500)}
+.prove-scale .stop{position:absolute;top:4px;width:1px;height:12px;background:var(--line-strong)}
+.prove-scale .stop b{position:absolute;top:14px;left:-11px;width:24px;text-align:center;
+  font:600 9px/1 var(--font-sans);letter-spacing:.1em;color:var(--ink-label)}
+.prove-scale .head{position:absolute;top:2px;width:2px;height:16px;background:var(--ink)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12 · SERVICE STRIP
+   ══════════════════════════════════════════════════════════════════════════ */
+.strip{grid-template-columns:repeat(1,minmax(0,1fr))}
+@media (min-width:640px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1100px){.strip{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tkt{display:flex;flex-direction:column;gap:0;min-height:196px;padding:var(--pad-cell)}
+.tkt-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tkt-table,.tkt-covers,.tkt-time{white-space:nowrap}
+.tkt-table{font-family:var(--font-display);font-weight:400;font-size:19px;
+  letter-spacing:.06em;color:var(--ink)}
+.tkt-covers{font:var(--t-label);letter-spacing:var(--label-track);
+  text-transform:uppercase;color:var(--ink-label)}
+.tkt-time{margin-left:auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:11px;color:var(--ink-soft);letter-spacing:.02em}
+.tkt-items{list-style:none;margin-top:14px;display:grid;gap:7px}
+.tkt-items li{display:flex;align-items:center;gap:8px;font:400 12.5px/1.4 var(--font-sans);color:var(--ink-soft)}
+.tkt-items li .n{color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tkt-items li .x{margin-left:auto;font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-weight:500;color:var(--ink-soft);font-size:11.5px}
+.tkt-foot{margin-top:auto;padding-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tkt-foot .metric-xs{margin-left:auto}
+.tkt-status{display:flex;align-items:center;gap:10px;margin-top:14px}
+.tkt--settled .tkt-table,.tkt--settled .row-name{color:var(--ink-soft)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   13 · RESPONSIVE — rail 1080–1279 · drawer + tabbar <=1079
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:1279px) and (min-width:1080px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:20px 10px 14px;align-items:stretch}
+  .brand{justify-content:center;padding:0 0 18px}
+  .brand-text,.switcher-meta,.switcher>svg:last-child,.user-meta,.user-btn>svg:last-child,
+  .nav-group>.label,.nav-badge,.nav-txt{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .side-rule{margin:0 -10px}
+  .switcher{justify-content:center;padding:9px 0;min-height:52px}
+  .nav-link{justify-content:center;padding:0}
+  .nav-link[aria-current="page"]{padding-left:0}
+  .user-btn{justify-content:center;padding:8px 0}
+}
+@media (max-width:1079px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;left:0;top:0;width:272px;transform:translateX(-100%);
+    transition:transform .24s var(--ease);box-shadow:var(--sh-pop);
+  }
+  body.nav-open .sidebar{transform:none}
+  body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(27,26,23,.34);z-index:40}
+  .main{padding-bottom:88px}
+  .hamburger{
+    display:inline-flex;align-items:center;gap:10px;
+    min-height:var(--tap);padding:0 12px;border-radius:var(--r-xs);
+    border:1px solid var(--line);background:var(--surface);
+    font:600 12px/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink);
+    margin-bottom:20px;
+  }
+  .hamburger svg{width:18px;height:18px}
+  .tabbar{
+    display:grid;grid-template-columns:repeat(5,1fr);
+    position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:var(--paper);border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tabbar a{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    min-height:60px;font:600 9.5px/1 var(--font-sans);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);position:relative;
+  }
+  .tabbar a svg{width:20px;height:20px}
+  .tabbar a[aria-current="page"]{color:var(--ink)}
+  .tabbar a[aria-current="page"]::before{
+    content:"";position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--terra-500);
+  }
+}
+@media (min-width:1080px){.tabbar{display:none}}
+@media (max-width:680px){
+  .mast-cta{flex-direction:column;align-items:stretch}
+  .mast-cta .btn{width:100%}
+  .readout{width:100%}
+  .attn-grid{grid-template-columns:minmax(0,1fr)}
+  .row,.rows-head{grid-template-columns:24px 14px minmax(0,1fr) 84px}
+  .row-units,.rows-head .u{display:none}
+}
+@media (min-width:900px){
+  .split{display:grid;gap:var(--gap-md);grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start}
+  .split--even{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.split{display:grid;gap:var(--gap-md)}
+.split>*,.attn-grid>*{min-width:0}
+.card{min-width:0}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ORNAMENT + LEGAL SPRITE (5.12) — three marks, one <defs>, lifted out as
+     three components by whoever builds this for real.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <!-- #o-proof — dough trays on a rack. Stroke only, one cell filled. -->
+    <g id="o-proof">
+      <rect x="6" y="6" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="37" y="6" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="68" y="6" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="6" y="37" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="37" y="37" width="26" height="26" fill="currentColor" opacity=".5"/>
+      <rect x="68" y="37" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="6" y="68" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="37" y="68" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+      <rect x="68" y="68" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1"/>
+    </g>
+    <!-- #o-rise — the fermentation curve. One thin rising S. -->
+    <path id="o-rise" d="M1 25 C 14 25 18 22 24 15 C 30 8 36 3 50 3"
+          fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+    <!-- #o-fssai — LEGALLY FIXED. Square outline + filled dot. Not themeable. -->
+    <g id="o-fssai">
+      <rect x="1" y="1" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="7" cy="7" r="3" fill="currentColor"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="variant-badge"><i></i>Lievito <span>· Overview</span></div>
+
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       SIDEBAR — a sheet of paper laid on stone. No fill on the active item.
+       ═════════════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#" aria-label="Operato — Lievito">
+      <span class="brand-mark" aria-hidden="true">
+        <!-- the leaven mark: a jar with a rising line -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3h8"/><path d="M9 3v3.2a5 5 0 0 1-.6 2.4L6.6 12a5 5 0 0 0-.6 2.4V19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4.6a5 5 0 0 0-.6-2.4l-1.8-3.4a5 5 0 0 1-.6-2.4V3"/>
+          <path d="M6.2 15.2c1.6-1.4 3.2 1 4.8-.4s3.2 1 4.8-.4"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">Lievito</span>
+        <span class="brand-tag">Operato · Kala Ghoda</span>
+      </span>
+    </a>
+
+    <div class="side-rule"></div>
+
+    <button class="switcher" type="button" aria-haspopup="menu" aria-expanded="false">
+      <span class="switcher-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5 4.6 4.5h14.8L21 9.5"/><path d="M3 9.5a2.5 2.5 0 0 0 4.5 1.5 2.5 2.5 0 0 0 4.5 0 2.5 2.5 0 0 0 4.5 0A2.5 2.5 0 0 0 21 9.5"/>
+          <path d="M5 12v7.5h14V12"/><path d="M9.5 19.5V15h5v4.5"/>
+        </svg>
+      </span>
+      <span class="switcher-meta">
+        <span class="switcher-name">Lievito</span>
+        <span class="switcher-role">Owner · 2 rooms</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m8 9 4-4 4 4"/><path d="m16 15-4 4-4-4"/>
+      </svg>
+    </button>
+
+    <div class="side-rule"></div>
+
+    <nav class="nav-group" aria-label="Service">
+      <span class="label">Service</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>
+          <span class="nav-txt">Overview</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.7 8.3 18.5 10 13.7 11.7 12 16.5 10.3 11.7 5.5 10 10.3 8.3z"/><path d="M18 16.5 18.8 18.7 21 19.5 18.8 20.3 18 22.5 17.2 20.3 15 19.5 17.2 18.7z"/></svg>
+          <span class="nav-txt">Ask AI</span><span class="nav-badge">new</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h16v15H4z"/><path d="M4 8.5h16"/><path d="M8 12.5h8"/><path d="M8 15.8h5"/></svg>
+          <span class="nav-txt">Menu</span><span class="nav-badge">8</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h14v17l-2.3-1.6-2.3 1.6-2.4-1.6-2.3 1.6-2.4-1.6L5 20.5z"/><path d="M9 8.5h6"/><path d="M9 12.5h6"/></svg>
+          <span class="nav-txt">Orders</span><span class="nav-badge">4</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-rule"></div>
+
+    <nav class="nav-group" aria-label="The room">
+      <span class="label">The room</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.6l8.5-4.1"/><path d="M12 11.6v8.9"/></svg>
+          <span class="nav-txt">Inventory</span><span class="nav-badge nav-badge--warn">3</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M2.5 20.5v-1.2A4.3 4.3 0 0 1 6.8 15h4.4a4.3 4.3 0 0 1 4.3 4.3v1.2"/><path d="M16.5 5.2a3.5 3.5 0 0 1 0 6.6"/><path d="M18.5 15.2a4.3 4.3 0 0 1 3 4.1v1.2"/></svg>
+          <span class="nav-txt">Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11.5a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5z"/><path d="M4.5 20.5v-1.3A4.7 4.7 0 0 1 9.2 14.5h5.6a4.7 4.7 0 0 1 4.7 4.7v1.3"/></svg>
+          <span class="nav-txt">Customers</span><span class="nav-badge">312</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13"/><path d="M2.5 10h19"/><path d="M6 14.5h4"/></svg>
+          <span class="nav-txt">Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <div class="side-rule"></div>
+      <button class="user-btn" type="button" aria-haspopup="menu" aria-expanded="false" id="userBtn">
+        <span class="av av--ink" aria-hidden="true">AD</span>
+        <span class="user-meta">
+          <span class="user-name">Aditi Deshpande</span>
+          <span class="user-mail">aditi@lievito.in</span>
+        </span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <ul class="user-menu" id="userMenu" hidden>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7h-.2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.7-1.1V4a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.4 1z"/></svg>Settings</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9z"/></svg>Appearance</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5h3.5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H15"/><path d="m10 8-4 4 4 4"/><path d="M6 12h9"/></svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         THE MASTHEAD (5.1) — flat paper, leads with the DATE, closed by the
+         measure rule. The proofing grid and the leaven curve are the only
+         two ornaments permitted here.
+         ═══════════════════════════════════════════════════════════════════ -->
+    <header class="mast">
+      <svg class="mast-proof" viewBox="0 0 100 100" aria-hidden="true"><use href="#o-proof"/></svg>
+      <div class="mast-in">
+        <div class="mast-l">
+          <button class="hamburger" type="button" id="hamburger" aria-controls="sidebar" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16"/><path d="M4 12h16"/><path d="M4 17.5h16"/></svg>
+            Menu
+          </button>
+
+          <svg class="rise-mark" viewBox="0 0 52 28" aria-hidden="true"><use href="#o-rise"/></svg>
+
+          <p class="eyebrow">
+            <span>Lievito — Kala Ghoda</span>
+            <span class="bar" aria-hidden="true"></span>
+            <span class="live"><i aria-hidden="true"></i>Open 19:00–23:30</span>
+            <span class="bar" aria-hidden="true"></span>
+            <span class="dim">Second seating</span>
+          </p>
+
+          <h1 class="mast-date">Tuesday, 25 August</h1>
+
+          <p class="mast-greet">Good evening, <b>Aditi</b>.</p>
+          <p class="mast-line">
+            The second seating is down. <b>58</b> covers so far against <b>27</b> bills,
+            and batch 108 came off the rack at <b>18:00</b> after its full 72 hours.
+            <span class="warn">Three lines are under the reorder mark</span> — the fior di latte
+            will not see Thursday.
+          </p>
+
+          <div class="mast-cta">
+            <a class="btn btn--primary" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16"/><path d="M4 12h16"/><path d="M4 17.5h10"/></svg>
+              Open the pass
+            </a>
+            <a class="btn btn--ghost" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.7 8.3 18.5 10 13.7 11.7 12 16.5 10.3 11.7 5.5 10 10.3 8.3z"/><path d="M18 16.5 18.8 18.7 21 19.5 18.8 20.3 18 22.5 17.2 20.3 15 19.5 17.2 18.7z"/></svg>
+              Ask the assistant
+            </a>
+          </div>
+        </div>
+
+        <!-- THE LEDGER READOUT — rows on bare paper. Not a card. -->
+        <div class="readout">
+          <span class="label">The room, 20:40</span>
+          <div class="readout-row">
+            <span class="k">Tables in service<small>Twelve on the floor</small></span>
+            <span class="v"><span class="metric-sm num">9<span class="of"> / 12</span></span></span>
+          </div>
+          <div class="readout-row">
+            <span class="k">Counter seats<small>Marble, facing the oven</small></span>
+            <span class="v"><span class="metric-sm num">6<span class="of"> / 8</span></span></span>
+          </div>
+          <div class="readout-row">
+            <span class="k">Booked, still to come<small>Two at 21:15, one at 21:45</small></span>
+            <span class="v"><span class="metric-sm num">8<span class="of"> covers</span></span></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           KPI LEDGER (5.4) — one ruled slab, not four floating tiles.
+           Exactly one cell is the charcoal slab: revenue today.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec sec--tight" aria-labelledby="kpi-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Tuesday so far · 19:00 to 20:40</span>
+            <h2 class="sec__title" id="kpi-h">Where the night stands</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3.2 2"/><path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17z"/></svg>
+              Change the window
+            </a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <div class="ledger kpis">
+
+            <!-- THE ONE DARK OBJECT ON THE PAGE -->
+            <div class="cell cell--slab kpi rise" style="--i:0">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Revenue today</span>
+              <span class="metric num"><span class="cur">₹</span>68,400</span>
+              <div class="kpi-foot">
+                <span class="delta delta--up">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+                  +9.6% <em>vs last Tuesday at 20:40</em>
+                </span>
+                <span class="sub">So far — service closes 23:30. Not a finished day.</span>
+              </div>
+            </div>
+
+            <div class="cell kpi rise" style="--i:1">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Covers today</span>
+              <span class="metric num">58</span>
+              <div class="kpi-foot">
+                <span class="delta delta--up">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+                  +7.4% <em>vs last Tuesday, 54 covers</em>
+                </span>
+                <div>
+                  <div class="kpi-split">
+                    <span class="sub">Against 74 booked</span>
+                    <span class="sub num">78%</span>
+                  </div>
+                  <span class="share" style="margin-top:8px" role="img" aria-label="58 of 74 booked covers, 78 per cent"><i style="width:78%"></i></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="cell kpi rise" style="--i:2">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Average ticket</span>
+              <span class="metric num"><span class="cur">₹</span>2,533</span>
+              <div class="kpi-foot">
+                <span class="delta delta--up">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+                  +4.0% <em>vs last Tuesday, ₹2,436</em>
+                </span>
+                <span class="sub">27 bills · 2.1 covers a bill · wine on 19 of them</span>
+              </div>
+            </div>
+
+            <div class="cell kpi rise" style="--i:3">
+              <span class="tick" aria-hidden="true"></span>
+              <span class="label">Dough proved</span>
+              <span class="metric num">4<span class="of"> / 6 trays</span></span>
+              <div class="kpi-foot">
+                <span class="chip chip--ok" style="align-self:flex-start">Batch 108 · 72 h</span>
+                <span class="sub">Pulled 18:00. Trays 5 and 6 come off at 22:00.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           THE LAST THIRTY DAYS — hand-authored SVG over real numbers (5.11)
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" aria-labelledby="trend-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">26 July – 24 August · thirty complete days</span>
+            <h2 class="sec__title" id="trend-h">How the month actually went</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--quiet btn--sm" href="#">Export the days</a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+
+          <!-- ── the trend ─────────────────────────────────────────────── -->
+          <article class="card card--flush">
+            <div class="card__headline">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">Takings, by day</h3>
+                  <p class="card__sub">Settled bills only. ₹25,75,900 over thirty days — ₹85,863 a day.</p>
+                </div>
+                <div class="card__act">
+                  <span class="chip chip--mute">Dinner only</span>
+                </div>
+              </div>
+            </div>
+            <div class="rule rule--card" aria-hidden="true"></div>
+
+            <div class="chart-wrap">
+              <svg class="chart" viewBox="0 0 920 300" role="img"
+                   aria-label="Daily takings from 26 July to 24 August. Weekday troughs near ₹47,000 on Mondays rising to Saturday peaks: ₹1,24,300 on 1 August, ₹1,29,800 on 8 August, ₹1,33,200 on 15 August and a month high of ₹1,38,900 on 22 August. Today, 25 August, stands at ₹68,400 so far and is drawn as an incomplete dashed segment.">
+                <defs>
+                  <!-- the ONE gradient permitted in the theme: the chart area wash -->
+                  <linearGradient id="wash" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#A65A44" stop-opacity=".16"/>
+                    <stop offset=".55" stop-color="#A65A44" stop-opacity=".06"/>
+                    <stop offset="1" stop-color="#A65A44" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- horizontal hairline gridlines only. no vertical grid, no spines. -->
+                <g stroke="#E3DFD3" stroke-width="1">
+                  <line x1="56" y1="60"    x2="904" y2="60"/>
+                  <line x1="56" y1="116.1" x2="904" y2="116.1"/>
+                  <line x1="56" y1="172.3" x2="904" y2="172.3"/>
+                  <line x1="56" y1="228.5" x2="904" y2="228.5"/>
+                </g>
+                <g class="ax" text-anchor="end">
+                  <text x="44" y="63.5">₹1.30L</text>
+                  <text x="44" y="119.6">₹1.00L</text>
+                  <text x="44" y="175.8">₹70K</text>
+                  <text x="44" y="232">₹40K</text>
+                </g>
+
+                <path fill="url(#wash)" stroke="none"
+                      d="M56 130.4 L84.3 206.4 L112.5 193.7 L140.8 179.4 L169.1 163.3 L197.3 92.5 L225.6 70.6 L253.9 122.3 L282.1 211.3 L310.4 188.4 L338.7 174.4 L366.9 169.9 L395.2 82.1 L423.5 60.3 L451.7 113.5 L480 215.8 L508.3 198.7 L536.5 184.1 L564.8 156.6 L593.1 75.9 L621.3 54 L649.6 107.5 L677.9 205.5 L706.1 191.4 L734.4 168.8 L762.7 150.6 L790.9 66.7 L819.2 43.3 L847.5 99.9 L875.7 201.2 L875.7 236 L56 236 Z"/>
+
+                <path fill="none" stroke="#A65A44" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
+                      d="M56 130.4 L84.3 206.4 L112.5 193.7 L140.8 179.4 L169.1 163.3 L197.3 92.5 L225.6 70.6 L253.9 122.3 L282.1 211.3 L310.4 188.4 L338.7 174.4 L366.9 169.9 L395.2 82.1 L423.5 60.3 L451.7 113.5 L480 215.8 L508.3 198.7 L536.5 184.1 L564.8 156.6 L593.1 75.9 L621.3 54 L649.6 107.5 L677.9 205.5 L706.1 191.4 L734.4 168.8 L762.7 150.6 L790.9 66.7 L819.2 43.3 L847.5 99.9 L875.7 201.2"/>
+
+                <!-- the incomplete day. dashed, hollow, and labelled. -->
+                <path fill="none" stroke="#A65A44" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"
+                      d="M875.7 201.2 L904 175.3"/>
+                <rect x="901.5" y="172.8" width="5" height="5" fill="#FCFBF7" stroke="#A65A44" stroke-width="1.2"/>
+                <text class="ax" x="896" y="162" text-anchor="end">25 Aug · ₹68,400 so far</text>
+
+                <!-- points, sparingly: the four Saturdays -->
+                <g fill="#FCFBF7" stroke="#A65A44" stroke-width="1.2">
+                  <rect x="223.1" y="68.1" width="5" height="5"/>
+                  <rect x="421"   y="57.8" width="5" height="5"/>
+                  <rect x="618.8" y="51.5" width="5" height="5"/>
+                  <rect x="816.7" y="40.8" width="5" height="5"/>
+                </g>
+                <text class="callout" x="819.2" y="32" text-anchor="middle">₹1,38,900</text>
+
+                <!-- THE BASELINE + THE MEASURE MARK -->
+                <line x1="56" y1="236" x2="904" y2="236" stroke="#CFCABA" stroke-width="1"/>
+                <rect x="56" y="235" width="64" height="2" fill="#A65A44"/>
+
+                <g class="ax" text-anchor="middle">
+                  <text x="56"    y="258">26 Jul</text>
+                  <text x="197.3" y="258">31 Jul</text>
+                  <text x="338.7" y="258">5 Aug</text>
+                  <text x="480"   y="258">10 Aug</text>
+                  <text x="621.3" y="258">15 Aug</text>
+                  <text x="762.7" y="258">20 Aug</text>
+                  <text x="875.7" y="258">24 Aug</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="chart-legend">
+              <span class="legend-item"><i style="background:#A65A44"></i><span>Settled takings, complete days</span></span>
+              <span class="legend-item"><i class="hollow"></i><span>Today &mdash; <b>incomplete</b>, drawn dashed</span></span>
+              <span class="legend-item"><span>Saturdays run <b>2.5×</b> a Monday</span></span>
+            </div>
+
+            <div class="rule rule--card" style="margin-top:20px" aria-hidden="true"></div>
+            <div class="mix">
+              <span class="label">Where they sat · thirty days · ₹25,75,900</span>
+              <div class="share share--seg" role="img" aria-label="Tables 78 per cent, counter 17 per cent, takeaway 5 per cent">
+                <i style="width:78%;background:#A65A44"></i>
+                <i style="width:17%;background:#6C7A6E"></i>
+                <i style="width:5%;background:#9A7A3E"></i>
+              </div>
+              <div class="mix-legend">
+                <div><i style="background:#A65A44"></i><b>Tables</b> <span class="num">78% · ₹20,09,200</span></div>
+                <div><i style="background:#6C7A6E"></i><b>Counter</b> <span class="num">17% · ₹4,37,900</span></div>
+                <div><i style="background:#9A7A3E"></i><b>Takeaway</b> <span class="num">5% · ₹1,28,800</span></div>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           THE COUNTER AND THE RACK — what sells, and what is still proving.
+           A .split--even row: two equal ledgers, hairline-ruled, no shadow.
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" aria-labelledby="rank-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Eight pizzas · one page · no specials</span>
+            <h2 class="sec__title" id="rank-h">The counter and the rack</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--quiet btn--sm" href="#">Open the menu</a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body split split--even">
+          <article class="card card--flush">
+            <div class="card__headline">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">The eight, ranked</h3>
+                  <p class="card__sub">Units sold over the same thirty days. Six of eight shown.</p>
+                </div>
+              </div>
+            </div>
+            <div class="rule rule--card" aria-hidden="true"></div>
+
+            <div class="rows-head" style="padding-top:16px" aria-hidden="true">
+              <span>#</span><span></span><span>Pizza</span><span class="r u">Units</span><span class="r">Revenue</span>
+            </div>
+            <ol class="rows">
+              <li><div class="row">
+                <span class="row-rank">01</span>
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="row-main">
+                  <div class="row-name">Margherita DOP <span style="color:var(--ink-soft);font-weight:400">· 26.8%</span></div>
+                  <span class="share" role="img" aria-label="26.8 per cent of the six by revenue"><i style="width:100%"></i></span>
+                </div>
+                <span class="row-units">386</span>
+                <span class="row-money"><span class="cur">₹</span>6,17,600</span>
+              </div></li>
+              <li><div class="row">
+                <span class="row-rank">02</span>
+                <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="row-main">
+                  <div class="row-name">Diavola <span style="color:var(--ink-soft);font-weight:400">· 19.9%</span></div>
+                  <span class="share" role="img" aria-label="19.9 per cent of the six by revenue"><i style="width:74%"></i></span>
+                </div>
+                <span class="row-units">241</span>
+                <span class="row-money"><span class="cur">₹</span>4,57,900</span>
+              </div></li>
+              <li><div class="row">
+                <span class="row-rank">03</span>
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="row-main">
+                  <div class="row-name">Bufala e Basilico <span style="color:var(--ink-soft);font-weight:400">· 18.0%</span></div>
+                  <span class="share" role="img" aria-label="18 per cent of the six by revenue"><i style="width:67%"></i></span>
+                </div>
+                <span class="row-units">198</span>
+                <span class="row-money"><span class="cur">₹</span>4,15,800</span>
+              </div></li>
+              <li><div class="row">
+                <span class="row-rank">04</span>
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="row-main">
+                  <div class="row-name">Marinara <span style="color:var(--ink-soft);font-weight:400">· 9.9%</span></div>
+                  <span class="share" role="img" aria-label="9.9 per cent of the six by revenue"><i style="width:37%"></i></span>
+                </div>
+                <span class="row-units">176</span>
+                <span class="row-money"><span class="cur">₹</span>2,28,800</span>
+              </div></li>
+              <li><div class="row">
+                <span class="row-rank">05</span>
+                <svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="row-main">
+                  <div class="row-name">Salsiccia e Friarielli <span style="color:var(--ink-soft);font-weight:400">· 13.6%</span></div>
+                  <span class="share" role="img" aria-label="13.6 per cent of the six by revenue"><i style="width:51%"></i></span>
+                </div>
+                <span class="row-units">143</span>
+                <span class="row-money"><span class="cur">₹</span>3,14,600</span>
+              </div></li>
+              <li><div class="row">
+                <span class="row-rank">06</span>
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="row-main">
+                  <div class="row-name">Quattro Formaggi <span style="color:var(--ink-soft);font-weight:400">· 11.8%</span></div>
+                  <span class="share" role="img" aria-label="11.8 per cent of the six by revenue"><i style="width:44%"></i></span>
+                </div>
+                <span class="row-units">118</span>
+                <span class="row-money"><span class="cur">₹</span>2,71,400</span>
+              </div></li>
+            </ol>
+            <div class="rule rule--card" aria-hidden="true"></div>
+            <p class="sub" style="padding:16px var(--pad-card) var(--pad-card)">
+              Ortolana and Capricciosa make up the other two. Neither has cleared 90 units
+              in a month since April — a conversation for the next menu print.
+            </p>
+          </article>
+
+          <article class="card card--flush">
+            <div class="card__headline">
+              <div class="card__head">
+                <div>
+                  <h3 class="card__title">The prove clock</h3>
+                  <p class="card__sub">Every batch runs the full seventy-two hours. Nothing gets pulled early.</p>
+                </div>
+              </div>
+            </div>
+            <div class="rule rule--card" aria-hidden="true"></div>
+
+            <div class="prove">
+              <div class="prove-item">
+                <div class="prove-top">
+                  <span class="prove-name">Batch 108 · 18 kg</span>
+                  <span class="chip chip--ok">Ready · pulled 18:00</span>
+                </div>
+                <div class="prove-scale" role="img" aria-label="Batch 108 has completed all 72 hours">
+                  <span class="track"></span><span class="fill" style="width:100%"></span>
+                  <span class="stop" style="left:33.3%"><b>24h</b></span>
+                  <span class="stop" style="left:66.6%"><b>48h</b></span>
+                  <span class="stop" style="left:calc(100% - 1px)"><b>72h</b></span>
+                  <span class="head" style="left:calc(100% - 2px)"></span>
+                </div>
+                <p class="sub" style="margin-top:16px">Mixed Saturday 18:00. Four trays out, four on the counter.</p>
+              </div>
+
+              <div class="prove-item">
+                <div class="prove-top">
+                  <span class="prove-name">Batch 109 · 18 kg</span>
+                  <span class="chip chip--prove">Proving · 50 h</span>
+                </div>
+                <div class="prove-scale" role="img" aria-label="Batch 109 is 50 hours into 72">
+                  <span class="track"></span><span class="fill" style="width:70%"></span>
+                  <span class="stop" style="left:33.3%"><b>24h</b></span>
+                  <span class="stop" style="left:66.6%"><b>48h</b></span>
+                  <span class="stop" style="left:calc(100% - 1px)"><b>72h</b></span>
+                  <span class="head" style="left:70%"></span>
+                </div>
+                <p class="sub" style="margin-top:16px">Mixed Sunday 18:00. Comes off tomorrow at 18:00 — Wednesday&rsquo;s service.</p>
+              </div>
+
+              <div class="prove-item">
+                <div class="prove-top">
+                  <span class="prove-name">Batch 110 · 18 kg</span>
+                  <span class="chip chip--prove">Proving · 26 h</span>
+                </div>
+                <div class="prove-scale" role="img" aria-label="Batch 110 is 26 hours into 72">
+                  <span class="track"></span><span class="fill" style="width:37%"></span>
+                  <span class="stop" style="left:33.3%"><b>24h</b></span>
+                  <span class="stop" style="left:66.6%"><b>48h</b></span>
+                  <span class="stop" style="left:calc(100% - 1px)"><b>72h</b></span>
+                  <span class="head" style="left:37%"></span>
+                </div>
+                <p class="sub" style="margin-top:16px">Mixed Monday 18:00. Needs 60 kg of flour before Wednesday&rsquo;s mix — see above.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           NEEDS ATTENTION — the reorder line
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" aria-labelledby="attn-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Before you unlock tomorrow</span>
+            <h2 class="sec__title" id="attn-h">What needs a decision</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">Open inventory</a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <div class="attn-banner" role="status">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5"/><path d="M12 17.2h.01"/></svg>
+            <p><b>Three lines are under the reorder mark.</b>
+              Fior di latte (0.9 days), Caputo &ldquo;00&rdquo; flour (1.8 days), San Marzano DOP tins (2.4 days).
+              The cheese order has to be in by 07:00 to land Wednesday.</p>
+            <a class="btn btn--warn btn--sm" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.6l8.5-4.1"/><path d="M12 11.6v8.9"/></svg>
+              Raise the order
+            </a>
+          </div>
+
+          <div>
+
+            <article class="card card--flush">
+              <div class="card__headline">
+                <div class="card__head">
+                  <div>
+                    <h3 class="card__title">Below the line</h3>
+                    <p class="card__sub">Days left is stock on hand over the trailing fourteen-day burn.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="rule rule--card" aria-hidden="true"></div>
+
+              <div class="stock-row">
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="stock-main">
+                  <div class="stock-name">Fior di latte</div>
+                  <div class="stock-meta">4.2 kg on hand · 18 kg par · burns 4.6 kg a day</div>
+                  <span class="share share--bad" role="img" aria-label="4.2 of 18 kilograms, 23 per cent of par"><i style="width:23%"></i></span>
+                </div>
+                <div class="stock-right">
+                  <span class="stock-days crit num">0.9 days</span>
+                  <span class="chip chip--bad">Order tonight</span>
+                </div>
+              </div>
+
+              <div class="stock-row">
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="stock-main">
+                  <div class="stock-name">Caputo &ldquo;00&rdquo; flour, blue</div>
+                  <div class="stock-meta">14 kg on hand · 60 kg par · burns 7.8 kg a day</div>
+                  <span class="share share--warn" role="img" aria-label="14 of 60 kilograms, 23 per cent of par"><i style="width:23%"></i></span>
+                </div>
+                <div class="stock-right">
+                  <span class="stock-days warn num">1.8 days</span>
+                  <span class="chip chip--warn">Reorder</span>
+                </div>
+              </div>
+
+              <div class="stock-row">
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="stock-main">
+                  <div class="stock-name">San Marzano DOP · 3 kg tin</div>
+                  <div class="stock-meta">6 tins on hand · 24 tin par · burns 2.5 tins a day</div>
+                  <span class="share share--warn" role="img" aria-label="6 of 24 tins, 25 per cent of par"><i style="width:25%"></i></span>
+                </div>
+                <div class="stock-right">
+                  <span class="stock-days warn num">2.4 days</span>
+                  <span class="chip chip--warn">Reorder</span>
+                </div>
+              </div>
+
+              <div class="stock-row">
+                <svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg>
+                <div class="stock-main">
+                  <div class="stock-name">Semolina, for the bench</div>
+                  <div class="stock-meta">22 kg on hand · 30 kg par · burns 2.3 kg a day</div>
+                  <span class="share share--ok" role="img" aria-label="22 of 30 kilograms, 73 per cent of par"><i style="width:73%"></i></span>
+                </div>
+                <div class="stock-right">
+                  <span class="stock-days num">9.4 days</span>
+                  <span class="chip chip--ok">Healthy</span>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           IN THE ROOM NOW — the live service strip. Chip + step ruler,
+           always both (5.8).
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" aria-labelledby="svc-h">
+        <div class="sec__head">
+          <div class="sec__titles">
+            <span class="label">Four tickets open · ₹26,300 on the floor</span>
+            <h2 class="sec__title" id="svc-h">In the room now</h2>
+          </div>
+          <div class="sec__act">
+            <a class="btn btn--ghost btn--sm" href="#">Go to the pass</a>
+            <a class="btn btn--primary btn--sm" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              New ticket
+            </a>
+          </div>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <div class="sec__body">
+          <div class="ledger strip">
+
+            <article class="cell tkt rise" style="--i:0">
+              <div class="tkt-top">
+                <span class="tkt-table">Table 11</span>
+                <span class="tkt-covers">6 covers</span>
+                <span class="tkt-time">just now</span>
+              </div>
+              <ul class="tkt-items">
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Marinara</span><span class="x">×2</span></li>
+                <li><svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg><span class="n">Diavola</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg><span class="n">Prosciutto di Parma</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Etna Rosso, by the glass</span><span class="x">×4</span></li>
+              </ul>
+              <div class="tkt-status">
+                <span class="chip chip--mute">Ordered</span>
+                <span class="ruler" role="img" aria-label="Step 1 of 5: ordered"><i class="now"></i><i></i><i></i><i></i><i></i></span>
+              </div>
+              <div class="tkt-foot">
+                <span class="sub">Meher I.</span>
+                <span class="metric-xs num"><span class="cur">₹</span>9,100</span>
+              </div>
+            </article>
+
+            <article class="cell tkt rise" style="--i:1">
+              <div class="tkt-top">
+                <span class="tkt-table">Table 7</span>
+                <span class="tkt-covers">4 covers</span>
+                <span class="tkt-time">12 min</span>
+              </div>
+              <ul class="tkt-items">
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Margherita DOP</span><span class="x">×2</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Marinara</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Bufala e Basilico</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Etna Rosso, by the glass</span><span class="x">×2</span></li>
+              </ul>
+              <div class="tkt-status">
+                <span class="chip chip--prove">Firing</span>
+                <span class="ruler" role="img" aria-label="Step 2 of 5: firing"><i class="done"></i><i class="now"></i><i></i><i></i><i></i></span>
+              </div>
+              <div class="tkt-foot">
+                <span class="sub">Rehan Q. · oven 2</span>
+                <span class="metric-xs num"><span class="cur">₹</span>8,000</span>
+              </div>
+            </article>
+
+            <article class="cell tkt rise" style="--i:2">
+              <div class="tkt-top">
+                <span class="tkt-table">Counter 3–4</span>
+                <span class="tkt-covers">2 covers</span>
+                <span class="tkt-time">2 min</span>
+              </div>
+              <ul class="tkt-items">
+                <li><svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg><span class="n">Diavola</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Quattro Formaggi</span><span class="x">×1</span></li>
+              </ul>
+              <div class="tkt-status">
+                <span class="chip chip--ready">Ready</span>
+                <span class="ruler" role="img" aria-label="Step 3 of 5: ready on the pass"><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i></span>
+              </div>
+              <div class="tkt-foot">
+                <span class="sub">On the pass — walk it</span>
+                <span class="metric-xs num"><span class="cur">₹</span>4,200</span>
+              </div>
+            </article>
+
+            <article class="cell tkt rise" style="--i:3">
+              <div class="tkt-top">
+                <span class="tkt-table">Table 2</span>
+                <span class="tkt-covers">2 covers</span>
+                <span class="tkt-time">24 min</span>
+              </div>
+              <ul class="tkt-items">
+                <li><svg class="fssai fssai--nonveg" viewBox="0 0 14 14" role="img" aria-label="Non-vegetarian"><title>Non-vegetarian</title><use href="#o-fssai"/></svg><span class="n">Salsiccia e Friarielli</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Burrata pugliese</span><span class="x">×1</span></li>
+                <li><svg class="fssai fssai--veg" viewBox="0 0 14 14" role="img" aria-label="Vegetarian"><title>Vegetarian</title><use href="#o-fssai"/></svg><span class="n">Etna Rosso, by the glass</span><span class="x">×2</span></li>
+              </ul>
+              <div class="tkt-status">
+                <span class="chip chip--ok">At the table</span>
+                <span class="ruler" role="img" aria-label="Step 4 of 5: at the table"><i class="done"></i><i class="done"></i><i class="done"></i><i class="now"></i><i></i></span>
+              </div>
+              <div class="tkt-foot">
+                <span class="sub">Kiran N. · regular, 31st visit</span>
+                <span class="metric-xs num"><span class="cur">₹</span>5,000</span>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           FOOT
+           ═════════════════════════════════════════════════════════════════ -->
+      <section class="sec" aria-label="Colophon">
+        <div class="rule" aria-hidden="true"></div>
+        <p class="sub" style="margin-top:18px;max-width:62ch">
+          Operato · Lievito, Kala Ghoda, Mumbai. Figures are read straight from the
+          tenant database and are scoped to this room only. Today&rsquo;s numbers are
+          partial until 23:30 and are labelled as such everywhere they appear.
+        </p>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- bottom tab bar, <=1079 only -->
+<nav class="tabbar" aria-label="Primary">
+  <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>Overview</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h14v17l-2.3-1.6-2.3 1.6-2.4-1.6-2.3 1.6-2.4-1.6L5 20.5z"/><path d="M9 8.5h6"/><path d="M9 12.5h6"/></svg>Orders</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.7 8.3 18.5 10 13.7 11.7 12 16.5 10.3 11.7 5.5 10 10.3 8.3z"/><path d="M18 16.5 18.8 18.7 21 19.5 18.8 20.3 18 22.5 17.2 20.3 15 19.5 17.2 18.7z"/></svg>Ask AI</a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.6l8.5-4.1"/><path d="M12 11.6v8.9"/></svg>Inventory</a>
+  <a href="#" id="moreTab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16"/><path d="M4 12h16"/><path d="M4 17.5h16"/></svg>More</a>
+</nav>
+
+<script>
+(function(){
+  var btn=document.getElementById('userBtn'),menu=document.getElementById('userMenu');
+  btn.addEventListener('click',function(){
+    var open=menu.hidden;menu.hidden=!open;btn.setAttribute('aria-expanded',String(open));
+  });
+  function setNav(open){
+    document.body.classList.toggle('nav-open',open);
+    var h=document.getElementById('hamburger');
+    if(h)h.setAttribute('aria-expanded',String(open));
+  }
+  var h=document.getElementById('hamburger');
+  if(h)h.addEventListener('click',function(){setNav(!document.body.classList.contains('nav-open'));});
+  var m=document.getElementById('moreTab');
+  if(m)m.addEventListener('click',function(e){e.preventDefault();setNav(true);});
+  var s=document.getElementById('scrim');
+  if(s)s.addEventListener('click',function(){setNav(false);});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){setNav(false);menu.hidden=true;btn.setAttribute('aria-expanded','false');}
+  });
+})();
+</script>
+</body>
+</html>

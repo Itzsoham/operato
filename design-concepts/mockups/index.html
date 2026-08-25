@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operato — Three design directions</title>
+
+<!--
+================================================================================
+  OPERATO · DESIGN DIRECTIONS — THE INDEX
+
+  This page is deliberately NEUTRAL. It is achromatic: greys, hairlines, one
+  system sans, no texture, no gradient, no personality. That is a design
+  decision, not laziness — a gallery styled like one of its entries has already
+  cast a vote. The only colour on this page belongs to the three directions
+  themselves, and it is quarantined inside their swatch rows and their sketch
+  tiles.
+
+  Every hex quoted below was read out of the :root block of the corresponding
+  <theme>-dashboard.html file. Nothing here is invented. If a token changes in
+  a theme file, change it here too.
+================================================================================
+-->
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS — a plain neutral shell, declared here so the file stands alone.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  color-scheme: light;
+
+  /* achromatic ramp — the whole shell */
+  --n-0:#FFFFFF;  --n-25:#FCFCFD; --n-50:#F7F7F8;  --n-100:#EFEFF1;
+  --n-150:#E5E5E8; --n-200:#D6D6DA; --n-300:#B9B9BF;
+  --n-400:#8E8E96; --n-500:#71717A; --n-600:#54545C;
+  --n-700:#3F3F46; --n-800:#27272B; --n-900:#141417;
+
+  --ink:#141417;        /* 16.6:1 on white  — headings, body           */
+  --ink-soft:#54545C;   /*  7.5:1 on white  — secondary, notes         */
+  --ink-quiet:#71717A;  /*  4.8:1 on white  — captions ≥12.5px only    */
+  --ink-faint:#8E8E96;  /*  3.3:1           — DECORATIVE STROKES ONLY  */
+
+  --page:#F7F7F8;
+  --surface:#FFFFFF;
+  --surface-2:#F7F7F8;
+  --line:#E5E5E8;
+  --line-strong:#D6D6DA;
+
+  /* FSSAI — legally fixed, shown here only to prove all three keep it */
+  --veg:#1A7F3C;
+  --nonveg:#8B1E1E;
+
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,monospace;
+
+  --wrap:1320px;
+  --pad-page:clamp(16px,3vw,40px);
+  --gap:16px;
+  --tap:44px;
+
+  --r-xs:3px; --r-sm:6px; --r:10px; --r-lg:14px;
+
+  --sh-xs:0 1px 2px rgba(20,20,23,.05);
+  --sh-sm:0 2px 8px -4px rgba(20,20,23,.12);
+  --sh:0 12px 30px -20px rgba(20,20,23,.26);
+
+  --ease:cubic-bezier(.22,1,.36,1);
+  --dur:.2s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · RESET + BASE
+   ══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--page);
+  color:var(--ink);
+  font:400 15px/1.62 var(--font-sans);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,p,ul,ol,figure,dl{margin:0}
+ul{padding:0;list-style:none}
+img,svg{display:block;max-width:100%}
+b,strong{font-weight:650}
+
+a{color:inherit}
+:focus-visible{outline:3px solid var(--n-900);outline-offset:2px;border-radius:var(--r-xs)}
+
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:.92em}
+code{
+  font:500 11.5px/1.4 var(--font-mono);
+  background:var(--n-100);border:1px solid var(--line);border-radius:var(--r-xs);
+  padding:1px 5px;white-space:nowrap;
+}
+.rupee{font-size:.82em;font-weight:500;color:var(--ink-soft);margin-right:1px}
+
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;
+}
+
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--pad-page)}
+
+/* ── the fixed variant badge, matching the mockups' convention ─────────── */
+.variant-badge{
+  position:fixed;top:10px;right:10px;z-index:99;
+  display:inline-flex;align-items:center;gap:7px;
+  min-height:30px;padding:0 11px;
+  background:var(--n-900);color:#FFF;
+  border-radius:var(--r-sm);
+  font:600 11px/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;
+  box-shadow:var(--sh-sm);pointer-events:none;
+}
+.variant-badge svg{width:14px;height:14px;stroke-width:2}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · MASTHEAD
+   ══════════════════════════════════════════════════════════════════════════ */
+.masthead{
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+  padding-block:clamp(40px,6vw,76px) clamp(28px,4vw,44px);
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  font:600 11px/1 var(--font-sans);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-soft);
+  padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface-2);
+}
+.eyebrow svg{width:15px;height:15px;stroke-width:1.8;color:var(--ink-faint)}
+.masthead h1{
+  margin-top:22px;
+  font-weight:600;font-size:clamp(30px,4.6vw,54px);line-height:1.04;
+  letter-spacing:-.028em;max-width:19ch;
+}
+.masthead .lede{
+  margin-top:20px;max-width:62ch;
+  font-size:clamp(16px,1.4vw,18.5px);line-height:1.6;color:var(--ink);
+}
+.masthead .lede + .lede{margin-top:14px;color:var(--ink-soft);font-size:15.5px}
+.masthead-meta{
+  margin-top:30px;padding-top:20px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:10px 34px;
+  font-size:13px;color:var(--ink-soft);
+}
+.masthead-meta span{display:inline-flex;align-items:center;gap:8px}
+.masthead-meta svg{width:16px;height:16px;stroke-width:1.7;color:var(--ink-faint);flex:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · SECTIONS
+   ══════════════════════════════════════════════════════════════════════════ */
+.sec{padding-block:clamp(38px,5vw,64px)}
+.sec + .sec{border-top:1px solid var(--line)}
+.sec--tint{background:var(--surface)}
+
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:clamp(22px,2.6vw,32px)}
+.sec-num{
+  font:500 12px/1 var(--font-mono);color:var(--ink-quiet);
+  padding-top:4px;flex:none;letter-spacing:.04em;
+}
+.sec-head h2{
+  font-weight:600;font-size:clamp(21px,2.2vw,28px);line-height:1.16;letter-spacing:-.02em;
+}
+.sec-head .sub{margin-top:7px;font-size:14.5px;color:var(--ink-soft);max-width:70ch}
+.sec-rule{flex:1;height:1px;background:var(--line);align-self:center;margin-left:6px}
+
+/* ── the plain statement block ─────────────────────────────────────────── */
+.statement{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:var(--gap);
+}
+.stmt{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px 22px 24px;
+}
+.sec--tint .stmt{background:var(--surface-2)}
+.stmt h3{
+  font-size:15px;font-weight:650;letter-spacing:-.01em;margin-bottom:9px;
+  display:flex;align-items:center;gap:9px;
+}
+.stmt h3 svg{width:18px;height:18px;stroke-width:1.7;color:var(--ink-quiet);flex:none}
+.stmt p{font-size:14px;line-height:1.6;color:var(--ink-soft)}
+.stmt p + p{margin-top:10px}
+.stmt strong{color:var(--ink)}
+
+/* ── constants list ────────────────────────────────────────────────────── */
+.constants{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:0 34px;
+  border-top:1px solid var(--line);
+}
+.constants li{
+  display:flex;gap:13px;padding:16px 0;border-bottom:1px solid var(--line);
+  font-size:14px;line-height:1.55;color:var(--ink-soft);
+}
+.constants li svg{width:18px;height:18px;stroke-width:1.9;color:var(--ink);flex:none;margin-top:2px}
+.constants b{display:block;color:var(--ink);font-weight:650;margin-bottom:2px;font-size:14px}
+.fssai-pair{display:inline-flex;gap:8px;vertical-align:-3px;margin-left:2px}
+.fssai{
+  width:15px;height:15px;border-radius:2px;flex:none;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.fssai i{display:block;width:6px;height:6px;border-radius:999px}
+.fssai--veg{border:1.6px solid var(--veg)}     .fssai--veg i{background:var(--veg)}
+.fssai--non{border:1.6px solid var(--nonveg)}  .fssai--non i{background:var(--nonveg)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · THE THREE DIRECTIONS — side by side
+   ══════════════════════════════════════════════════════════════════════════ */
+.directions{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(14px,1.6vw,22px);align-items:start;
+}
+.dir{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-xs);overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.dir__head{padding:22px 22px 18px;border-bottom:1px solid var(--line)}
+.dir__index{
+  font:500 11px/1 var(--font-mono);color:var(--ink-quiet);letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.dir__name{
+  margin-top:11px;font-size:clamp(22px,2vw,27px);font-weight:600;
+  letter-spacing:-.024em;line-height:1.1;
+}
+.dir__char{margin-top:9px;font-size:14px;line-height:1.55;color:var(--ink-soft)}
+.dir__biz{
+  margin-top:14px;padding-top:13px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink-quiet);
+  display:flex;flex-wrap:wrap;gap:4px 12px;
+}
+.dir__biz span{display:inline-flex;align-items:center;gap:6px}
+.dir__biz svg{width:14px;height:14px;stroke-width:1.7;color:var(--ink-faint);flex:none}
+
+.dir__body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:22px;flex:1}
+
+.blk-label{
+  font:600 10.5px/1 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-quiet);margin-bottom:11px;
+}
+
+/* ── the sketch tile ───────────────────────────────────────────────────── */
+.sketch-wrap{position:relative}
+.sketch-note{
+  margin-top:8px;font-size:11.5px;color:var(--ink-quiet);line-height:1.45;
+  display:flex;align-items:flex-start;gap:6px;
+}
+.sketch-note svg{width:13px;height:13px;stroke-width:1.9;flex:none;margin-top:2px;color:var(--ink-faint)}
+
+.mini{
+  display:flex;height:226px;overflow:hidden;
+  border:1px solid var(--line-strong);border-radius:var(--r-sm);
+  background:var(--n-100);
+}
+.mini__side{
+  width:27%;max-width:78px;flex:none;
+  display:flex;flex-direction:column;gap:6px;padding:11px 8px;
+}
+.mini__side i{display:block;height:8px;border-radius:2px;flex:none}
+.mini__main{flex:1;min-width:0;display:flex;flex-direction:column}
+.mini__hero{
+  height:80px;flex:none;padding:12px;
+  display:flex;flex-direction:column;gap:8px;justify-content:flex-end;
+  position:relative;
+}
+.mini__h1{display:block;height:12px;width:64%;border-radius:2px}
+.mini__h2{display:block;height:6px;width:38%;border-radius:2px}
+.mini__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:11px 12px 0}
+.mini__grid i{display:block;height:48px}
+.mini__list{display:flex;flex-direction:column;gap:7px;padding:12px;margin-top:auto}
+.mini__list i{display:block;height:11px;border-radius:2px}
+
+/* FORNO sketch — cream canvas, charred slab, crust edge, hard offsets */
+.mini--forno{
+  background:#F0E2CA;
+  background-image:
+    radial-gradient(circle at 25% 25%,rgba(124,92,64,.13) 0 1.1px,#0000 1.7px),
+    radial-gradient(circle at 72% 66%,rgba(124,92,64,.09) 0 1.3px,#0000 1.9px);
+  background-size:26px 26px,37px 37px;
+}
+.mini--forno .mini__side{
+  background:#14100D;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,249,240,.06) 0 1px,transparent 1px 16px),
+    repeating-linear-gradient(90deg,rgba(255,249,240,.06) 0 1px,transparent 1px 30px);
+}
+.mini--forno .mini__side i{background:#4E3A2E}
+.mini--forno .mini__side i:nth-child(2){background:#FFF9F0;box-shadow:2px 2px 0 #C4300D}
+.mini--forno .mini__hero{
+  height:92px;padding-bottom:20px;background:#14100D;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,249,240,.05) 0 1px,transparent 1px 16px),
+    radial-gradient(60% 90% at 50% 118%,rgba(226,59,20,.55),transparent 66%);
+  -webkit-mask:
+    radial-gradient(circle 8px at 8px 8px,#000 98%,#0000 100%) 0 100%/16px 16px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat;
+  mask:
+    radial-gradient(circle 8px at 8px 8px,#000 98%,#0000 100%) 0 100%/16px 16px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat;
+}
+.mini--forno .mini__h1{background:#FFF9F0;height:14px}
+.mini--forno .mini__h2{background:#FF7B52}
+.mini--forno .mini__grid i{
+  border:2px solid #1C1310;border-radius:5px;box-shadow:3px 3px 0 #14100D;
+  background:linear-gradient(#E23B14 0 5px,#FFF9F0 5px);
+}
+.mini--forno .mini__grid i:nth-child(2){background:linear-gradient(#F0A415 0 5px,#FFF9F0 5px)}
+.mini--forno .mini__grid i:nth-child(3){background:linear-gradient(#5C9E3B 0 5px,#FFF9F0 5px)}
+.mini--forno .mini__list i{background:#E7D6B8;border:1.5px solid #E0CDAC;border-radius:3px}
+.mini--forno .mini__list i:first-child{background:#C4300D;border-color:#14100D}
+
+/* CREMA sketch — chalk canvas, pale wood, three-hairline rule, dot leaders */
+.mini--crema{background:linear-gradient(180deg,#FBF8F3 0%,#F8F2E9 100%)}
+.mini--crema .mini__side{
+  background:linear-gradient(180deg,#F6EEE2,#F2E9DB);
+  border-right:1px solid #E7DCCB;
+}
+.mini--crema .mini__side i{background:#E0D2BF}
+.mini--crema .mini__side i:nth-child(2){
+  background:#FFFDFA;border-left:3px solid #2A1D16;border-radius:0 3px 3px 0;
+  box-shadow:0 2px 6px -2px rgba(42,29,22,.14);
+}
+.mini--crema .mini__hero{
+  background:linear-gradient(158deg,#EFE3D2 0%,#F8F1E6 44%,#FBF8F3 100%);
+  overflow:hidden;
+}
+.mini--crema .mini__hero::before{
+  content:"";position:absolute;top:-34px;right:-22px;width:96px;height:96px;
+  border:2px solid rgba(217,165,102,.42);border-radius:999px;
+}
+.mini--crema .mini__hero::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:10px;
+  background:repeating-linear-gradient(180deg,#E7DCCB 0 1px,transparent 1px 4px);
+}
+.mini--crema .mini__h1{background:#23180F;height:10px;width:58%}
+.mini--crema .mini__h2{background:#B07636;height:5px;width:30%}
+.mini--crema .mini__grid i{
+  background:#FFFDFA;border:1px solid #E7DCCB;border-radius:8px;
+  box-shadow:0 10px 30px -18px rgba(42,29,22,.30);
+}
+.mini--crema .mini__grid i:nth-child(3){background:linear-gradient(155deg,#33241B,#231810);border-color:#412F24}
+.mini--crema .mini__list i{
+  background:transparent;border-radius:0;
+  border-bottom:1px dotted #D8C9B2;height:12px;
+}
+
+/* SAFFRON sketch — candlelit dark, brass hairlines, one bone island */
+.mini--saffron{
+  background:#130D12;
+  background-image:
+    radial-gradient(90% 70% at 10% 0,rgba(232,145,43,.18),transparent 62%),
+    radial-gradient(80% 60% at 92% 6%,rgba(201,162,39,.15),transparent 64%),
+    radial-gradient(70% 60% at 6% 100%,rgba(122,30,46,.16),transparent 60%);
+}
+.mini--saffron .mini__side{
+  background:rgba(26,18,26,.80);border-right:1px solid rgba(235,208,138,.16);
+}
+.mini--saffron .mini__side i{background:rgba(245,239,228,.14)}
+.mini--saffron .mini__side i:nth-child(2){
+  background:linear-gradient(90deg,rgba(201,162,39,.22),transparent);
+  border-left:3px solid #C9A227;border-radius:0 2px 2px 0;
+}
+.mini--saffron .mini__hero{border-bottom:1px solid rgba(201,162,39,.55);overflow:hidden}
+.mini--saffron .mini__hero::before,
+.mini--saffron .mini__hero::after{
+  content:"";position:absolute;width:20px;height:20px;pointer-events:none;
+}
+.mini--saffron .mini__hero::before{
+  top:9px;left:9px;border-top:1px solid rgba(201,162,39,.62);border-left:1px solid rgba(201,162,39,.62);
+}
+.mini--saffron .mini__hero::after{
+  top:9px;right:9px;border-top:1px solid rgba(201,162,39,.62);border-right:1px solid rgba(201,162,39,.62);
+}
+.mini--saffron .mini__h1{background:#F5EFE4;height:11px;width:56%}
+.mini--saffron .mini__h2{background:#DFBB53;height:5px;width:24%}
+.mini--saffron .mini__grid i{
+  background:#211823;border:1px solid rgba(235,208,138,.16);border-radius:4px;
+  box-shadow:inset 0 1px 0 rgba(245,231,190,.06),0 16px 36px -20px rgba(0,0,0,.7);
+}
+.mini--saffron .mini__grid i:nth-child(2){
+  background:linear-gradient(135deg,rgba(223,187,83,.20),rgba(201,162,39,.06));
+  border-color:rgba(235,208,138,.30);
+}
+.mini--saffron .mini__list i{background:rgba(245,239,228,.10);border-radius:1px}
+.mini--saffron .mini__list i:first-child{background:#F5EFE4;height:24px;border-radius:2px}
+
+/* ── swatches ──────────────────────────────────────────────────────────── */
+.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sw{min-width:0}
+.sw__chip{
+  height:46px;border-radius:var(--r-xs);border:1px solid rgba(20,20,23,.14);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.sw__hex{
+  display:block;margin-top:7px;
+  font:500 10.5px/1.2 var(--font-mono);color:var(--ink);letter-spacing:.01em;
+  text-transform:uppercase;
+}
+.sw__role{display:block;margin-top:3px;font-size:10.5px;line-height:1.3;color:var(--ink-quiet)}
+.sw__tok{
+  display:block;margin-top:2px;
+  font:400 10px/1.3 var(--font-mono);color:var(--ink-faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ── signature moves ───────────────────────────────────────────────────── */
+.moves li{
+  display:flex;gap:10px;font-size:13.5px;line-height:1.5;color:var(--ink-soft);
+  padding:9px 0;border-bottom:1px solid var(--line);
+}
+.moves li:first-child{border-top:1px solid var(--line)}
+.moves li svg{width:16px;height:16px;stroke-width:1.9;color:var(--ink-faint);flex:none;margin-top:3px}
+.moves b{color:var(--ink);font-weight:650}
+
+/* ── best at / costs ───────────────────────────────────────────────────── */
+.tradeoff{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tradeoff__part{padding:15px 16px 17px}
+.tradeoff__part + .tradeoff__part{border-top:1px solid var(--line);background:var(--surface-2)}
+.tradeoff h4{
+  display:flex;align-items:center;gap:8px;
+  font:600 10.5px/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:11px;
+}
+.tradeoff h4 svg{width:17px;height:17px;stroke-width:2;flex:none}
+.tradeoff ul li{
+  position:relative;padding-left:15px;font-size:13.5px;line-height:1.56;color:var(--ink-soft);
+}
+.tradeoff ul li + li{margin-top:9px}
+.tradeoff ul li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:1.5px;background:var(--ink-faint);
+}
+.tradeoff ul b{color:var(--ink);font-weight:650}
+
+/* ── screen links ──────────────────────────────────────────────────────── */
+.screens{border-top:1px solid var(--line);margin-top:auto}
+.screen-link{
+  display:flex;align-items:center;gap:13px;
+  min-height:var(--tap);padding:12px 22px;
+  border-bottom:1px solid var(--line);
+  text-decoration:none;color:var(--ink);
+  transition:background var(--dur) var(--ease);
+}
+.dir .screens .screen-link:last-child{border-bottom:0}
+.screen-link:hover,.screen-link:focus-visible{background:var(--surface-2)}
+.screen-link__icon{
+  width:34px;height:34px;flex:none;border-radius:var(--r-xs);
+  border:1px solid var(--line-strong);background:var(--surface-2);
+  display:grid;place-items:center;color:var(--ink-soft);
+}
+.screen-link__icon svg{width:17px;height:17px;stroke-width:1.7}
+.screen-link__txt{flex:1;min-width:0}
+.screen-link__name{display:block;font-size:14px;font-weight:600;letter-spacing:-.01em}
+.screen-link__what{display:block;font-size:12px;line-height:1.45;color:var(--ink-quiet);margin-top:2px}
+.screen-link__go{width:18px;height:18px;flex:none;stroke-width:1.9;color:var(--ink-faint)}
+.screen-link:hover .screen-link__go{color:var(--ink)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · COMPARISON MATRIX
+   ══════════════════════════════════════════════════════════════════════════ */
+.table-scroll{
+  overflow-x:auto;
+  border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);
+  -webkit-overflow-scrolling:touch;
+}
+.table-scroll:focus-visible{outline-offset:-3px}
+table.cmp{border-collapse:collapse;width:100%;min-width:840px}
+.cmp caption{
+  text-align:left;padding:16px 18px;border-bottom:1px solid var(--line);
+  font-size:13px;color:var(--ink-soft);
+}
+.cmp th,.cmp td{
+  text-align:left;vertical-align:top;
+  padding:13px 16px;border-bottom:1px solid var(--line);
+  font-size:13.3px;line-height:1.5;
+}
+.cmp thead th{
+  position:sticky;top:0;background:var(--surface);z-index:1;
+  font-size:14px;font-weight:650;letter-spacing:-.01em;
+  border-bottom:1px solid var(--line-strong);
+  padding-top:15px;padding-bottom:15px;
+}
+.cmp thead th span{
+  display:block;margin-top:3px;font-weight:400;font-size:11.5px;color:var(--ink-quiet);
+  letter-spacing:0;
+}
+.cmp tbody th{
+  font-weight:600;color:var(--ink);width:20%;min-width:150px;
+  background:var(--surface-2);
+}
+.cmp tbody td{color:var(--ink-soft);width:26.6%}
+.cmp tbody tr:last-child th,.cmp tbody tr:last-child td{border-bottom:0}
+.cmp .hi{color:var(--ink);font-weight:600}
+.cmp code{
+  font:500 11.5px/1.4 var(--font-mono);
+  background:var(--n-100);border:1px solid var(--line);border-radius:var(--r-xs);
+  padding:1px 5px;white-space:nowrap;
+}
+.dot-row{display:inline-flex;align-items:center;gap:7px}
+.dot{width:11px;height:11px;border-radius:999px;border:1px solid rgba(20,20,23,.18);flex:none}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · HOW TO CHOOSE
+   ══════════════════════════════════════════════════════════════════════════ */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:var(--gap)}
+.q{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px 20px 22px;
+}
+.sec--tint .q{background:var(--surface-2)}
+.q__q{font-size:15px;font-weight:650;letter-spacing:-.012em;line-height:1.4}
+.q__a{margin-top:11px;font-size:13.5px;line-height:1.6;color:var(--ink-soft)}
+.q__a b{color:var(--ink)}
+.q__ans{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:7px;
+}
+.pick{
+  display:inline-flex;align-items:center;gap:7px;
+  font:600 11px/1 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 10px;border:1px solid var(--line-strong);border-radius:var(--r-xs);
+  color:var(--ink);background:var(--surface);
+}
+.pick i{width:9px;height:9px;border-radius:2px;flex:none;border:1px solid rgba(20,20,23,.2)}
+.pick--forno i{background:#E23B14}
+.pick--crema i{background:#B07636}
+.pick--saffron i{background:#C9A227}
+
+.callout{
+  margin-top:clamp(24px,3vw,36px);
+  border:1px solid var(--n-900);border-radius:var(--r);
+  background:var(--n-900);color:#FFF;
+  padding:clamp(20px,2.6vw,30px);
+}
+.callout h3{
+  font-size:clamp(17px,1.8vw,21px);font-weight:600;letter-spacing:-.018em;
+  display:flex;align-items:center;gap:10px;
+}
+.callout h3 svg{width:20px;height:20px;stroke-width:1.9;flex:none;color:#FFF}
+.callout p{margin-top:12px;font-size:14.5px;line-height:1.62;color:#D6D6DA;max-width:78ch}
+.callout p + p{margin-top:10px}
+.callout b{color:#FFF;font-weight:650}
+
+/* ── footer ────────────────────────────────────────────────────────────── */
+.foot{
+  border-top:1px solid var(--line);background:var(--surface);
+  padding-block:26px 40px;
+}
+.foot p{font-size:12.5px;line-height:1.6;color:var(--ink-quiet);max-width:80ch}
+.foot p + p{margin-top:8px}
+.foot code{
+  font:500 11.5px/1.4 var(--font-mono);
+  background:var(--n-100);border:1px solid var(--line);border-radius:var(--r-xs);padding:1px 5px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · ENTRANCE
+   ══════════════════════════════════════════════════════════════════════════ */
+.rise{animation:rise .5s var(--ease) both;animation-delay:calc(var(--i,0) * 60ms)}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · RESPONSIVE
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:1100px){
+  .directions{grid-template-columns:1fr;gap:22px}
+  .dir__body{gap:20px}
+  .swatches{grid-template-columns:repeat(8,minmax(0,1fr))}
+  .mini{height:252px}
+}
+@media (max-width:760px){
+  .swatches{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .masthead{padding-top:64px}
+  .constants{grid-template-columns:1fr}
+  .sec-head{flex-wrap:wrap}
+  .sec-rule{display:none}
+}
+@media (max-width:430px){
+  .mini{height:auto;flex-direction:column}
+  .mini__side{width:100%;max-width:none;flex-direction:row;height:38px;padding:9px 10px;align-items:center}
+  .mini__side i{width:100%;height:12px}
+  .swatches{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .screen-link{padding-inline:16px}
+  .dir__head,.dir__body{padding-inline:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ── ICON SPRITE (inline SVG, 24×24, stroke, currentColor) ───────────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="i-grid" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>
+    </g>
+    <g id="i-book" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v18H5.5A1.5 1.5 0 0 1 4 19.5z"/><path d="M7 8h9M7 12h9M7 16h5"/>
+    </g>
+    <g id="i-receipt" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 3h14v18l-2.3-1.6L14.4 21l-2.4-1.6L9.6 21l-2.3-1.6L5 21z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>
+    </g>
+    <g id="i-arrow" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 12h15"/><path d="m13.5 6.5 6 5.5-6 5.5"/>
+    </g>
+    <g id="i-plus" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.6"/><path d="M8.2 12h7.6M12 8.2v7.6"/>
+    </g>
+    <g id="i-minus" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.6"/><path d="M8.2 12h7.6"/>
+    </g>
+    <g id="i-lock" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.2" y="10.2" width="15.6" height="10.6" rx="2"/><path d="M8 10.2V7.4a4 4 0 0 1 8 0v2.8"/>
+    </g>
+    <g id="i-check" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m4.5 12.5 4.6 4.6L19.5 6.7"/>
+    </g>
+    <g id="i-eye" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.2 12S6 5.4 12 5.4 21.8 12 21.8 12 18 18.6 12 18.6 2.2 12 2.2 12Z"/><circle cx="12" cy="12" r="3.1"/>
+    </g>
+    <g id="i-layers" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 3 8.6 4.6L12 12.2 3.4 7.6 12 3Z"/><path d="m3.4 12.4 8.6 4.6 8.6-4.6"/><path d="m3.4 16.9 8.6 4.6 8.6-4.6"/>
+    </g>
+    <g id="i-scale" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 4v16M6 8h12"/><path d="M6 8 3 15h6L6 8ZM18 8l-3 7h6l-3-7Z"/>
+    </g>
+    <g id="i-pen" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20h4.3L20 8.3a2.1 2.1 0 0 0 0-3l-1.3-1.3a2.1 2.1 0 0 0-3 0L4 15.7z"/><path d="m14.5 5.7 3.8 3.8"/>
+    </g>
+    <g id="i-info" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.6"/><path d="M12 11.2v5"/><path d="M12 7.9h.01"/>
+    </g>
+    <g id="i-flag" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 21V4.2"/><path d="M5 4.6h11.4l-2 3.6 2 3.6H5"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="variant-badge">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-layers"/></svg>
+  Index · neutral shell
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MASTHEAD
+     ═══════════════════════════════════════════════════════════════════ -->
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow rise" style="--i:0">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-layers"/></svg>
+      Operato · design directions · 25 Aug 2026
+    </p>
+
+    <h1 class="rise" style="--i:1">Three redesigns of the same product.</h1>
+
+    <p class="lede rise" style="--i:2">
+      These are <b>not three colour schemes.</b> Each one is a complete rebuild of the
+      shell, the layout, the component forms and the visual language — a different
+      sidebar, a different header, a different card, a different type system, a
+      different idea of how much should fit on a screen. Nothing here is the stock
+      shadcn dashboard with new hex values.
+    </p>
+    <p class="lede rise" style="--i:3">
+      So the choice in front of you is not "which palette do we like". It is
+      <b>which personality does this product have</b> — because whichever one you pick,
+      every screen Operato ever ships gets built from its contract. Pick the room it
+      lives in, the person reading it, and how loud it is allowed to be.
+    </p>
+
+    <div class="masthead-meta rise" style="--i:4">
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg> 3 directions × 3 screens built</span>
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-layers"/></svg> 8 screens each once chosen</span>
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lock"/></svg> Shared accessibility &amp; legal floor</span>
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-eye"/></svg> This page is deliberately colourless</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     01 · WHAT A DIRECTION ACTUALLY COMMITS YOU TO
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sec sec--tint">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <div>
+        <h2>What you are actually choosing</h2>
+        <p class="sub">Each direction ships with a written contract — a spec comment at the head of its
+        dashboard file that every other screen is built from. Choosing a direction means adopting that contract.</p>
+      </div>
+      <span class="sec-rule"></span>
+    </div>
+
+    <div class="statement">
+      <article class="stmt">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-layers"/></svg> The shell changes</h3>
+        <p>The sidebar is an <strong>opaque charred slab</strong> in one, a <strong>flat panel of pale wood</strong>
+        in the next and <strong>blurred glass over aubergine</strong> in the third. The header is a hero band
+        with an ember glow, a full-bleed paper wash, or a brass-bracketed frame. There is no shared chrome
+        underneath — swapping directions later is a rewrite, not a re-theme.</p>
+      </article>
+
+      <article class="stmt">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pen"/></svg> The component forms change</h3>
+        <p>A KPI tile is a <strong>perforated paper docket</strong>, a <strong>ceramic card on a hairline</strong>,
+        or a <strong>brass-ruled panel with an inner sheen</strong>. A ranked list is a hard-outlined row, a
+        dotted-leader menu line, or a brass rail with lozenge nodes. Buttons are 10px chunky rectangles,
+        10px soft rectangles, or 2px near-square blocks.</p>
+      </article>
+
+      <article class="stmt">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-scale"/></svg> The density changes</h3>
+        <p>The same eight screens hold roughly <strong>a third more rows</strong> in one direction than in
+        another, because whitespace budgets differ by design. That is a product decision about how much a
+        manager should see at once — it is not a styling detail, and it does not survive a later
+        "let's just tighten it up".</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     02 · WHAT IS IDENTICAL IN ALL THREE
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <div>
+        <h2>What is identical in all three</h2>
+        <p class="sub">The trade-offs below are about personality only. None of the three trades away
+        rigour to get its look — these constants are held in every file.</p>
+      </div>
+      <span class="sec-rule"></span>
+    </div>
+
+    <ul class="constants">
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>The same eight screens</b>Overview, Menu, Orders + floor grid, Inventory, Customers, Staff,
+        Ask AI, Billing — over the same tenant-scoped data model.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>The same responsive ladder</b>Full sidebar ≥&nbsp;1280, icon rail 1024–1279, off-canvas drawer
+        plus a five-slot bottom tab bar ≤&nbsp;1023. Rail labels are clipped, never <code>display:none</code>.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>The same contrast floor</b>Body text clears 4.5:1 against the surface it actually sits on,
+        textures composited in. Every ramp splits a <em>fill</em> step from a <em>text</em> step, and the
+        faintest step is documented as decorative strokes only.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>Status is never colour alone</b>Every state prints a word, and sequence states also print a
+        five-step meter. Every delta prints an arrow glyph and a signed number.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>One solid chip, spent once</b>Each direction allows exactly one solid-filled chip in the whole
+        system and spends it on <em>READY</em> — the thing someone must find at arm's length across a room.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>Tablet-first touch targets</b>44&nbsp;px minimum on every interactive element; Forno raises its
+        own floor to 46&nbsp;px. These run on a pass, on a counter, with wet hands.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>Indian money formatting</b>Lakh grouping, no paise, tabular figures, the ₹ glyph set smaller
+        and lighter than its digits so money columns still align: <span class="num"><span class="rupee">₹</span>1,47,850</span>,
+        <span class="num"><span class="rupee">₹</span>20,35,350</span>.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+        <span><b>Hand-authored inline SVG charts</b>No chart library in any direction, and an incomplete
+        period is always drawn dashed and labelled — no direction lets a running day look finished.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flag"/></svg>
+        <span><b>The FSSAI marks
+        <span class="fssai-pair">
+          <span class="fssai fssai--veg" title="Vegetarian"><i></i></span>
+          <span class="fssai fssai--non" title="Non-vegetarian"><i></i></span>
+        </span></b>A filled dot inside a square outline, green for veg and maroon for non-veg. A legal
+        convention, not a design token — identical in every direction and never tinted to match a palette.</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+        <span><b>One honest discrepancy to settle</b>The three files drifted on the exact legal hexes —
+        veg is <code>#0B7A34</code> / <code>#1A7F3C</code> / <code>#1B7F3B</code> and non-veg is
+        <code>#94231A</code> / <code>#8B1E1E</code> / <code>#7A1E1E</code>. Whichever direction wins, freeze
+        one pair in <code>globals.css</code> and stop theming it.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     03 · THE THREE DIRECTIONS
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sec sec--tint">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <div>
+        <h2>The three directions, side by side</h2>
+        <p class="sub">Every hex below was read out of that direction's <code>:root</code>
+        block. The tiles are structural sketches drawn from each spec — open the screens to see the real thing.</p>
+      </div>
+      <span class="sec-rule"></span>
+    </div>
+
+    <div class="directions">
+
+      <!-- ─────────────────────────── FORNO ─────────────────────────── -->
+      <article class="dir rise" style="--i:0">
+        <header class="dir__head">
+          <p class="dir__index">Direction A</p>
+          <h3 class="dir__name">Forno</h3>
+          <p class="dir__char">A wood-fired counter at 8:40 on a Saturday night. Loud, warm, fast,
+          a little hand-made — a charred oven mouth over a bench dusted with semolina.</p>
+          <p class="dir__biz">
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg> Pizzeria · counter service</span>
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg> Bandra West, Mumbai</span>
+          </p>
+        </header>
+
+        <div class="dir__body">
+
+          <div class="sketch-wrap">
+            <div class="mini mini--forno" role="img" aria-label="Structural sketch of Forno: an opaque charred-black sidebar with a cream active nav item, a charred hero band ending in a bubbled crust edge over a cream semolina canvas, and three cream receipt cards with 2px black outlines, coloured top bars and hard black offset shadows.">
+              <span class="mini__side"><i></i><i></i><i></i><i></i></span>
+              <span class="mini__main">
+                <span class="mini__hero"><i class="mini__h1"></i><i class="mini__h2"></i></span>
+                <span class="mini__grid"><i></i><i></i><i></i></span>
+                <span class="mini__list"><i></i><i></i><i></i></span>
+              </span>
+            </div>
+            <p class="sketch-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+              Structural sketch, not a screenshot — the crust mask, hard shadows and card variants are real CSS from the spec.
+            </p>
+          </div>
+
+          <div>
+            <p class="blk-label">Palette · read from the file</p>
+            <div class="swatches">
+              <div class="sw"><div class="sw__chip" style="background:#14100D"></div><span class="sw__hex">#14100D</span><span class="sw__role">sidebar, hero, shadow</span><span class="sw__tok">--char-900</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#F0E2CA"></div><span class="sw__hex">#F0E2CA</span><span class="sw__role">app canvas</span><span class="sw__tok">--semolina</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#FFF9F0"></div><span class="sw__hex">#FFF9F0</span><span class="sw__role">the card face</span><span class="sw__tok">--surface</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#E23B14"></div><span class="sw__hex">#E23B14</span><span class="sw__role">graphic fill only</span><span class="sw__tok">--tomato-500</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#9B240A"></div><span class="sw__hex">#9B240A</span><span class="sw__role">accent text, 7.6:1</span><span class="sw__tok">--tomato-700</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#F0A415"></div><span class="sw__hex">#F0A415</span><span class="sw__role">the fire · warning</span><span class="sw__tok">--amber-500</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#3E7A26"></div><span class="sw__hex">#3E7A26</span><span class="sw__role">resolved · positive</span><span class="sw__tok">--basil-600</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#6A7F8C"></div><span class="sw__hex">#6A7F8C</span><span class="sw__role">cold dough · neutral</span><span class="sw__tok">--slate-500</span></div>
+            </div>
+          </div>
+
+          <div>
+            <p class="blk-label">Signature moves</p>
+            <ul class="moves">
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>The charred slab and the crust edge.</b> Sidebar and hero share one recipe — brick
+                mortar grid, leopard blisters, a flickering ember glow — and every dark band is cut off in a
+                row of bubbled crust circles instead of a border.</span></li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>The docket.</b> KPI tiles are paper receipts: a 7px colour bar, a 2px drawn outline,
+                a scorched corner and a bitten-out perforated bottom edge.</span></li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>Hard shadows that press.</b> <code>5px 5px 0</code>
+                black on every card and button, and <code>:active</code>
+                translates the object into its own shadow. Nothing floats; everything is stuck to a wall.</span></li>
+            </ul>
+          </div>
+
+          <div class="tradeoff">
+            <div class="tradeoff__part">
+              <h4><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"/></svg> Best at</h4>
+              <ul>
+                <li><b>Being read fast, from a distance, under pressure.</b> Hierarchy is carried by weight and
+                hard black outline rather than by subtle tint, so it survives glare, grease and a glance.</li>
+                <li><b>Density.</b> It is the only one of the three that <em>wants</em> a busy screen. Thirty live
+                orders on a floor grid look intentional here and cramped elsewhere.</li>
+                <li><b>Touch.</b> 46px targets and the press-translate give physical feedback on a tablet with
+                no haptics — the strongest tactile feel of the three.</li>
+                <li><b>Being unmistakable.</b> Nobody will ever say this looks like a template.</li>
+              </ul>
+            </div>
+            <div class="tradeoff__part">
+              <h4><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-minus"/></svg> What it costs</h4>
+              <ul>
+                <li><b>Calm.</b> 900-weight uppercase everywhere is tiring across an eight-hour shift, and there
+                is nowhere quiet to put a low-stakes screen — Billing shouts as loudly as the pass.</li>
+                <li><b>Typographic predictability.</b> The display face is Arial&nbsp;Black with an Impact
+                fallback; it renders noticeably differently across Windows, macOS and Android.</li>
+                <li><b>Build and maintenance.</b> Speckle, brick, leopard, scorch, the crust mask and the
+                perforated docket (which needs <code>filter: drop-shadow</code>,
+                not <code>box-shadow</code>) make it roughly two to three
+                times the component work of Crema.</li>
+                <li><b>Reuse.</b> It is emphatically a restaurant. When Operato takes its platform seam to
+                vertical&nbsp;#2, this direction does not travel.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <nav class="screens" aria-label="Forno screens">
+          <a class="screen-link" href="forno-dashboard.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Overview</span>
+              <span class="screen-link__what">The charred hero, the perforated dockets, the taped reorder notice</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="screen-link" href="forno-menu.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Menu</span>
+              <span class="screen-link__what">Drawn 2px outlines holding a dense grid of dishes and FSSAI marks</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="screen-link" href="forno-orders.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Orders &amp; the floor</span>
+              <span class="screen-link__what">Monospace kitchen tickets and the one solid ember READY chip</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+        </nav>
+      </article>
+
+      <!-- ─────────────────────────── CREMA ─────────────────────────── -->
+      <article class="dir rise" style="--i:1">
+        <header class="dir__head">
+          <p class="dir__index">Direction B</p>
+          <h3 class="dir__name">Crema</h3>
+          <p class="dir__char">A well-run cafe at 7am. Calm, airy, precise — a wiped counter, warm morning
+          light, pale wood and ceramic. Whitespace is the primary material.</p>
+          <p class="dir__biz">
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg> Coffee roaster · bakery</span>
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg> Indiranagar, Bengaluru</span>
+          </p>
+        </header>
+
+        <div class="dir__body">
+
+          <div class="sketch-wrap">
+            <div class="mini mini--crema" role="img" aria-label="Structural sketch of Crema: a flat pale-wood sidebar with a lifted white ceramic active item, a soft oat-to-chalk masthead wash closed by three stacked hairlines, and three ceramic cards on hairlines with one dark espresso card among them, over dotted-leader list rows.">
+              <span class="mini__side"><i></i><i></i><i></i><i></i></span>
+              <span class="mini__main">
+                <span class="mini__hero"><i class="mini__h1"></i><i class="mini__h2"></i></span>
+                <span class="mini__grid"><i></i><i></i><i></i></span>
+                <span class="mini__list"><i></i><i></i><i></i></span>
+              </span>
+            </div>
+            <p class="sketch-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+              Structural sketch, not a screenshot — the wood panel, the triple counter rule and the dot leaders are real CSS from the spec.
+            </p>
+          </div>
+
+          <div>
+            <p class="blk-label">Palette · read from the file</p>
+            <div class="swatches">
+              <div class="sw"><div class="sw__chip" style="background:#2A1D16"></div><span class="sw__hex">#2A1D16</span><span class="sw__role">the one dark card</span><span class="sw__tok">--espresso</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#FBF8F3"></div><span class="sw__hex">#FBF8F3</span><span class="sw__role">page ground</span><span class="sw__tok">--chalk</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#FFFDFA"></div><span class="sw__hex">#FFFDFA</span><span class="sw__role">ceramic card</span><span class="sw__tok">--surface</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#EFE3D2"></div><span class="sw__hex">#EFE3D2</span><span class="sw__role">masthead wash</span><span class="sw__tok">--oat</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#B07636"></div><span class="sw__hex">#B07636</span><span class="sw__role">chart series 1</span><span class="sw__tok">--caramel-500</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#7A4C17"></div><span class="sw__hex">#7A4C17</span><span class="sw__role">accent text, 7.2:1</span><span class="sw__tok">--caramel-700</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#D9A566"></div><span class="sw__hex">#D9A566</span><span class="sw__role">the one solid chip</span><span class="sw__tok">--crema</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#6E8566"></div><span class="sw__hex">#6E8566</span><span class="sw__role">secondary · settled</span><span class="sw__tok">--sage-500</span></div>
+            </div>
+          </div>
+
+          <div>
+            <p class="blk-label">Signature moves</p>
+            <ul class="moves">
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>The counter rule.</b> Every masthead closes on three stacked hairlines with 3px gaps
+                instead of a shadow, and every section head carries a double-hairline rule that runs to the far
+                edge. It is why a screen reads like a printed price list.</span></li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>The dot-leader board.</b> Any name paired with a number becomes a chalkboard row:
+                rank square, FSSAI mark, name, a dotted leader, count, price. The single most reusable
+                component of the three.</span></li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>Light, large figures.</b> Every headline number is weight&nbsp;300 at up to 44px,
+                tabular; labels track at .18em. Numbers are never bold in this theme, and there is exactly one
+                pill on any screen.</span></li>
+            </ul>
+          </div>
+
+          <div class="tradeoff">
+            <div class="tradeoff__part">
+              <h4><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"/></svg> Best at</h4>
+              <ul>
+                <li><b>Long sessions.</b> The least fatiguing of the three for someone actually <em>reading</em>
+                — reconciling stock, reviewing a week, working through the AI answers.</li>
+                <li><b>Cost and durability.</b> Flat paper, hairlines, no backdrop-filter, no masks, no textures.
+                Roughly a week of component work, it degrades gracefully, and it will not look dated in 2030.</li>
+                <li><b>Travelling to vertical #2.</b> Strip the coffee words and it is a competent operating
+                screen for a salon or a pharmacy. Given Operato's platform ambition, this matters more than it
+                looks like it does.</li>
+                <li><b>Print and export.</b> A light paper ground is the only one that survives a PDF or a
+                printed shift sheet without rework.</li>
+              </ul>
+            </div>
+            <div class="tradeoff__part">
+              <h4><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-minus"/></svg> What it costs</h4>
+              <ul>
+                <li><b>Distinctiveness.</b> Restraint sits one bad sprint away from generic. If a developer skips
+                the .18em labels, the dot leaders and the triple rule, it collapses straight back into the stock
+                shadcn dashboard we are trying to leave.</li>
+                <li><b>Distance legibility.</b> Weight-300 numerals are elegant up close and the weakest of the
+                three across a counter in glare — the exact opposite of Forno's trade.</li>
+                <li><b>Density.</b> The whitespace budget is explicitly non-negotiable downwards and costs you
+                roughly a third of the rows per screen.</li>
+                <li><b>Emphasis headroom.</b> One espresso card per screen means a screen with two genuinely
+                urgent things has nowhere to put the second.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <nav class="screens" aria-label="Crema screens">
+          <a class="screen-link" href="crema-dashboard.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Overview</span>
+              <span class="screen-link__what">The paper masthead, the cup-ring ornament, one espresso card</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="screen-link" href="crema-menu.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Menu</span>
+              <span class="screen-link__what">The dot-leader board doing the work of a whole price list</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="screen-link" href="crema-orders.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Orders &amp; floor</span>
+              <span class="screen-link__what">Square status dots, the five-step brew meter, "on the pass"</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+        </nav>
+      </article>
+
+      <!-- ────────────────────────── SAFFRON ────────────────────────── -->
+      <article class="dir rise" style="--i:2">
+        <header class="dir__head">
+          <p class="dir__index">Direction C</p>
+          <h3 class="dir__name">Saffron House</h3>
+          <p class="dir__char">White tablecloths and brass under low warm light. Elegant, restrained,
+          confident and dark — a menu card and a ledger sharing one table.</p>
+          <p class="dir__biz">
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg> Fine dining · 57 covers</span>
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg> Colaba, Mumbai</span>
+          </p>
+        </header>
+
+        <div class="dir__body">
+
+          <div class="sketch-wrap">
+            <div class="mini mini--saffron" role="img" aria-label="Structural sketch of Saffron House: a glass aubergine sidebar with a 3px brass bar marking the active item, a candlelit near-black ground with warm and brass glows, a hero framed by brass corner brackets and closed with a brass rule, dark cards on gold hairlines with one brass money card, and a single bone-white linen card in the list.">
+              <span class="mini__side"><i></i><i></i><i></i><i></i></span>
+              <span class="mini__main">
+                <span class="mini__hero"><i class="mini__h1"></i><i class="mini__h2"></i></span>
+                <span class="mini__grid"><i></i><i></i><i></i></span>
+                <span class="mini__list"><i></i><i></i><i></i></span>
+              </span>
+            </div>
+            <p class="sketch-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+              Structural sketch, not a screenshot — the candle bloom, brass brackets and bone island are real CSS from the spec.
+            </p>
+          </div>
+
+          <div>
+            <p class="blk-label">Palette · read from the file</p>
+            <div class="swatches">
+              <div class="sw"><div class="sw__chip" style="background:#130D12"></div><span class="sw__hex">#130D12</span><span class="sw__role">page ground</span><span class="sw__tok">--ground</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#211823"></div><span class="sw__hex">#211823</span><span class="sw__role">the card</span><span class="sw__tok">--surface</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#C9A227"></div><span class="sw__hex">#C9A227</span><span class="sw__role">the brass · 7.1:1</span><span class="sw__tok">--brass-500</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#EBD08A"></div><span class="sw__hex">#EBD08A</span><span class="sw__role">gold-leaf numerals</span><span class="sw__tok">--brass-300</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#E8912B"></div><span class="sw__hex">#E8912B</span><span class="sw__role">attention · firing</span><span class="sw__tok">--saffron-500</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#D4826A"></div><span class="sw__hex">#D4826A</span><span class="sw__role">negative delta</span><span class="sw__tok">--terra-400</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#7FB08F"></div><span class="sw__hex">#7FB08F</span><span class="sw__role">positive delta</span><span class="sw__tok">--verd-400</span></div>
+              <div class="sw"><div class="sw__chip" style="background:#F5EFE4"></div><span class="sw__hex">#F5EFE4</span><span class="sw__role">the one bone card</span><span class="sw__tok">--bone-card</span></div>
+            </div>
+          </div>
+
+          <div>
+            <p class="blk-label">Signature moves</p>
+            <ul class="moves">
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>Brass brackets and the double rule.</b> Four L-shaped 1px hairlines frame whatever is
+                being <em>presented</em>, and a brass double rule closes the hero and separates section heads.
+                Both are rationed to a hard per-screen budget.</span></li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>The bone card.</b> Exactly one inverted linen-white island per screen, carrying that
+                screen's most human content. It is the tablecloth, and there is never a second one.</span></li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                <span><b>Small-caps brass labels on near-black.</b> Every label is 10.5px, .20em, brass — that
+                single decision does more theming work than the rest of the palette combined. Radii top out at
+                10px; there are no pills.</span></li>
+            </ul>
+          </div>
+
+          <div class="tradeoff">
+            <div class="tradeoff__part">
+              <h4><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"/></svg> Best at</h4>
+              <ul>
+                <li><b>Low-light rooms.</b> The only one of the three that does not blast a host stand or a pass
+                at 9pm. In a dim dining room this is not a preference, it is the correct answer.</li>
+                <li><b>Perceived value.</b> Serif display, brass hairlines and squared geometry read as expensive.
+                It is the easiest of the three to put a higher price on.</li>
+                <li><b>A few large numbers.</b> Built for a 57-cover house: figures are few, large and given room.
+                An owner reviewing the night's takings is its ideal reader.</li>
+                <li><b>Discipline.</b> Its ornament budget is the tightest, so it degrades the most gracefully
+                when a hurried developer adds a screen.</li>
+              </ul>
+            </div>
+            <div class="tradeoff__part">
+              <h4><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-minus"/></svg> What it costs</h4>
+              <ul>
+                <li><b>A dark ground is a permanent constraint.</b> Uploaded menu photos, the Razorpay checkout
+                iframe, exported PDFs and any white third-party asset all fight it, and every one of them needs
+                handling — forever, on every screen.</li>
+                <li><b>Daylight.</b> A tablet on a counter beside a window is its worst case, and that is a real
+                Operato tenant.</li>
+                <li><b>A legal workaround you carry forever.</b> The FSSAI maroon measures 1.66:1 on this ground,
+                so the mark has to be drawn on its own white tile on every screen. Correct, documented, and still
+                a permanent asterisk.</li>
+                <li><b>Volume.</b> Low-count numeracy is a design premise, not a setting. A 900-order-a-day
+                canteen tenant will strain this direction hard.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <nav class="screens" aria-label="Saffron House screens">
+          <a class="screen-link" href="saffron-dashboard.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Overview</span>
+              <span class="screen-link__what">Candlelit ground, brass brackets, one bone card of what sold</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="screen-link" href="saffron-menu.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Menu</span>
+              <span class="screen-link__what">The leather-bound menu card, and the FSSAI mark on its white tile</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="screen-link" href="saffron-orders.html">
+            <span class="screen-link__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg></span>
+            <span class="screen-link__txt">
+              <span class="screen-link__name">Orders &amp; floor</span>
+              <span class="screen-link__what">Checks, covers, and the solid brass "on the pass" chip</span>
+            </span>
+            <svg class="screen-link__go" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+        </nav>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     04 · THE MATRIX
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <div>
+        <h2>Where they actually differ</h2>
+        <p class="sub">Read down a column to understand one direction; read across a row to see the size of
+        the gap. Every value is taken from the corresponding spec, not estimated.</p>
+      </div>
+      <span class="sec-rule"></span>
+    </div>
+
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Comparison of the three design directions, scrollable">
+      <table class="cmp">
+        <caption>Structural comparison · Forno, Crema and Saffron House</caption>
+        <thead>
+          <tr>
+            <th scope="col">Attribute</th>
+            <th scope="col">
+              <span class="dot-row"><span class="dot" style="background:#E23B14"></span>Forno</span>
+              <span>Loud · dense · hand-made</span>
+            </th>
+            <th scope="col">
+              <span class="dot-row"><span class="dot" style="background:#B07636"></span>Crema</span>
+              <span>Calm · airy · precise</span>
+            </th>
+            <th scope="col">
+              <span class="dot-row"><span class="dot" style="background:#C9A227"></span>Saffron House</span>
+              <span>Dark · refined · rationed</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Ground</th>
+            <td><span class="hi">Split</span> — dark charred shell over a cream <code>#F0E2CA</code> canvas</td>
+            <td><span class="hi">All light</span> — warm paper, <code>#FBF8F3</code> throughout</td>
+            <td><span class="hi">All dark</span> — aubergine-black <code>#130D12</code> throughout</td>
+          </tr>
+          <tr>
+            <th scope="row">Sidebar</th>
+            <td>Opaque charred slab: brick grid + leopard blisters + a flickering ember glow. No glass anywhere in desktop chrome.</td>
+            <td>Flat panel of pale wood, one hairline, no shadow, no blur. Active item is a lifted ceramic card.</td>
+            <td>Glass: <code>blur(16px) saturate(1.15)</code> over aubergine, with a 3px brass bar marking the active link.</td>
+          </tr>
+          <tr>
+            <th scope="row">Header form</th>
+            <td>A hero band with an ember glow, cut off in a row of bubbled crust circles.</td>
+            <td>A full-bleed oat-to-chalk wash closed by three stacked hairlines.</td>
+            <td>A framed band: four brass corner brackets, closed by a brass double rule.</td>
+          </tr>
+          <tr>
+            <th scope="row">Card</th>
+            <td>Cream receipt: 2px drawn black outline, 7px colour bar, scorched corner, perforated bottom edge.</td>
+            <td>Ceramic: 1px hairline first, a wide faint warm shadow second. Delete every shadow and it still reads.</td>
+            <td>Dark panel: 1px gold hairline, deep black shadow, plus a 1px inner top sheen so it reads as lit, not as a hole.</td>
+          </tr>
+          <tr>
+            <th scope="row">Shadow language</th>
+            <td><span class="hi">Hard offsets only.</span> <code>5px 5px 0 #14100D</code>. Blur is reserved for ember glow.</td>
+            <td><span class="hi">Wide, faint, warm brown.</span> <code>0 10px 30px -18px</code> at 22% — never neutral grey.</td>
+            <td><span class="hi">Deep and black</span> with a mandatory inset sheen. A dark room swallows tinted shadow.</td>
+          </tr>
+          <tr>
+            <th scope="row">Largest radius</th>
+            <td>30px</td>
+            <td>20px on a card</td>
+            <td>10px on a card — 2px on buttons and chips</td>
+          </tr>
+          <tr>
+            <th scope="row">Display type</th>
+            <td>Arial Black 900, UPPERCASE, up to 62px, −.03em</td>
+            <td>Serif at weight <span class="hi">300</span>, up to 58px, sentence case with a full stop</td>
+            <td>Serif at weight <span class="hi">400</span> only, up to 58px — never bolded</td>
+          </tr>
+          <tr>
+            <th scope="row">Headline numbers</th>
+            <td>900 weight, up to 44px, tabular</td>
+            <td><span class="hi">300 weight</span>, up to 44px, tabular — never bold in this theme</td>
+            <td>700 weight, up to 38px, tabular</td>
+          </tr>
+          <tr>
+            <th scope="row">Labels</th>
+            <td>Display 900, 10.5px, .16em</td>
+            <td>Sans 600, 10.5px, <span class="hi">.18em</span></td>
+            <td>Sans 600, 10.5px, <span class="hi">.20em</span>, always brass</td>
+          </tr>
+          <tr>
+            <th scope="row">Third face</th>
+            <td><span class="hi">Monospace</span> for order numbers, table numbers, times — the kitchen's voice</td>
+            <td>None. Sans and serif only; numbers are always sans</td>
+            <td>None. Two faces, strictly divided: serif speaks, sans counts</td>
+          </tr>
+          <tr>
+            <th scope="row">The one solid chip</th>
+            <td>READY — ember gradient + a pulsing ring</td>
+            <td>ON THE PASS — solid <code>#D9A566</code>, no border</td>
+            <td>ON THE PASS — solid brass, ink text</td>
+          </tr>
+          <tr>
+            <th scope="row">Texture</th>
+            <td>Speckle + brick + leopard + scorch — four recipes</td>
+            <td><span class="hi">None.</span> No backdrop-filter, no blobs, no grain</td>
+            <td>A 4px engraved hairline over the whole page + three fixed candle glows</td>
+          </tr>
+          <tr>
+            <th scope="row">Motion signature</th>
+            <td>Press-translate into its own shadow; ember flicker at 7s</td>
+            <td>An 8px rise, staggered at 60ms. Nothing bounces</td>
+            <td>A 9px rise; candle bloom breathing at 14s. Nothing else moves</td>
+          </tr>
+          <tr>
+            <th scope="row">Tap floor</th>
+            <td>46px</td>
+            <td>44px (buttons 46px)</td>
+            <td>44px</td>
+          </tr>
+          <tr>
+            <th scope="row">Intended density</th>
+            <td><span class="hi">High</span> — a busy screen is desirable</td>
+            <td><span class="hi">Low</span> — the whitespace budget is not negotiable downwards</td>
+            <td><span class="hi">Medium-low</span> — few figures, large, with room</td>
+          </tr>
+          <tr>
+            <th scope="row">Tenant scale it assumes</th>
+            <td>High volume · <span class="num"><span class="rupee">₹</span>1,47,850</span> a night across many tickets</td>
+            <td>Many small tickets · <span class="num"><span class="rupee">₹</span>38,420</span> a day</td>
+            <td>Few large checks · <span class="num"><span class="rupee">₹</span>4,36,500</span> a night</td>
+          </tr>
+          <tr>
+            <th scope="row">Build cost</th>
+            <td><span class="hi">High</span> — masks, textures, drop-shadow filters</td>
+            <td><span class="hi">Low</span> — hairlines and flat paper</td>
+            <td><span class="hi">Medium</span> — glass, glows, one legal workaround</td>
+          </tr>
+          <tr>
+            <th scope="row">Travels to vertical #2</th>
+            <td>Poorly. It is a restaurant, loudly</td>
+            <td><span class="hi">Well.</span> Rename the nav and it fits a salon or a pharmacy</td>
+            <td>Partly. Fits anything premium; fights anything cheerful</td>
+          </tr>
+          <tr>
+            <th scope="row">Biggest risk</th>
+            <td>Fatigue, and a display face that renders differently per OS</td>
+            <td>Sliding back into stock shadcn if the details get skipped</td>
+            <td>Every white third-party asset and photo fighting the ground</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     05 · HOW TO CHOOSE
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="sec sec--tint">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <div>
+        <h2>How to choose</h2>
+        <p class="sub">Answer these about the real tenant, not the pitch deck. Four of the five usually
+        point the same way; when they do, that is the answer.</p>
+      </div>
+      <span class="sec-rule"></span>
+    </div>
+
+    <div class="qs">
+      <article class="q">
+        <p class="q__q">Where is the tablet, and what is the light like?</p>
+        <p class="q__a">This is the question that decides the ground, and the ground is the one thing you
+        cannot blend later. A <b>bright counter next to a window</b> needs a light ground. A
+        <b>dim dining room at 9pm</b> needs a dark one, and a light screen there is genuinely unpleasant.</p>
+        <div class="q__ans">
+          <span class="pick pick--forno"><i></i>Bright · Forno</span>
+          <span class="pick pick--crema"><i></i>Bright · Crema</span>
+          <span class="pick pick--saffron"><i></i>Dim · Saffron</span>
+        </div>
+      </article>
+
+      <article class="q">
+        <p class="q__q">Who reads it, and for how long?</p>
+        <p class="q__a">A line cook glancing for three seconds is served by weight and hard outline. A manager
+        reading for forty minutes is served by whitespace. An owner reviewing at close is served by a few
+        large figures with room around them.</p>
+        <div class="q__ans">
+          <span class="pick pick--forno"><i></i>3 seconds · Forno</span>
+          <span class="pick pick--crema"><i></i>40 minutes · Crema</span>
+          <span class="pick pick--saffron"><i></i>At close · Saffron</span>
+        </div>
+      </article>
+
+      <article class="q">
+        <p class="q__q">How many rows must fit on the busiest screen?</p>
+        <p class="q__a">Thirty live orders on a floor grid look <b>intentional</b> in Forno and
+        <b>cramped</b> in Crema. Eight checks look <b>composed</b> in Saffron and <b>sparse</b> in Forno.
+        Count the real rows on the real busiest night before answering.</p>
+        <div class="q__ans">
+          <span class="pick pick--forno"><i></i>30+ rows · Forno</span>
+          <span class="pick pick--crema"><i></i>15 rows · Crema</span>
+          <span class="pick pick--saffron"><i></i>8 rows · Saffron</span>
+        </div>
+      </article>
+
+      <article class="q">
+        <p class="q__q">What is Operato selling in eighteen months?</p>
+        <p class="q__a">The platform seam exists so vertical #2 can be something other than food. If that is
+        a salon or a pharmacy, <b>Crema travels and Forno does not</b>. If the plan is to stay in restaurants
+        and go upmarket, that constraint costs nothing and Saffron is the stronger asset.</p>
+        <div class="q__ans">
+          <span class="pick pick--crema"><i></i>Vertical #2 · Crema</span>
+          <span class="pick pick--saffron"><i></i>Upmarket · Saffron</span>
+        </div>
+      </article>
+
+      <article class="q">
+        <p class="q__q">What can the team build, and keep building?</p>
+        <p class="q__a">Crema is roughly a week of component work and stays correct when someone rushes.
+        Saffron adds glass, glows and one permanent legal workaround. Forno's masks, textures and
+        drop-shadow filters are two to three times the work and the least forgiving to extend.</p>
+        <div class="q__ans">
+          <span class="pick pick--crema"><i></i>Cheapest · Crema</span>
+          <span class="pick pick--saffron"><i></i>Middle · Saffron</span>
+          <span class="pick pick--forno"><i></i>Dearest · Forno</span>
+        </div>
+      </article>
+
+      <article class="q">
+        <p class="q__q">Who has to be impressed in the first ten seconds?</p>
+        <p class="q__a">If it is an investor or an upmarket owner, Saffron reads as the most expensive product
+        in the room. If it is the person who will actually use it during service, Forno wins the demo and
+        Crema wins the second week.</p>
+        <div class="q__ans">
+          <span class="pick pick--saffron"><i></i>Investor · Saffron</span>
+          <span class="pick pick--forno"><i></i>Demo · Forno</span>
+          <span class="pick pick--crema"><i></i>Week two · Crema</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="callout">
+      <h3>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+        One thing you cannot do: split the difference
+      </h3>
+      <p>You can lift a <b>component</b> across directions — Crema's dot-leader board would work in any of the
+      three, and the five-step status meter already appears in all of them. What you cannot do is run two
+      shells. The dark-ground decision propagates into charts, uploaded images, the Razorpay checkout iframe,
+      PDF exports, the FSSAI mark and every empty state. Pick the ground first; everything else is downstream
+      of it.</p>
+      <p>Whichever direction wins, the next step is the same: take its spec comment as the contract, build the
+      remaining five screens — <b>Inventory, Customers, Staff, Ask AI, Billing</b> — from it without
+      re-deriving a single value, then freeze the tokens into
+      <code style="font:500 12px var(--font-mono);background:rgba(255,255,255,.12);border:0;color:#FFF;padding:1px 5px;border-radius:3px">src/app/globals.css</code>.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><b>Nine files, three directions.</b> Every screen is one self-contained HTML file with its tokens
+    declared on <code>:root</code>, inline SVG icons, no CDN, no external font and no remote asset — open any
+    of them straight off disk.</p>
+    <p>This index is deliberately achromatic and unstyled: a gallery that looks like one of its entries has
+    already voted. Every hex, ratio and geometry quoted here was read out of the corresponding
+    <code>&lt;theme&gt;-dashboard.html</code> file. If a token moves there, move it here too.</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,828 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPERATO · "MANDI COUNTER" — _shell.css
+   The shared application shell. Every one of the eight screen mockups links
+   this file and _theme.css, in this order, and nothing else:
+
+       <link rel="stylesheet" href="./_theme.css">
+       <link rel="stylesheet" href="./_shell.css">
+
+   DIVISION OF LABOUR — the reason there are two files and not one.
+   _theme.css owns the CONTRACT: colour, gradients, shadows, radii, type,
+   spacing, motion, the reset, and the primitives that appear on more than one
+   screen (.card .btn .chip .av .fssai .tile .label .metric .meter-bar).
+   _shell.css owns the CHROME: the page grid, the sidebar, the sticky page
+   header, the content column, and the four things every screen repeats around
+   its own data — toolbar, table shell, empty state, skeleton.
+   Anything true of exactly one screen belongs in that screen's <style>, not
+   here. (The reference system we are matching shipped a _shell.css that no
+   page actually linked; that is the one mistake this architecture fixes.)
+
+   NOT ONE HEX. Every value below resolves through a _theme.css token. Where
+   the shell needs a number _theme.css does not name, it is declared in §0
+   with a --shell- prefix so it can never collide with a token the theme adds
+   later. Twelve of those exist — eleven on <body> plus one state value on
+   .shell — and they are all in §0.
+
+   Palette source: Mandi Counter — already verified and shipped into
+   src/app/globals.css. Do not invent, tweak or re-derive a colour here.
+   Contrast figures quoted below were measured against the final :root /
+   .dark blocks; the sidebar figures are measured against the --grad-sidebar
+   wash, not the flat --sidebar token, because the wash is what the text
+   actually sits on.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 0. Shell-local values — the only new names in this file ──────────────
+   Declared on <body> rather than :root for two reasons: :root belongs to
+   _theme.css and this file must never even appear to redefine a token there;
+   and a menu rendered outside .shell still inherits from body. --shell-cols
+   is the one exception — it is per-shell STATE (§6) so it lives on .shell.  */
+body {
+  --shell-tile:     32px;   /* the sidebar identity squares. Matches .av's
+                               32px exactly, so the wordmark tile, the tenant
+                               tile and the user avatar form one clean 32px
+                               column down the sidebar's left edge.          */
+  --shell-icon:     18px;   /* every lucide glyph in the chrome. 18, not 16:
+                               the rail is icon-ONLY at tablet landscape and
+                               a 16px glyph inside a 44px target reads as a
+                               mistake at arm's length.                      */
+  --shell-menu-w:   14rem;  /* 224px = the app's w-56 dropdown. The switcher
+                               menu and the user menu are both this wide.    */
+  --shell-head-h:   60px;   /* MEASURED, not chosen: --pad-head is 12px 16px,
+                               --t-chrome is 14px/1.30 (18.2px) and --t-small
+                               is 12.5px/1.50 (18.75px), so a two-line
+                               .pagehead is 12 + 18.2 + 18.75 + 12 ≈ 61.
+                               Used ONLY for scroll-margin and for offsetting
+                               a sticky table head beneath the header. It
+                               never SIZES the header — a one-line header
+                               must stay free to be slimmer.                 */
+  --shell-tabbar-h: 64px;   /* the ≤1023 bottom bar: --tap (44) + 6px padding
+                               top and bottom, rounded up over the 11px
+                               label line.                                   */
+
+  /* The skeleton sweep. Built from --muted and --card only — no new colour.
+     It reads as a sweep in BOTH themes because those two tokens are far
+     enough apart in either: light L* 91.88 → 99.01 (Δ 7.13), dark L* 14.42 →
+     8.87 (Δ 5.55). In light the sweep brightens, in dark it dims; both are
+     motion against a static field, which is the entire signal.              */
+  --shell-sheen: linear-gradient(90deg,
+                   var(--muted) 0%,
+                   color-mix(in srgb, var(--muted) 55%, var(--card)) 50%,
+                   var(--muted) 100%);
+
+  /* One z ladder for the whole shell, so no call site ever guesses. The head
+     is 10 to match the app's existing z-10; the rest are spaced so a future
+     layer can slot between them without a renumber.                         */
+  --shell-z-head:   10;
+  --shell-z-tip:    40;   /* rail tooltip: above the header, below the sheet */
+  --shell-z-tabbar: 55;
+  --shell-z-scrim:  58;
+  --shell-z-sheet:  60;
+}
+
+
+/* ── 1. The page grid ────────────────────────────────────────────────────
+   Two columns: a fixed nav column and a fluid content column. That nav
+   column's width is the single switch that produces all three shell shapes
+   (§6, §12) — full sidebar, icon rail, and no column at all.                */
+.shell {
+  --shell-cols: var(--sidebar-w);          /* 16rem / 256px — the default    */
+  display: grid;
+  grid-template-columns: var(--shell-cols) minmax(0, 1fr);
+  min-height: 100dvh;
+  transition: grid-template-columns var(--dur-lg) var(--ease-io);
+}
+
+.main {
+  min-width: 0;      /* LOAD-BEARING. Without it a wide inventory table or a
+                        long order line forces the track past 1fr and the
+                        whole page scrolls sideways — on a mounted tablet
+                        that is unrecoverable without two hands.             */
+  display: flex;
+  flex-direction: column;
+}
+
+/* The signature wash. Opt-in per screen, and it goes HERE — on the content
+   column, behind the cards — never on <body>. --card sits only 1.07:1 above
+   --background, so a card is a card by its hairline and its shadow, not by
+   its fill; a gradient sliding under the whole page steals that. For the
+   same reason, never put .bg-app behind a table.                            */
+.bg-app { background: var(--app-bg); background-attachment: fixed; }
+
+
+/* ── 2. The sidebar frame, wordmark and restaurant switcher ──────────────
+   The container declaration below is the mechanism that makes the rail one
+   width change instead of two parallel rule sets: whatever narrows the
+   sidebar — the media query at tablet landscape, or data-rail on .shell —
+   the labels clip themselves. See §6.                                       */
+.sidebar {
+  container: rail / inline-size;
+  position: sticky; top: 0;
+  height: 100dvh;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 14px 10px;
+  background: var(--grad-sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-foreground);
+}
+/* --grad-sidebar runs --sidebar → color-mix(--sidebar 92%, --foreground),
+   i.e. it interpolates AWAY from its own ink, so by law L12 its worst stop
+   is an endpoint — and it is the bottom one, which is exactly where the user
+   menu sits. Measured at every 5% stop across the full sweep:
+     --sidebar-foreground   9.71:1 light · 11.05:1 dark   (worst, at 100%)
+     --muted-foreground     5.20:1 light ·  6.08:1 dark   (worst, at 100%)
+   Both clear 4.5:1, so the email line at the foot of the sidebar is legal at
+   the wash's darkest. Do not deepen the mix past 92% without re-measuring:
+   the muted line is the binding constraint and it has 0.70 of headroom.     */
+
+/* The drag-to-collapse handle at the sidebar's edge (SidebarRail). A hairline
+   that appears only on hover/focus, so it stays discoverable without drawing
+   a permanent second border beside --sidebar-border.                        */
+.sidebar__rail {
+  position: absolute; inset: 0 -8px 0 auto; width: 16px;
+  cursor: col-resize; background: transparent;
+  transition: background var(--dur) var(--ease);
+}
+.sidebar__rail:hover,
+.sidebar__rail:focus-visible { background: color-mix(in srgb, var(--sidebar-border) 60%, transparent); }
+
+/* — Wordmark tile. The Operato identity, and the only place --grad-brand is
+     spent inside the app shell. --brand-foreground on it: 13.27:1 light /
+     12.15:1 dark. Never --primary-foreground (wrong family), and never white
+     in dark — the dark brand is a light mint and white on it fails outright. */
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  min-height: var(--tap); padding: 0 6px;
+}
+.brand__mark {
+  width: var(--shell-tile); height: var(--shell-tile); flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--grad-brand);
+  color: var(--brand-foreground);
+  box-shadow: var(--sh-rim), var(--sh-sm);
+  font: var(--t-h2);
+}
+.brand__mark svg { width: var(--shell-icon); height: var(--shell-icon); }
+.brand__text {
+  font: var(--t-h2); letter-spacing: -0.01em;
+  color: var(--sidebar-foreground);        /* 11.37:1 on --sidebar          */
+  white-space: nowrap; overflow: hidden;
+}
+
+/* — Restaurant switcher. Its tile is --sidebar-primary (cocoa), NOT the brand
+     green, because the brand square is already sitting 8px above it and the
+     tenant is not the product. The pair is legal by measurement:
+     dE(--brand, --sidebar-primary) = 12.14, taken as the MINIMUM over normal,
+     deuteranope and protanope vision. That number is precisely why two
+     stacked identity squares are allowed to read as two different things.
+     --sidebar-primary-foreground on --sidebar-primary: 7.66:1 / 7.87:1.     */
+.switcher {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: 48px; padding: 6px;
+  border-radius: var(--r-sm);
+  color: var(--sidebar-foreground);
+  transition: background var(--dur) var(--ease);
+}
+.switcher:hover { background: var(--sidebar-accent); }
+.switcher__tile {
+  width: var(--shell-tile); height: var(--shell-tile); flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+  box-shadow: var(--sh-rim), var(--sh-xs);
+}
+.switcher__tile svg { width: var(--shell-icon); height: var(--shell-icon); }
+.switcher__text { min-width: 0; display: grid; text-align: left; }
+.switcher__name {
+  font: var(--t-body); font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.switcher__role {
+  font: var(--t-small);
+  color: var(--muted-foreground);          /* 5.20:1 worst on the wash      */
+}
+.switcher__chev {
+  margin-left: auto; flex: none; width: 16px; height: 16px;
+  color: var(--muted-foreground);
+}
+
+
+/* ── 3. Navigation ───────────────────────────────────────────────────────
+   Eight items in a fixed order — Overview · Ask AI · Menu · Orders ·
+   Inventory · Staff · Customers · Billing. Ask AI is deliberately second,
+   right under Overview, because text-to-SQL is the flagship; Billing is last
+   because it is a once-a-month stop, not a daily module.
+
+   The four group labels — TODAY (Overview, Ask AI) · SERVICE (Menu, Orders,
+   Inventory) · PEOPLE (Staff, Customers) · ACCOUNT (Billing) — preserve that
+   order rather than reshuffle it. The grouping is a reading aid; it is never
+   a re-ranking. Labels wear .label from _theme.css, whose only legal colours
+   are --muted-foreground and --accent-foreground.                           */
+.nav { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; flex: 1; }
+.nav::-webkit-scrollbar { width: 6px; }
+.nav::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: var(--r-pill); }
+
+.nav-group { display: flex; flex-direction: column; gap: 2px; }
+.nav-group > .label { padding: 4px 10px; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 32px; padding: 0 10px;
+  border-radius: var(--r-sm);
+  color: var(--sidebar-foreground);
+  font: var(--t-body); font-weight: 500;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.nav-link svg { width: var(--shell-icon); height: var(--shell-icon); flex: none; }
+.nav-link:hover { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+
+/* THE ACTIVE RAIL. Hover and active share --sidebar-accent on purpose: there
+   is no second verified accent surface to spend, and inventing one would put
+   an unmeasured colour in the most-looked-at element in the product. What
+   separates them is SHAPE — a 3px inset bar in --sidebar-primary, plus the
+   weight step to 600. A background tint alone is invisible at a glance on a
+   warm ground, which is exactly how the app reads today.
+   --sidebar-accent-foreground on --sidebar-accent: 12.70:1 / 12.96:1.
+   Overview is active on an EXACT href match only, so it does not light up
+   while you are three levels into a child route.                            */
+.nav-link[aria-current="page"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 0 var(--sidebar-primary);
+}
+
+/* Trailing count — the live open-orders number. Reuses the plan-badge
+   pairing rather than inventing a nav-only colour.                          */
+.nav-link__count {
+  margin-left: auto; flex: none;
+  min-width: 20px; padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+  font: var(--t-label); letter-spacing: 0; line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ── 4. The sidebar foot — the user-menu trigger ─────────────────────────
+   Avatar, then name over email. Both text lines clip at rail width (§6); the
+   avatar never does, because it is the trigger's hit target.                */
+.sidebar__foot {
+  margin-top: auto; padding-top: 10px;
+  border-top: 1px solid var(--sidebar-border);
+}
+.usermenu {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: 48px; padding: 6px;
+  border-radius: var(--r-sm);
+  color: var(--sidebar-foreground);
+  transition: background var(--dur) var(--ease);
+}
+.usermenu:hover { background: var(--sidebar-accent); }
+.usermenu__text { min-width: 0; display: grid; text-align: left; }
+.usermenu__name {
+  font: var(--t-body); font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.usermenu__mail {
+  font: var(--t-small); color: var(--muted-foreground);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  /* This is the 5.20:1 line quoted in §2 — the lowest-contrast text anywhere
+     in the shell, sitting on the darkest stop of --grad-sidebar. If that wash
+     is ever deepened, this is the pixel that fails first.                    */
+}
+
+
+/* ── 5. Menus — the switcher popover and the user menu ───────────────────
+   One surface for both. --popover is the raised layer (the only pure white
+   in light), so a menu never has to borrow --card and compete with the page
+   behind it. Container radius is --r (10px): between the 8px items inside it
+   and the 14px cards behind it, which is what makes the nesting read.       */
+.menu {
+  min-width: var(--shell-menu-w);
+  padding: 4px;
+  border-radius: var(--r);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-rim), var(--sh-lg);
+}
+.menu__label { padding: 6px 8px; }               /* wears .label            */
+.menu__block { padding: 6px 8px; display: grid; gap: 1px; }
+.menu__block .usermenu__name,
+.menu__block .usermenu__mail { text-align: left; }
+.menu__sep { height: 1px; margin: 4px -4px; background: var(--border); border: 0; }
+.menu__item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: 32px; padding: 0 8px;
+  border-radius: var(--r-sm);
+  font: var(--t-body);
+  color: var(--popover-foreground);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.menu__item svg { width: 16px; height: 16px; flex: none; color: var(--muted-foreground); }
+.menu__item:hover { background: var(--accent); color: var(--accent-foreground); }
+/* --accent is a HOVER surface and never a resting state — that is why the
+   selected theme row below gets a dot as well as the tint.                  */
+.menu__item--danger { color: var(--destructive); }
+.menu__item--danger svg { color: currentColor; }
+.menu__item--danger:hover {
+  background: color-mix(in srgb, var(--destructive) 10%, transparent);
+  color: var(--destructive);
+}
+/* Sign out is a tint, never a fill. The only solid red in the system is the
+   confirm button inside an AlertDialog; a menu row must not out-shout a
+   READY ticket sitting on the same screen.                                  */
+
+.menu__mark { margin-left: auto; font: var(--t-small); color: var(--muted-foreground); }
+/* ↑ the muted "current" marker on the active restaurant row.               */
+.menu__tile {
+  width: 24px; height: 24px; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+.menu__tile svg { width: 14px; height: 14px; }
+
+/* THEME TOGGLE. It lives here — inside the user menu, as a Light / Dark /
+   System radio group — and nowhere else. There is deliberately NO standalone
+   toggle in the page header: a floor tablet is set once and then run for a
+   year, and a permanent button in the chrome spends daily-use real estate on
+   a yearly decision. Bind it to `theme`, not `resolvedTheme`, or "System"
+   silently deselects itself the moment the OS flips at dusk.                */
+.themeset { display: grid; gap: 1px; }
+.themeset .menu__item[aria-checked="true"] {
+  background: var(--accent); color: var(--accent-foreground); font-weight: 600;
+}
+.themeset .menu__item[aria-checked="true"]::after {
+  content: ""; margin-left: auto;
+  width: 6px; height: 6px; border-radius: var(--r-pill);
+  background: var(--primary);
+  /* A second channel on top of the tint and the weight: --accent is only
+     ~1.03:1 from --popover, so the tint alone is not a state.               */
+}
+
+
+/* ── 6. The rail — the collapsed sidebar ─────────────────────────────────
+   Two things put the sidebar into rail form: the tablet-landscape media
+   query in §12, and data-rail on .shell (a deliberate desktop collapse).
+   Both do the SAME one thing — set --shell-cols to --rail — and the
+   container query below reacts to the resulting width. One state, one rule
+   set, and no way for the two entry points to drift apart.
+
+   The rail is 48px and --tap is 44px: two pixels of gutter each side. Legal,
+   and tight. So every rail control is exactly --tap wide and centred. If a
+   future design widens the rail, 56px is the comfortable number — do not go
+   below 48.                                                                 */
+.shell[data-rail] { --shell-cols: var(--rail); }
+
+@container rail (max-width: 72px) {
+  .sidebar { padding-inline: 2px; align-items: center; }
+
+  .nav { overflow: visible; }
+  /* ↑ the nav must NOT be a scroll container at rail width, or it clips the
+       tooltips below. Eight items at 44px plus the brand, the switcher and
+       the user menu is ≈ 530px, which fits the 768px short edge of a
+       landscape tablet — there is nothing to scroll.                        */
+
+  .brand, .switcher, .usermenu, .nav-link { justify-content: center; padding: 0; }
+  .brand, .switcher, .usermenu { width: var(--tap); margin-inline: auto; }
+  .nav-link {
+    width: var(--tap); min-height: var(--tap);
+    margin-inline: auto; position: relative;
+  }
+
+  /* CLIPPED, never display:none. These spans are the accessible name of an
+     icon-only control — remove them from the box and a screen reader is left
+     announcing "button". This is the single most-broken rule in icon rails,
+     and it is why the clip is written out here rather than left to a
+     utility somebody might swap for `hidden`.                               */
+  .brand__text,
+  .switcher__text,
+  .switcher__chev,
+  .usermenu__text,
+  .nav-group > .label,
+  .nav-link > span {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+
+  /* The group labels have gone, so the hairline takes over their job of
+     saying "a new group starts here".                                       */
+  .nav-group + .nav-group {
+    border-top: 1px solid var(--sidebar-border);
+    padding-top: 8px;
+  }
+
+  /* The count pill has no room for a number, so it degrades to a presence
+     dot. "There is something here" is all the rail can honestly carry, and
+     the real figure is one tap away.                                        */
+  .nav-link__count {
+    position: absolute; top: 4px; right: 4px; margin: 0;
+    width: 8px; min-width: 8px; height: 8px; padding: 0;
+    font-size: 0; line-height: 0;
+  }
+
+  /* Tooltip. PRESENTATIONAL ONLY — the clipped span above is the accessible
+     name; generated content is not reliably announced and must never be the
+     sole label. Inverted surface, matching _theme.css's .card--ink tooltip:
+     --background on --foreground measures 15.32:1 light / 15.75:1 dark.     */
+  .nav-link::after {
+    content: attr(data-label);
+    position: absolute; left: calc(100% + 10px); top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    padding: 6px 10px;
+    border-radius: var(--r-sm);
+    background: var(--foreground); color: var(--background);
+    font: var(--t-small); white-space: nowrap;
+    box-shadow: var(--sh-lg);
+    opacity: 0; pointer-events: none; z-index: var(--shell-z-tip);
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+  /* A 3px inset bar on a 44px square is a sliver, so at rail width the active
+     state trades the bar for the full accent tile. The shape channel is not
+     dropped — it changes shape.                                             */
+  .nav-link[aria-current="page"] { box-shadow: none; }
+}
+
+
+/* ── 7. The page header — the only horizontal chrome in the app ──────────
+   There is no separate topbar, by design. Every screen's first element is
+   this strip: trigger · separator · title/description · actions.
+
+   The title is --t-chrome (600 14px) and NOT --t-h1. That is a decision, not
+   an oversight: eight screens deep in an operational tool, a 26px hero on
+   every page is 26px of vertical space spent restating where you already
+   know you are. --t-h1 belongs to the marketing site, the styleguide and a
+   future KDS — never to the app shell.
+
+   The sidebar trigger lives HERE rather than inside each page, so a phone
+   viewport can never land on a screen with no way back to the navigation.   */
+.pagehead {
+  position: sticky; top: 0; z-index: var(--shell-z-head);
+  display: flex; align-items: center; gap: 8px;
+  padding: var(--pad-head);
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  /* Opaque --background, not a translucent wash: the header sits over
+     scrolling table rows and a blurred strip turns a ₹ column to mush.      */
+}
+.pagehead__trigger { margin-left: -4px; }   /* the app's -ml-1. Wears
+                                               .btn .btn--ghost .btn--icon.  */
+.pagehead__sep {
+  width: 1px; height: 16px; margin-right: 8px;
+  background: var(--border); flex: none;
+}
+.pagehead__text { min-width: 0; flex: 1; display: grid; }
+.pagehead__title {
+  font: var(--t-chrome);
+  color: var(--foreground);                /* 15.32:1 / 15.75:1             */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pagehead__desc {
+  font: var(--t-small);
+  color: var(--muted-foreground);          /* 6.59:1 / 7.62:1               */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pagehead__actions { display: flex; align-items: center; gap: var(--gap-xs); flex: none; }
+/* None of the eight screens currently passes actions — every page's primary
+   action sits in its own .toolbar row instead, beside the data it acts on.
+   The slot exists so that stays a choice rather than a limitation.          */
+
+
+/* ── 8. The content container ────────────────────────────────────────────
+   --measure is 1180px: wide enough for the six-column inventory table at
+   desktop, narrow enough that a 1440px monitor does not stretch a single
+   order line into 1200px of unreadable rag.                                 */
+.wrap {
+  width: 100%; max-width: var(--measure); margin-inline: auto;
+  padding: var(--pad-page);
+  display: flex; flex-direction: column; gap: var(--gap);
+  flex: 1;
+}
+.wrap--narrow { max-width: 48rem; }
+/* ↑ 768px, Ask AI only. It is the one screen that is a conversation rather
+     than a dashboard, and a conversation has a reading measure. Every other
+     screen is full-bleed to --measure.                                      */
+.wrap [id] { scroll-margin-top: calc(var(--shell-head-h) + var(--gap-xs)); }
+/* ↑ anchors must land BELOW the sticky header, not behind it.              */
+
+
+/* ── 9. Toolbar, table and list shell ───────────────────────────────────
+   Six of the eight screens are "toolbar over table". Both live here so those
+   six cannot drift apart row by row.                                        */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-sm); }
+.toolbar__end { margin-left: auto; display: flex; align-items: center; gap: var(--gap-xs); }
+
+.tbl-wrap {
+  position: relative;
+  background: var(--card); color: var(--card-foreground);
+  border-radius: var(--r-md);
+  outline: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  box-shadow: var(--sh-rim), var(--sh);
+  overflow: hidden;
+  /* The hairline is not decoration. --card is 1.07:1 above --background, so
+     without the outline a table has no edge at all — the fill is not what
+     makes it a surface. Identical construct to .card in _theme.css; keep
+     them the same or a table stops looking like it belongs to the system.   */
+}
+.tbl-wrap.scroll-x { overflow-x: auto; }
+.tbl-wrap[data-overflow]::after {
+  content: ""; position: absolute; inset: 0 0 0 auto; width: 36px;
+  background: var(--grad-fade-x); pointer-events: none;
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  /* The scroll affordance. Set data-overflow only when the table actually
+     overflows — a permanent fade is a lie about the content.                */
+}
+
+.tbl { width: 100%; border-collapse: collapse; font: var(--t-body); }
+.tbl th {
+  font: var(--t-label); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; text-align: left; white-space: nowrap;
+  color: var(--muted-foreground);   /* 7.04:1 on --card. A <th> is 11px
+                                       uppercase — small text, so 4.5:1 is
+                                       the floor and --muted-foreground is
+                                       the lightest ink allowed here.        */
+  background: var(--card);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.tbl td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl tbody tr { transition: background var(--dur) var(--ease); }
+.tbl tbody tr:hover { background: color-mix(in srgb, var(--muted) 50%, transparent); }
+.tbl--click tbody tr { cursor: pointer; }
+.tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+/* ↑ every ₹ column, every quantity, every visit count. body already sets
+     tabular-nums globally; .num is here so the intent reads at the call
+     site and so right-alignment travels with it.                            */
+.tbl .cell-actions { text-align: right; white-space: nowrap; }
+.tbl--sticky thead th { position: sticky; top: var(--shell-head-h); z-index: 1; }
+
+/* The two row tints the system allows, and no others. A third would start a
+   colour language inside the table that competes with the status chips.     */
+.tr--dim  { opacity: .6; }
+/* ↑ an unavailable dish. The one status in the app expressed by dimming
+     rather than by a chip, so it must not also gain a tint.                 */
+.tr--warn { background: color-mix(in srgb, var(--warning-subtle) 50%, transparent); }
+/* ↑ below the reorder line. The SAME amber as the reorder banner and the
+     "reorder" badge — one warning tone serves card, banner, row and chip, or
+     they vibrate against each other.                                        */
+
+/* Expanded detail row (a staff member's shift history). Recessed rather than
+   raised, so it reads as being INSIDE the row above it.                     */
+.tr--panel > td {
+  background: color-mix(in srgb, var(--muted) 30%, transparent);
+  padding: var(--pad-card);
+}
+
+/* The list form of the same shell, for screens that stack cards instead of
+   rows (Orders → Open and History).                                         */
+.list { display: flex; flex-direction: column; gap: var(--gap-sm); }
+
+
+/* ── 10. Empty state ─────────────────────────────────────────────────────
+   Every table shares one shape: a muted square, one sentence, and — only
+   when the emptiness is fixable from right here — one outline button. When
+   the list is empty because of a SEARCH, the button is omitted: "Add the
+   first one" is the wrong offer to someone who is filtering.                */
+.empty {
+  display: grid; justify-items: center; gap: var(--gap-sm);
+  padding: 48px var(--pad-card);
+  text-align: center;
+  font: var(--t-small);
+  color: var(--muted-foreground);
+}
+.empty__icon {
+  width: var(--tap); height: var(--tap);
+  /* 44px — the app's size-11, which lands exactly on --tap. Convenient, and
+     worth keeping: it means the empty state is already the right size when
+     the icon square becomes a button on a touch screen.                     */
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--muted);
+  color: var(--muted-foreground);          /* 5.87:1 / 6.27:1 on --muted    */
+}
+.empty__icon svg { width: 20px; height: 20px; }
+.empty__title { font: var(--t-body); font-weight: 500; color: var(--foreground); }
+td.empty-cell { padding: 0; border-bottom: 0; }
+
+.err-state { font: var(--t-body); color: var(--destructive); padding: var(--pad-card); }
+/* ↑ "Couldn't load the menu: …". --destructive is 9.09:1 as ink, so a load
+     failure is readable without a chip, an icon or a border.                */
+
+
+/* ── 11. Skeleton / loading ──────────────────────────────────────────────
+   A skeleton stands in for CONTENT, so it is --muted and never --card: it
+   has to read as an absence ON the card, not as a second card.              */
+.sk {
+  min-height: 12px;
+  border-radius: var(--r-xs);
+  background: var(--shell-sheen);
+  background-size: 200% 100%;
+  animation: sk-sheen 1.4s linear infinite;
+}
+@keyframes sk-sheen {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+.sk--text { height: 12px; }
+.sk--row  { height: 20px; }
+.sk--line { height: 28px; }
+.sk--tile { height: 96px; border-radius: var(--r-lg); }   /* floor tiles     */
+.sk--card { height: 220px; border-radius: var(--r-md); }  /* chart cards     */
+
+/* The three-bar thinking state on Ask AI. The widths live here rather than
+   as utility classes so the shape is one decision in one place.             */
+.sk-stack { display: grid; gap: 10px; }
+.sk-stack > .sk:nth-child(1) { width: 66%; }
+.sk-stack > .sk:nth-child(2) { width: 100%; }
+.sk-stack > .sk:nth-child(3) { width: 80%; }
+
+/* _theme.css's global prefers-reduced-motion block already forces
+   animation-iteration-count: 1 and a 0.01ms duration, which kills the sheen
+   correctly — the bars stay, the motion goes. Do not add a second override
+   here, or the two will eventually disagree.                                */
+
+
+/* ═════════════════════════ 12. BREAKPOINTS ══════════════════════════════
+   Operato is used on a TABLET, mounted or held, in a kitchen, by someone
+   with wet hands. Tablet is a first-class citizen, not an afterthought.
+
+     ≤ 639px    Phone            secondary — the owner checking a number
+     640–1023   Tablet portrait  ← PRIMARY TARGET   768 × 1024
+     1024–1279  Tablet landscape ← PRIMARY TARGET  1024 × 768  (the counter)
+     ≥ 1280     Desktop          back office — reports, menu editing
+
+   HARD REQUIREMENT: every mockup must be fully usable with a FINGER at
+   768×1024 and 1024×768. If a control cannot be hit at 44px in those two
+   viewports, the layout is wrong — not the finger.
+
+   Shell shape at each range:
+     ≥1280      sidebar 256px + content column
+     1024–1279  rail 48px + content; labels CLIPPED, tooltips on hover/focus
+     ≤1023      no nav column, and BOTH of the following. This is the
+                decision the brief asked for, and it is not a hedge:
+                  · the BOTTOM-DOCKED .tabbar is the PRIMARY navigation.
+                    Five destinations, always visible, thumb-reachable while
+                    the other hand is holding a plate. A sheet you must open
+                    first is one tap too many mid-service, forty times a
+                    shift.
+                  · the off-canvas SHEET is the OVERFLOW. It holds the full
+                    eight items plus the restaurant switcher and the user
+                    menu, and opens from the .pagehead trigger.
+                Neither alone is honest: five tabs cannot hold eight
+                destinations, and a sheet cannot be the daily path.
+     ≤419       KPI grids collapse to one column — "₹4,86,300" cannot survive
+                a ~150px box. That rule belongs to overview.html, not here.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Tablet landscape — the counter. Rail form; §6 does everything else.       */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .shell { --shell-cols: var(--rail); }
+}
+
+/* Tablet portrait and phone.                                               */
+@media (max-width: 1023px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+
+  /* The sidebar becomes an off-canvas sheet. -102%, not -100%, so the
+     --sh-xl cast does not bleed back onto the page as a grey seam at rest. */
+  .sidebar {
+    position: fixed; inset: 0 auto 0 0;
+    width: var(--sidebar-w-mobile);          /* 18rem / 288px               */
+    height: 100dvh;
+    transform: translateX(-102%);
+    transition: transform var(--dur-lg) var(--ease-io);
+    box-shadow: var(--sh-xl);
+    z-index: var(--shell-z-sheet);
+  }
+  .shell[data-nav="open"] .sidebar { transform: none; }
+  .sidebar__rail { display: none; }
+
+  .shell__scrim {
+    position: fixed; inset: 0; z-index: var(--shell-z-scrim);
+    background: var(--scrim);
+    /* 38% ink in light, 62% black in dark. The app's current bg-black/10 is
+       literally invisible over #16110C — --scrim is the token that fixes it,
+       and all three backdrops (dialog, alert-dialog, sheet) move together.  */
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--dur-lg) var(--ease-io);
+  }
+  .shell[data-nav="open"] .shell__scrim { opacity: 1; pointer-events: auto; }
+
+  .tabbar { display: grid; }
+  .main { padding-bottom: calc(var(--shell-tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--gap)); }
+
+  /* At phone width the toolbar's right-hand group stops being a "push" and
+     becomes its own full-width row — margin-left:auto on a wrapped flex line
+     silently does nothing, which is how toolbars end up looking broken.     */
+  .toolbar__end { margin-left: 0; }
+}
+
+@media (max-width: 639px) {
+  .toolbar__end { width: 100%; }
+}
+
+/* The bottom bar. Five slots: Overview · Ask AI · Orders · Inventory · More.
+   Orders and Inventory earn theirs because they are the two screens a shift
+   actually returns to; Menu, Staff, Customers and Billing live behind More,
+   which opens the sheet.                                                    */
+.tabbar {
+  display: none;
+  position: fixed; inset: auto 0 0 0; z-index: var(--shell-z-tabbar);
+  grid-template-columns: repeat(5, 1fr);
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--sidebar) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-top: 1px solid var(--sidebar-border);
+  box-shadow: var(--sh-up);
+}
+.tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px;
+  min-height: var(--tap);
+  border-radius: var(--r-sm);
+  color: var(--sidebar-foreground);
+  font: var(--t-label); letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.tab svg { width: 20px; height: 20px; }
+.tab[aria-current="page"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+/* The bar is translucent, so its label is measured against the opaque token
+   underneath it: --sidebar-foreground 11.37:1 light / 13.36:1 dark. An 11px
+   uppercase label is small text and has to clear 4.5:1 — it does, with room,
+   which is what makes the blur affordable here and nowhere else.            */
+
+
+/* ── 13. data-density="touch" — law L15, enforced by scope ───────────────
+   Orders, Inventory and Staff carry data-density="touch" on the page root.
+   Overview, Ask AI, Menu, Customers and Billing do not: they are read, not
+   tapped mid-service, and they keep the ambient 32px back-office density.
+   The attribute is real markup a mockup must show — it is not an aspiration.
+
+   The generic control lift belongs to _theme.css §10 and is repeated here
+   VERBATIM — identical declarations, so the cascade result is the same
+   either way. One reason: if this file is previewed without the theme, or
+   the theme's scope is ever edited, the shell must not silently ship 32px
+   controls onto a floor tablet. A duplicated correct rule is cheaper than a
+   missing one.                                                              */
+[data-density="touch"] .btn,
+[data-density="touch"] button,
+[data-density="touch"] [role="button"],
+[data-density="touch"] .switch,
+[data-density="touch"] select,
+[data-density="touch"] input:not([type="checkbox"]):not([type="radio"]) {
+  min-height: var(--tap);
+}
+[data-density="touch"] td,
+[data-density="touch"] th { padding-block: 10px; }
+[data-density="touch"] .tile { min-height: 96px; }
+
+/* The shell's own controls, which _theme.css cannot see because these class
+   names do not exist there.                                                 */
+[data-density="touch"] .nav-link,
+[data-density="touch"] .menu__item,
+[data-density="touch"] .switcher,
+[data-density="touch"] .usermenu { min-height: var(--tap); }
+[data-density="touch"] .toolbar { gap: var(--gap); }
+[data-density="touch"] .tbl td { padding-inline: var(--gap-sm); }
+[data-density="touch"] .pagehead { padding-block: var(--gap-sm); }
+/* Note what is NOT lifted: .tab is already --tap by definition, and the
+   FSSAI mark stays 12px in every density — it is a statutory glyph, not a
+   control, and growing it would make it read as a button.                   */
+
+
+/* ── 14. Print ───────────────────────────────────────────────────────────
+   A printed Operato page is a stock count or a day's orders carried to a
+   supplier. Everything that navigates is noise on paper.                    */
+@media print {
+  .shell { display: block; }
+  .sidebar,
+  .tabbar,
+  .shell__scrim,
+  .pagehead__trigger,
+  .pagehead__sep,
+  .pagehead__actions,
+  .menu { display: none !important; }
+  .pagehead { position: static; border-bottom: 1px solid var(--border); }
+  .main { padding-bottom: 0; }
+  .bg-app { background: none; }
+  .wrap { max-width: none; padding: 0; }
+  .tbl-wrap { box-shadow: none !important; outline: 0 !important; border-radius: 0; }
+  .tbl th, .tbl td { padding: 6px 8px; }
+  .sk { display: none !important; }   /* never print a loading state.       */
+}

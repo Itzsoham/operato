@@ -1,0 +1,2779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forno — Menu · Operato</title>
+
+<!--
+================================================================================
+  OPERATO · THEME "FORNO"  —  SCREEN 2: MENU        (obeys DIRECTION SPEC v1.0)
+  Business: Forno Pizzeria, Bandra West, Mumbai.  Saturday 22 Aug 2026, 8:40 pm.
+  The contract lives in forno-dashboard.html. Everything shared with that file
+  (tokens, reset, textures, shell, sidebar, primitives, tabbar, drawer JS) is
+  COPIED VERBATIM. This header records only the DELTAS this screen adds.
+================================================================================
+
+--------------------------------------------------------------------------------
+  SPEC EXTENSIONS — new contract, inherited by every later Forno screen
+--------------------------------------------------------------------------------
+  E1 · THE FOOD PALETTE (new token family --food-*).
+     Dish photography is CSS-drawn (no remote images allowed), so the theme now
+     needs a cooked-food ramp that the brand ramps cannot supply: crust golds,
+     passata red, fior di latte cream, mushroom brown. These are DECORATIVE
+     FILLS INSIDE A .shot FRAME ONLY. No text ever sits on them, so they are
+     exempt from the 4.5:1 floor — and they may NEVER be borrowed for a chip,
+     a button, a bar or a gridline. If a Forno screen needs a colour that means
+     something, it still comes from tomato / basil / amber / slate.
+
+  E2 · THE PLATE (.shot / .art) — the theme's photo form.
+     4:3 frame, charred oven floor behind it (the sidebar's brick + ember
+     recipe at small scale), the dish drawn dead centre, a 2px --line-char rule
+     under the frame. The frame is always the top edge of a .dish card and is
+     clipped by the card radius. The photo placeholder IS the dish, never a grey
+     box: a Forno screen that shows food has to make it look edible.
+
+  E3 · THE DISH CARD (.dish) — the grid's atom, sibling to the docket.
+     Card recipe (2px --line-char, --r-lg, --sh-hard) + .shot + a body that
+     stacks: [FSSAI mark · name · size badge] / [2-line description] /
+     [price · prep · units, over a dashed rule] / [availability switch + menu].
+     Hover lifts -2/-2 into --sh-hard-lg. The size badge is --font-ticket
+     because 8" / 12" is a kitchen fact, not a marketing one.
+
+  E4 · UNAVAILABLE IS NOT OPACITY  (amends §1 "availability off → row at .55").
+     A dimmed ROW works in a table. A dimmed CARD does not: at .55 the dish name
+     lands near 4.6:1 and the state reads as "still loading". So on the GRID an
+     86'd dish gets (a) the photo desaturated and darkened, (b) a rotated "86'D"
+     strap across the plate, (c) an OFF TONIGHT chip carrying the reason, and
+     (d) a --surface-2 card face. Text contrast is never reduced. The table on
+     other screens keeps the .55 rule; this is the grid rule.
+
+  E5 · THE SWITCH (.swx) — the theme's boolean, absent from Overview.
+     66x34 track, 2px --char-900, --sh-hard-xs, a 26px knob that presses with
+     the control. ON is --basil-600 (5.1:1 under cream), OFF is --semolina-2.
+     Never colour-alone: an adjacent --font-display label always spells
+     "ON TONIGHT" / "86'D". role="switch" + aria-checked. Hit area clears 46px.
+
+  E6 · FORM CONTROLS (.field, .inp, .selw) — the system's first inputs.
+     A --surface-2 well, 2px --char-900, and an INSET hard shadow
+     (--sh-inset) — the exact inverse of a button, so a field reads as pressed
+     into the wall and a button as sitting on top of it. Placeholders are
+     --ink-soft: --ink-faint is a decorative token and a placeholder is text.
+
+  E7 · THE DIALOG (.modal) — a big docket you can type into.
+     Charred header wearing THE CRUST EDGE (§5B) over a cream body over a
+     --semolina-2 action bar. Scrim rgba(20,16,13,.72). Focus trap, Escape to
+     close, aria-modal, focus restored to the invoker. The destructive action
+     sits hard left in --tomato-700, well away from Save.
+
+  E8 · THE SECTION RAIL (.rail) — the paper menu taped to the wall.
+     Sticky 262px column at ≥1120: the section list (drag grips, live counts,
+     the sidebar's own tomato-gradient active row), an inline dashed
+     "New section" slot, then a MENU HEALTH card that spends the heat bar
+     (§5H) on the veg share. Below 1120 it unrolls into a horizontal scroller
+     of the same rows plus a 4-across health strip. This list is the category
+     MANAGER, not just a filter — the grips and the counts are the affordance.
+
+  E9 · BAND STATES. The grid is grouped into section bands; a band is in one of
+     four states and all four are on this screen:
+       loaded   → dish cards
+       loading  → 3 .dish-sk skeletons, aria-busy on the band, a "Loading 6
+                  dishes" line. Pulse only — a shimmer sweep needs a glass
+                  highlight and this theme has no glass.
+       empty    → a centred #i-slice in a --semolina-2 arch tile, one sentence,
+                  one .btn--ghost. Never an illustration.
+       filtered → the toolbar's applied-filter row is visible and every count in
+                  the rail is the POST-filter count.
+
+  E10 · ORNAMENT BUDGET on the dish grid: exactly three, the §5I maximum —
+     #i-slice (Pizzas, Sodas, and the empty state), #i-wheat (Breads & sides),
+     #i-flame (Specials board). All three are BAND MARKS. Two things follow
+     from "ornament never touches a number, a chip or a data mark":
+       · the best-seller flag is TEXT ONLY ("01 BEST SELLER") — no flame, because
+         a flame inside a sticker is ornament touching a chip;
+       · prep time is set in --font-ticket with NO clock glyph.
+     The drawn food is not ornament — it is the record's photo, so it is exempt
+     from the budget and it is the one thing on the card allowed to be lavish.
+
+  E11 · THE TAPE (§5E budget: one per screen) is spent on the "2 dishes have no
+     section" notice. The 86'd dishes get no tape — they are a state, not a job.
+
+  E12 · NO NEW SOLID CHIP. §5F reserves the solid ember fill for READY alone, so
+     the best-seller flag is an AMBER OUTLINE sticker and the rank numeral
+     reuses .rank from the Overview's top-sellers list.
+
+  E13 · `.rise` FILL-MODE FIX — a correction to §5J, not an addition.
+     `.rise` animates to `transform:none` and fills BOTH, so once the entrance
+     finishes that end frame outlives it and beats every later declaration.
+     Any .rise element with a resting transform therefore loses it: the taped
+     notice's rotate(-.55deg) flattens and a card's hover lift is dead on
+     arrival. `.dish.rise,.notice.rise{animation-fill-mode:backwards}` — same
+     entrance, nothing retained. Apply this wherever a screen taped or lifts.
+
+  E14 · THE HIT EXPANDER. §8 requires 46px on every target, but some printed
+     controls read wrong at 46 — a 38px .btn--sm sticker, a 42px icon key in a
+     segmented plate. The drawn box keeps its size and an invisible ::after
+     grows the POINTER target past 46. Only where the visual box is short, and
+     never wide enough to overlap its neighbour (segmented keys expand on the
+     vertical axis alone). This retro-fits the Overview's own .btn--sm.
+
+  DATA NOTE — prices, unit counts and dish names are continuous with
+  forno-dashboard.html: Margherita 8" ₹249 / 1,284 units, Garlic bread classic
+  ₹149 / 968, Diavola 12" ₹549 / 742, Masala Coke ₹79 / 690, Paneer Tikka 12"
+  ₹499 / 511, Chicken Peri-Peri 8" ₹329 / 468. Nothing on this screen outranks
+  that top six. Sizes are separate MenuItem rows because the Prisma model holds
+  one price per item — hence "Margherita 8"" and "Margherita 12"" as two cards.
+================================================================================
+-->
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   1 · TOKENS  (verbatim from the dashboard, plus the E1 food family)
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* char — the oven */
+  --char-900:#14100D; --char-800:#1C1512; --char-700:#2A1F19;
+  --char-600:#3A2B22; --char-500:#4E3A2E;
+  --char-ink:#FFF9F0; --char-ink-soft:#B9A597; --char-ink-faint:#6F5A4C;
+
+  /* surfaces — the bench */
+  --semolina:#F0E2CA; --semolina-2:#E7D6B8;
+  --surface:#FFF9F0;  --surface-2:#FBF2E3;
+  --line:#E0CDAC; --line-strong:#C8B38C; --line-char:#1C1310;
+
+  /* ink */
+  --ink:#1C1310; --ink-soft:#6B534A; --ink-faint:#A08C80; --ink-invert:#FFF9F0;
+
+  /* tomato */
+  --tomato-50:#FFF1EC; --tomato-100:#FFDCD0; --tomato-300:#FF7B52;
+  --tomato-500:#E23B14; --tomato-600:#C4300D; --tomato-700:#9B240A;
+
+  /* basil */
+  --basil-50:#EFF6E7; --basil-100:#DCEDC8; --basil-300:#A8D98A;
+  --basil-500:#5C9E3B; --basil-600:#3E7A26; --basil-700:#2C5C1A;
+
+  /* amber — the fire */
+  --amber-50:#FDF0D4; --amber-100:#FBE3AC; --amber-300:#F5B93F;
+  --amber-500:#F0A415; --amber-700:#8A5606; --amber-border:#D99A1E;
+
+  /* slate — cold dough */
+  --slate-50:#ECEFF1; --slate-100:#DCE3E7; --slate-500:#6A7F8C; --slate-700:#40525E;
+
+  /* semantic */
+  --delta-up:var(--basil-700); --delta-down:var(--tomato-700); --focus:#E23B14;
+
+  /* FSSAI — legally fixed, identical in every Operato theme */
+  --veg:#0B7A34; --nonveg:#94231A;
+
+  /* ── E1 · FOOD PALETTE — decorative fills inside a .shot frame ONLY.
+        Never a chip, a bar, a gridline, or anything that carries text. ── */
+  --food-crust-1:#F2C271;   /* the lit rim of the cornicione  */
+  --food-crust-2:#DC9A3E;   /* the body of the crust          */
+  --food-crust-3:#B2701F;   /* its shaded underside           */
+  --food-crust-4:#7E4A14;   /* where it caught the deck       */
+  --food-sauce:#C33512;     /* San Marzano passata            */
+  --food-sauce-2:#8E2109;   /* the reduced edge of the sauce  */
+  --food-mozz:#FBEFCE;      /* fior di latte, molten          */
+  --food-mozz-2:#EEDBA0;    /* where it browned               */
+  --food-cream:#F7E9C8;     /* bianca / truffle cream base    */
+  --food-gorg:#E0D8B6;      /* gorgonzola                     */
+  --food-salami:#A9250F;    /* cupping salami                 */
+  --food-salami-2:#6E1607;  /* its charred cup edge           */
+  --food-chick:#D9A24B;     /* grilled chicken                */
+  --food-chick-2:#A8762F;   /* its grilled edge               */
+  --food-shroom:#A6835B;    /* mushroom                       */
+  --food-shroom-2:#7E603C;  /* its gill side                  */
+  --food-herb:#4C8B2E;      /* basil / parsley / thyme        */
+  --food-herb-2:#2F5F1B;    /* the shaded side of a leaf      */
+  --food-onion:#D8C4D9;     /* red onion, cooked pale         */
+  --food-pep:#3F7A34;       /* roasted green pepper           */
+  --food-char:rgba(20,16,13,.55); /* the leopard spot on a bake */
+
+  /* type */
+  --font-display:"Arial Black","Arial Bold","Helvetica Neue",Impact,sans-serif;
+  --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-ticket:ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,monospace;
+
+  --t-hero:900 clamp(34px,5.4vw,62px)/.94 var(--font-display);
+  --t-display:900 clamp(26px,3.2vw,40px)/1 var(--font-display);
+  --t-h1:900 clamp(20px,2.3vw,28px)/1.05 var(--font-display);
+  --t-h2:900 16px/1.15 var(--font-display);
+  --t-num:900 clamp(28px,3.6vw,44px)/.95 var(--font-display);
+  --t-num-sm:900 clamp(19px,2vw,24px)/1.05 var(--font-display);
+  --t-body:400 14px/1.55 var(--font-sans);
+  --t-small:400 12.5px/1.5 var(--font-sans);
+  --t-micro:600 11px/1.35 var(--font-sans);
+  --t-label:900 10.5px/1.2 var(--font-display);
+  --t-ticket:600 12.5px/1.4 var(--font-ticket);
+
+  /* radii */
+  --r-xs:6px; --r-sm:10px; --r:16px; --r-lg:22px; --r-xl:30px; --r-pill:999px;
+  --r-arch:999px 999px 8px 8px;
+
+  /* shadows — hard offsets */
+  --sh-hard-xs:2px 2px 0 var(--char-900);
+  --sh-hard-sm:3px 3px 0 var(--char-900);
+  --sh-hard:5px 5px 0 var(--char-900);
+  --sh-hard-lg:8px 8px 0 var(--char-900);
+  --sh-hard-tom:4px 4px 0 var(--tomato-600);
+  --sh-ember:0 0 44px -6px rgba(226,59,20,.55);
+  --sh-up:0 -10px 26px -18px rgba(20,16,13,.5);
+  --sh-inset:inset 2px 2px 0 rgba(28,19,16,.10);   /* E6 — fields press IN */
+
+  /* rhythm + shell */
+  --gap:16px; --gap-lg:22px; --pad-card:18px; --pad-page:clamp(14px,2.4vw,30px);
+  --sidebar:268px; --rail:84px; --tap:46px; --measure:1240px;
+
+  /* motion */
+  --ease:cubic-bezier(.22,1,.36,1); --dur:.2s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2 · RESET + CANVAS  (verbatim)
+   ═══════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--t-body); color:var(--ink); min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  background-color:var(--semolina);
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(124,92,64,.13) 0 1.1px, #0000 1.7px),
+    radial-gradient(circle at 72% 66%, rgba(124,92,64,.09) 0 1.3px, #0000 1.9px);
+  background-size:26px 26px, 37px 37px;
+  background-attachment:fixed;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tick{font-family:var(--font-ticket);font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3 · TEXTURES  (verbatim, §7)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.brick{
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,249,240,.045) 0 1px, #0000 1px 46px),
+    repeating-linear-gradient(90deg, rgba(255,249,240,.045) 0 1px, #0000 1px 92px);
+}
+.leopard::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(ellipse 16px 11px at 14% 22%, rgba(0,0,0,.55), #0000 70%),
+    radial-gradient(ellipse 10px 7px  at 38% 68%, rgba(0,0,0,.45), #0000 70%),
+    radial-gradient(ellipse 20px 12px at 62% 18%, rgba(0,0,0,.50), #0000 70%),
+    radial-gradient(ellipse 8px 6px   at 78% 52%, rgba(0,0,0,.42), #0000 70%),
+    radial-gradient(ellipse 13px 9px  at 90% 82%, rgba(0,0,0,.50), #0000 70%),
+    radial-gradient(ellipse 9px 6px   at 28% 90%, rgba(0,0,0,.40), #0000 70%);
+  background-size:240px 180px;
+}
+@keyframes flicker{
+  0%,100%{opacity:.74;transform:scale(1)}
+  40%{opacity:1;transform:scale(1.045)}
+  62%{opacity:.86;transform:scale(1.01)}
+}
+@keyframes fire-in{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.rise{animation:fire-in .5s var(--ease) both;animation-delay:calc(var(--i,0)*55ms)}
+/* E13 · `.rise` fills BOTH, so its `transform:none` end frame OUTLIVES the
+   animation and beats any later declaration — which would silently erase the
+   tape's rotate(-.55deg) and the dish card's hover lift. Scoped to `backwards`
+   for the two forms that own a resting transform: identical entrance, nothing
+   retained afterwards. Applies to every screen that tapes or lifts a .rise. */
+.dish.rise,.notice.rise{animation-fill-mode:backwards}
+@keyframes pulse-ember{
+  0%,100%{box-shadow:0 0 0 0 rgba(226,59,20,.55)}
+  70%{box-shadow:0 0 0 9px rgba(226,59,20,0)}
+}
+/* E9 — the proving skeleton. Pulse only; a sweep needs glass and there is none. */
+@keyframes prove{0%,100%{opacity:.48}50%{opacity:1}}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4 · VARIANT BADGE  (verbatim)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.variant-badge{
+  position:fixed;top:10px;right:10px;z-index:99;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 13px;border-radius:var(--r-sm);
+  background:var(--char-900);color:var(--char-ink);
+  border:2px solid var(--tomato-600);box-shadow:var(--sh-hard-tom);
+  font:var(--t-label);letter-spacing:.16em;pointer-events:none;
+}
+.variant-badge svg{width:14px;height:14px;color:var(--tomato-300)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5 · SHELL  (verbatim — clicking between the two files must show one product,
+              so not a pixel of this is reinterpreted)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100dvh}
+
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100dvh;z-index:50;
+  display:flex;flex-direction:column;gap:16px;
+  padding:18px 12px 14px;
+  background-color:var(--char-900);
+  border-right:2px solid var(--char-900);
+  overflow-y:auto;scrollbar-width:none;
+  isolation:isolate;
+}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar > *{position:relative;z-index:1}
+.sidebar-ember{
+  position:absolute;left:0;right:0;bottom:-40px;height:230px;z-index:0;
+  background:radial-gradient(120% 62% at 50% 100%, rgba(226,59,20,.5), rgba(240,164,21,.16) 42%, transparent 72%);
+  pointer-events:none;animation:flicker 7s var(--ease) infinite;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px 2px;min-height:var(--tap)}
+.brand-logo{
+  position:relative;width:42px;height:42px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);
+  background:linear-gradient(155deg,var(--tomato-500),var(--tomato-700));
+  color:var(--char-ink);border:2px solid var(--char-900);
+  box-shadow:0 0 0 1.5px var(--tomato-300), var(--sh-ember);
+}
+.brand-logo svg{width:23px;height:23px}
+.brand-text{min-width:0;display:block}
+.wordmark{display:block;font:900 17px/1 var(--font-display);letter-spacing:.14em;color:var(--char-ink)}
+.wordmark i{font-style:normal;color:var(--tomato-300)}
+.brand-tag{display:block;margin-top:4px;font:var(--t-micro);color:var(--char-ink-soft);letter-spacing:.04em;white-space:nowrap}
+
+.switch-wrap{position:relative}
+.switcher{
+  width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
+  padding:8px 10px;border-radius:var(--r-sm);text-align:left;
+  background:var(--char-700);border:2px solid var(--char-500);
+  box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.switcher:hover{background:var(--char-600)}
+.switcher:active{transform:translate(2px,2px);box-shadow:none}
+.switch-tile{
+  width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-arch);
+  background:linear-gradient(180deg,var(--amber-500),var(--tomato-600));
+  color:var(--char-900);border:2px solid var(--char-900);
+}
+.switch-tile svg{width:18px;height:18px}
+.switch-meta{min-width:0;flex:1;display:block}
+.switch-name{display:block;font:900 12.5px/1.2 var(--font-display);letter-spacing:.02em;color:var(--char-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.switch-role{display:block;margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft)}
+.switcher > .chev{width:15px;height:15px;flex:0 0 auto;color:var(--char-ink-soft)}
+
+.outlets{
+  margin-top:6px;padding:6px;border-radius:var(--r-sm);
+  background:var(--char-800);border:2px solid var(--char-600);
+  display:grid;gap:2px;
+}
+.outlets .grp{padding:6px 8px 4px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+.outlets a{display:flex;align-items:center;gap:9px;min-height:var(--tap);padding:0 8px;border-radius:var(--r-xs);font:600 12.5px/1.3 var(--font-sans);color:var(--char-ink-soft)}
+.outlets a:hover{background:var(--char-700);color:var(--char-ink)}
+.outlets a svg{width:16px;height:16px;flex:0 0 auto}
+.outlets .cur{margin-left:auto;font:var(--t-label);letter-spacing:.1em;color:var(--tomato-300)}
+
+.nav-group+.nav-group{margin-top:14px}
+.nav-group > .label{display:block;padding:0 10px 7px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+.nav-list{display:grid;gap:3px}
+.nav-link{
+  position:relative;display:flex;align-items:center;gap:11px;
+  min-height:var(--tap);padding:0 11px;border-radius:var(--r-sm);
+  color:var(--char-ink-soft);font:900 12.5px/1 var(--font-display);letter-spacing:.05em;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
+}
+.nav-link svg{width:20px;height:20px;flex:0 0 auto}
+.nav-link:hover{background:var(--char-700);color:var(--char-ink)}
+.nav-link[aria-current="page"]{
+  background:linear-gradient(100deg,var(--tomato-600),var(--tomato-700) 70%,var(--char-700));
+  color:var(--char-ink);
+  box-shadow:inset 0 0 0 2px var(--char-900), var(--sh-hard-xs);
+}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:-12px;top:6px;bottom:6px;width:5px;
+  border-radius:0 3px 3px 0;background:var(--amber-500);
+}
+.nav-badge{
+  margin-left:auto;padding:4px 7px;border-radius:var(--r-pill);
+  font:900 10px/1 var(--font-display);letter-spacing:.04em;font-variant-numeric:tabular-nums;
+  background:var(--amber-500);color:var(--char-900);border:1.5px solid var(--char-900);
+}
+.nav-badge--hot{background:var(--tomato-300)}
+.nav-link[aria-current="page"] .nav-badge{background:var(--char-ink);color:var(--char-900)}
+
+.side-foot{margin-top:auto;padding-top:12px;position:relative}
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:10px;min-height:56px;
+  padding:8px 10px;border-radius:var(--r-sm);text-align:left;
+  background:var(--char-800);border:2px solid var(--char-500);box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.user-btn:hover{background:var(--char-700)}
+.user-btn:active{transform:translate(2px,2px);box-shadow:none}
+.av{
+  width:36px;height:36px;flex:0 0 auto;border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  font:900 12px/1 var(--font-display);letter-spacing:.02em;
+  background:linear-gradient(160deg,var(--amber-300),var(--amber-500));
+  color:var(--char-900);border:2px solid var(--char-900);
+}
+.av--sm{width:30px;height:30px;font-size:10.5px;border-radius:var(--r-xs)}
+.user-meta{min-width:0;flex:1;display:block}
+.user-name{display:block;font:900 12.5px/1.2 var(--font-display);letter-spacing:.02em;color:var(--char-ink)}
+.user-mail{display:block;margin-top:3px;font:var(--t-micro);color:var(--char-ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-btn > .chev{width:15px;height:15px;flex:0 0 auto;color:var(--char-ink-soft)}
+.user-menu{
+  margin-top:6px;padding:6px;border-radius:var(--r-sm);
+  background:var(--char-800);border:2px solid var(--char-600);display:grid;gap:2px;
+}
+.user-menu a{display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:0 9px;border-radius:var(--r-xs);font:600 12.5px/1 var(--font-sans);color:var(--char-ink-soft)}
+.user-menu a:hover{background:var(--char-700);color:var(--char-ink)}
+.user-menu svg{width:16px;height:16px}
+.user-menu .lbl{padding:7px 9px 4px;font:var(--t-label);letter-spacing:.16em;color:var(--char-ink-soft)}
+
+.main{min-width:0;padding-bottom:44px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6 · THE MASTHEAD — the same charred band as the Overview hero, shrunk.
+       §4: "on every other screen the same charred band shrinks to a masthead —
+       same background, same crust edge, --t-display instead of --t-hero, one
+       line of subcopy, actions right."
+   ═══════════════════════════════════════════════════════════════════════════ */
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  background-color:var(--char-900);color:var(--char-ink);
+  padding:clamp(22px,3vw,40px) var(--pad-page) calc(clamp(34px,4vw,56px) + 18px);
+  /* THE CRUST EDGE — bubbled underside, cut with a mask */
+  -webkit-mask:
+    radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+  mask:
+    radial-gradient(circle 18px at 18px 18px,#000 98%,#0000 100%) 0 100%/36px 36px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 18px) no-repeat;
+}
+.hero--mast{padding-top:clamp(18px,2.3vw,28px);padding-bottom:calc(clamp(22px,2.6vw,34px) + 18px)}
+.hero-ember{
+  position:absolute;left:0;right:0;bottom:-90px;height:330px;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 100% at 50% 100%, rgba(226,59,20,.55), rgba(240,164,21,.18) 44%, transparent 74%);
+  animation:flicker 8s var(--ease) infinite;
+}
+.hero-arch{
+  position:absolute;top:-60px;right:clamp(-90px,-4vw,-40px);z-index:0;pointer-events:none;
+  width:clamp(230px,26vw,380px);height:clamp(230px,26vw,380px);
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 60%, rgba(240,164,21,.22), rgba(226,59,20,.10) 46%, transparent 68%);
+  filter:blur(2px);
+}
+.hero-in{position:relative;z-index:2;max-width:var(--measure);margin-inline:auto}
+
+.hero-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border-radius:var(--r-pill);background:var(--char-700);
+  border:2px solid var(--char-500);
+  font:var(--t-label);letter-spacing:.16em;color:var(--char-ink);white-space:nowrap;
+}
+.hero-kicker .sep{color:var(--char-ink-faint)}
+.hero-kicker em{font-style:normal;color:var(--tomato-300)}
+.live{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border-radius:var(--r-pill);
+  background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));
+  border:2px solid var(--char-900);color:var(--ink-invert);
+  font:var(--t-label);letter-spacing:.14em;white-space:nowrap;
+  animation:pulse-ember 2.6s var(--ease) infinite;
+}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--char-ink);flex:0 0 auto}
+.hamburger{display:none}
+
+.hero-body{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,2.4vw,34px);flex-wrap:wrap}
+.hero-l{min-width:0;flex:1 1 340px}
+.mast-title{font:var(--t-display);letter-spacing:-.03em;text-transform:uppercase;color:var(--char-ink)}
+.mast-title em{font-style:normal;color:var(--tomato-300)}
+.hero-rule{display:flex;align-items:center;gap:8px;margin-top:12px}
+.hero-rule i{display:block;height:6px;border-radius:3px}
+.hero-rule i:nth-child(1){width:64px;background:var(--tomato-500)}
+.hero-rule i:nth-child(2){width:30px;background:var(--amber-500)}
+.hero-rule i:nth-child(3){width:16px;background:var(--basil-500)}
+.hero-rule i:nth-child(4){width:8px;background:var(--char-500)}
+.hero-line{
+  margin-top:12px;max-width:56ch;
+  font:400 clamp(13.5px,1.4vw,15.5px)/1.65 var(--font-sans);
+  color:var(--char-ink);font-variant-numeric:tabular-nums;
+}
+.hero-line b{font-weight:900;font-family:var(--font-display);letter-spacing:-.01em}
+.hero-line .hot{color:var(--tomato-300)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;flex:0 0 auto}
+.hero-cta .btn{min-height:54px;padding:0 22px;font-size:14px}
+
+/* the masthead stat strip — the horizontal sibling of the Overview oven-grid */
+.mast-stats{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+  margin-top:clamp(16px,2vw,22px);
+}
+.mast-stats div{
+  padding:11px 12px;border-radius:var(--r-sm);
+  background:var(--char-700);border:2px solid var(--char-500);
+}
+.mast-stats b{display:block;font:900 clamp(17px,1.9vw,22px)/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--amber-300)}
+.mast-stats span{display:block;margin-top:6px;font:var(--t-label);letter-spacing:.12em;color:var(--char-ink-soft)}
+.mast-stats .warn{color:var(--tomato-300)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7 · PRIMITIVES — buttons, chips, cards, meters  (verbatim)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:var(--tap);padding:0 17px;border-radius:var(--r-sm);
+  border:2px solid var(--char-900);
+  font:900 12.5px/1 var(--font-display);letter-spacing:.06em;text-transform:uppercase;
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.btn svg{width:18px;height:18px;flex:0 0 auto}
+.btn--primary{background:var(--char-900);color:var(--char-ink);box-shadow:var(--sh-hard-tom)}
+.btn--primary:hover{background:var(--char-800)}
+.btn--primary:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--tomato-600)}
+.btn--hot{background:var(--tomato-600);color:var(--ink-invert);box-shadow:var(--sh-hard)}
+.btn--hot:hover{background:var(--tomato-500)}
+.btn--hot:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--char-900)}
+.btn--ghost{background:var(--surface);color:var(--ink);box-shadow:var(--sh-hard-sm)}
+.btn--ghost:hover{background:var(--surface-2)}
+.btn--ghost:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--char-900)}
+.btn--onchar{background:transparent;color:var(--char-ink);border-color:var(--char-500);box-shadow:none}
+.btn--onchar:hover{background:var(--char-700);border-color:var(--char-ink-faint)}
+.btn--onchar:active{transform:translate(2px,2px)}
+.btn--sm{min-height:38px;padding:0 13px;font-size:11px}
+.btn--icon{width:var(--tap);min-height:var(--tap);padding:0}
+.btn[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+
+/* E14 · THE HIT EXPANDER. A printed control sometimes has to be smaller than
+   46px — a 38px sticker looks right, a 46px one looks bloated. The drawn box
+   keeps its size; an invisible ::after grows the POINTER target to clear 46.
+   Only where the visual box is short, and never wide enough to overlap a
+   neighbour (the segmented keys expand vertically only). */
+.btn--sm,.dish__more,.modal__x,.seg button,.fchip button{position:relative}
+.btn--sm::after,.dish__more::after,.modal__x::after,.fchip button::after{
+  content:"";position:absolute;inset:-4px -2px;border-radius:inherit;
+}
+.seg button::after{content:"";position:absolute;inset:-2px 0}
+
+/* chips are stickers */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:28px;padding:5px 11px;border-radius:var(--r-pill);
+  border:2px solid;box-shadow:var(--sh-hard-xs);
+  font:900 10.5px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.chip--placed{background:var(--slate-50);color:var(--slate-700);border-color:var(--slate-500)}
+.chip--preparing{background:var(--amber-50);color:var(--amber-700);border-color:var(--amber-border)}
+.chip--ready{
+  background:linear-gradient(160deg,var(--tomato-600),var(--tomato-700));
+  color:var(--ink-invert);border-color:var(--char-900);
+  animation:pulse-ember 2.4s var(--ease) infinite;
+}
+.chip--ready::before{background:var(--char-ink)}
+.chip--served{background:var(--basil-50);color:var(--basil-700);border-color:var(--basil-500)}
+.chip--paid{background:var(--semolina-2);color:var(--ink-soft);border-color:var(--line-strong)}
+/* MENU additions — outline only. §5F keeps the solid ember fill for READY. */
+.chip--on{background:var(--basil-50);color:var(--basil-700);border-color:var(--basil-500)}
+.chip--off{background:var(--semolina-2);color:var(--ink-soft);border-color:var(--line-strong)}
+.chip--top{background:var(--amber-50);color:var(--amber-700);border-color:var(--amber-border)}
+.chip--top::before{display:none}
+.chip--nosec{background:var(--amber-50);color:var(--amber-700);border-color:var(--amber-border)}
+.chip--plain::before{display:none}
+
+/* the 5-segment status meter */
+.meter{display:inline-flex;gap:3px;align-items:center;flex:0 0 auto}
+.meter i{display:block;width:3px;height:10px;border-radius:1px;background:var(--tomato-600);opacity:.22}
+.meter i.on{opacity:1}
+.meter--dark i{background:var(--tomato-300)}
+
+/* cards */
+.card{
+  position:relative;
+  background:var(--surface);
+  border:2px solid var(--line-char);
+  border-radius:var(--r-lg);
+  padding:var(--pad-card);
+  box-shadow:var(--sh-hard);
+}
+.card--tomato{background:var(--tomato-50)}
+.card--basil{background:var(--basil-50)}
+.card--amber{background:var(--amber-50);border-color:var(--amber-border);box-shadow:5px 5px 0 var(--amber-border)}
+.card--char{
+  background-color:var(--char-900);color:var(--char-ink);
+  border-color:var(--char-900);box-shadow:var(--sh-hard-tom);
+  overflow:hidden;isolation:isolate;
+}
+.card--char > *{position:relative;z-index:1}
+
+/* the heat bar — the theme's one meter form */
+.heat{
+  position:relative;display:block;height:16px;border-radius:var(--r-xs);
+  background:var(--semolina-2);border:2px solid var(--char-900);overflow:hidden;
+}
+.heat > i{
+  position:absolute;inset:0 auto 0 0;width:var(--p,50%);
+  background:linear-gradient(90deg,var(--tomato-600),var(--tomato-500) 55%,var(--amber-500));
+  border-right:3px solid var(--char-900);
+}
+.heat::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,#0000 0 calc(10% - 1px),rgba(28,19,16,.28) calc(10% - 1px) 10%);
+}
+.heat--basil > i{background:linear-gradient(90deg,var(--basil-600),var(--basil-500))}
+
+/* FSSAI veg / non-veg mark — LEGALLY FIXED, DO NOT RESTYLE */
+.fssai{
+  width:14px;height:14px;flex:0 0 auto;border-radius:2px;
+  display:grid;place-items:center;border:2px solid var(--veg);background:var(--surface);
+}
+.fssai i{width:6px;height:6px;border-radius:50%;background:var(--veg);display:block}
+.fssai--non{border-color:var(--nonveg)}
+.fssai--non i{background:var(--nonveg)}
+.fssai--lg{width:18px;height:18px;border-radius:3px}
+.fssai--lg i{width:8px;height:8px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8 · PAGE COLUMN + SECTION HEADS  (verbatim)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.wrap{width:100%;max-width:var(--measure);margin-inline:auto;padding:clamp(20px,2.6vw,32px) var(--pad-page) 0}
+.sec{margin-top:clamp(26px,3.4vw,44px)}
+.sec__head{display:flex;align-items:flex-end;gap:10px 14px;flex-wrap:wrap;margin-bottom:14px}
+.sec__title{display:flex;align-items:center;gap:10px;font:var(--t-h1);text-transform:uppercase;letter-spacing:-.02em;color:var(--ink)}
+.sec-mark{width:22px;height:22px;flex:0 0 auto;color:var(--tomato-500)}
+.sec__sub{font:var(--t-small);color:var(--ink-soft);padding-bottom:3px}
+.sec__act{margin-left:auto;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.label{font:var(--t-label);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   9 · THE TOOLBAR  (screen-specific)
+       Sticks under the masthead. Everything in it clears 46px. It is a printed
+       strip on the wall, not a floating bar — hence the hard shadow and the
+       2px outline rather than a blur.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.toolbar{
+  position:sticky;top:0;z-index:40;
+  margin:0 0 clamp(16px,2vw,22px);
+  padding:12px;border-radius:var(--r-lg);
+  background:var(--surface);border:2px solid var(--line-char);box-shadow:var(--sh-hard);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.search{position:relative;flex:1 1 260px;min-width:0;max-width:340px}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--ink-soft);pointer-events:none}
+.search input{
+  width:100%;min-height:var(--tap);padding:0 14px 0 40px;border-radius:var(--r-sm);
+  background:var(--surface-2);border:2px solid var(--char-900);box-shadow:var(--sh-inset);
+  font:600 13.5px/1 var(--font-sans);color:var(--ink);
+}
+.search input::placeholder{color:var(--ink-soft);font-weight:400}
+
+/* segmented control — three printed keys sharing one plate */
+.seg{display:inline-flex;flex:0 0 auto;border-radius:var(--r-sm);border:2px solid var(--char-900);background:var(--semolina-2);box-shadow:var(--sh-hard-xs);overflow:hidden}
+.seg button{
+  min-height:42px;padding:0 13px;font:900 11px/1 var(--font-display);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);font-variant-numeric:tabular-nums;
+  border-right:2px solid var(--char-900);
+}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--surface-2);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--char-900);color:var(--char-ink)}
+.seg button[aria-pressed="true"]:hover{background:var(--char-800)}
+.seg--icons button{padding:0 11px;display:grid;place-items:center}
+.seg--icons svg{width:18px;height:18px}
+
+.tool-sp{flex:1 1 auto;min-width:0}
+.tool-act{display:flex;gap:9px;align-items:center;flex-wrap:wrap;flex:0 0 auto}
+
+/* the applied-filter row (E9 "filtered") */
+.applied{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  width:100%;padding-top:11px;margin-top:1px;border-top:2px dashed var(--line-strong);
+}
+.applied .label{flex:0 0 auto}
+.fchip{
+  display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:5px 7px 5px 13px;
+  border-radius:var(--r-pill);background:var(--amber-50);border:2px solid var(--amber-border);
+  box-shadow:var(--sh-hard-xs);
+  font:900 10.5px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--amber-700);
+}
+.fchip b{font-variant-numeric:tabular-nums}
+.fchip button{
+  width:34px;height:34px;flex:0 0 auto;display:grid;place-items:center;border-radius:50%;
+  background:var(--amber-500);color:var(--char-900);border:2px solid var(--char-900);
+}
+.fchip button:hover{background:var(--amber-300)}
+.fchip button:active{transform:translate(1px,1px)}
+.fchip button svg{width:13px;height:13px}
+.applied .clear{
+  margin-left:auto;min-height:var(--tap);padding:0 13px;border-radius:var(--r-sm);
+  font:900 10.5px/1 var(--font-display);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tomato-700);border:2px solid transparent;
+}
+.applied .clear:hover{border-color:var(--tomato-700);background:var(--tomato-50)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   10 · THE MENU LAYOUT + THE SECTION RAIL (E8)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.menu-lay{display:grid;gap:clamp(14px,2vw,22px);grid-template-columns:minmax(0,1fr)}
+@media (min-width:1120px){
+  .menu-lay{grid-template-columns:262px minmax(0,1fr);align-items:start}
+  .rail-col{position:sticky;top:146px;max-height:calc(100dvh - 162px);overflow-y:auto;scrollbar-width:thin}
+}
+.rail-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+.sections{display:grid;gap:4px;margin-top:10px}
+.sec-link{
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  min-height:var(--tap);padding:0 10px;border-radius:var(--r-sm);
+  border:2px solid transparent;
+  font:900 11.5px/1.2 var(--font-display);letter-spacing:.05em;text-transform:uppercase;color:var(--ink);
+  transition:background var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.sec-link:hover{background:var(--surface-2);border-color:var(--line)}
+.sec-link[aria-current="true"]{
+  background:linear-gradient(100deg,var(--tomato-600),var(--tomato-700));
+  color:var(--ink-invert);border-color:var(--char-900);box-shadow:var(--sh-hard-xs);
+}
+.sec-link[aria-current="true"]:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--char-900)}
+.grip{width:14px;height:18px;flex:0 0 auto;color:var(--ink-faint);cursor:grab}
+.sec-link[aria-current="true"] .grip{color:var(--tomato-100)}
+.sec-nm{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sec-ct{
+  flex:0 0 auto;min-width:26px;padding:4px 7px;border-radius:var(--r-pill);text-align:center;
+  background:var(--semolina-2);color:var(--ink);border:1.5px solid var(--char-900);
+  font:900 10px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:.02em;
+}
+.sec-link[aria-current="true"] .sec-ct{background:var(--char-ink);color:var(--char-900)}
+.sec-ct--zero{background:transparent;color:var(--ink-soft);border-style:dashed}
+.sec-ct--wait{background:transparent;color:var(--ink-soft);border-color:var(--line-strong)}
+.sec-new{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:var(--tap);margin-top:6px;border-radius:var(--r-sm);
+  border:2px dashed var(--char-900);background:var(--surface-2);color:var(--ink);
+  font:900 11px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+}
+.sec-new:hover{background:var(--semolina-2)}
+.sec-new:active{transform:translate(2px,2px)}
+.sec-new svg{width:16px;height:16px}
+.rail-note{margin-top:11px;padding-top:10px;border-top:2px dashed var(--line-strong);font:var(--t-micro);color:var(--ink-soft)}
+
+/* menu health */
+.health dl{display:grid;gap:9px;margin-top:12px}
+.health .row{display:flex;align-items:baseline;gap:10px;min-height:24px}
+.health dt{font:var(--t-small);color:var(--ink-soft);min-width:0}
+.health dd{margin-left:auto;font:900 13px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--ink);white-space:nowrap}
+.health dd.warn{color:var(--tomato-700)}
+.health .bar-wrap{margin-top:13px}
+.health .bar-cap{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font:var(--t-label);letter-spacing:.1em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   11 · THE BANDS  (E9) — one per menu section
+   ═══════════════════════════════════════════════════════════════════════════ */
+.band{margin-top:clamp(22px,2.8vw,32px)}
+.band:first-child{margin-top:0}
+.band__head{
+  display:flex;align-items:center;gap:9px 14px;flex-wrap:wrap;
+  margin-bottom:14px;padding-bottom:11px;border-bottom:2px dashed var(--line-strong);
+}
+.band__title{display:flex;align-items:center;gap:9px;font:900 clamp(17px,1.9vw,21px)/1.1 var(--font-display);text-transform:uppercase;letter-spacing:-.02em;color:var(--ink)}
+.band__title svg{width:20px;height:20px;flex:0 0 auto}
+.band__ct{
+  padding:5px 9px;border-radius:var(--r-pill);background:var(--char-900);color:var(--char-ink);
+  font:900 10px/1 var(--font-display);letter-spacing:.09em;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.band__sub{font:var(--t-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.band__act{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.dishes{display:grid;gap:clamp(12px,1.6vw,18px);grid-template-columns:repeat(auto-fill,minmax(228px,1fr))}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   12 · THE DISH CARD (E3) + THE PLATE (E2)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dish{
+  position:relative;display:flex;flex-direction:column;min-width:0;
+  background:var(--surface);border:2px solid var(--line-char);border-radius:var(--r-lg);
+  box-shadow:var(--sh-hard);overflow:hidden;
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
+}
+.dish:hover{transform:translate(-2px,-2px);box-shadow:var(--sh-hard-lg)}
+.dish:focus-within{transform:translate(-2px,-2px);box-shadow:var(--sh-hard-lg)}
+
+/* the plate — a charred oven floor with the dish sitting on it */
+.shot{
+  position:relative;aspect-ratio:4/3;overflow:hidden;display:grid;place-items:center;
+  border-bottom:2px solid var(--line-char);
+  background-color:var(--char-800);
+  background-image:
+    radial-gradient(72% 54% at 50% 118%, rgba(226,59,20,.50), rgba(240,164,21,.13) 46%, transparent 74%),
+    repeating-linear-gradient(0deg, rgba(255,249,240,.05) 0 1px, #0000 1px 26px),
+    repeating-linear-gradient(90deg, rgba(255,249,240,.05) 0 1px, #0000 1px 44px);
+}
+.size{
+  position:absolute;right:8px;bottom:8px;z-index:3;
+  padding:4px 8px;border-radius:var(--r-xs);
+  background:var(--char-900);color:var(--amber-300);border:2px solid var(--char-500);
+  font:700 11px/1 var(--font-ticket);letter-spacing:.04em;font-variant-numeric:tabular-nums;
+}
+.flag{
+  position:absolute;left:8px;top:8px;z-index:3;display:inline-flex;align-items:center;gap:7px;
+  padding:5px 10px;border-radius:var(--r-pill);
+  background:var(--amber-50);color:var(--amber-700);border:2px solid var(--amber-border);
+  box-shadow:var(--sh-hard-xs);
+  font:900 9.5px/1 var(--font-display);letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
+}
+.flag b{font:900 11px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+/* E4 — the 86 strap. State is spelled out; contrast of the card text is untouched. */
+.strap{
+  position:absolute;left:-16%;right:-16%;top:52%;z-index:4;
+  transform:translateY(-50%) rotate(-9deg);
+  padding:7px 0;text-align:center;
+  background:var(--char-900);border-top:2px solid var(--tomato-500);border-bottom:2px solid var(--tomato-500);
+  font:900 12.5px/1 var(--font-display);letter-spacing:.26em;color:var(--tomato-300);
+}
+.dish--off{background:var(--surface-2)}
+/* the DISH goes cold, not the labels on top of it — the filter is scoped to
+   the drawn food and a flat veil carries the rest, so the 86'd strap and the
+   size badge keep their full contrast on an unavailable card. */
+.dish--off .art{filter:grayscale(.58) brightness(.74)}
+.dish--off .shot::after{content:"";position:absolute;inset:0;z-index:2;background:rgba(20,16,13,.26);pointer-events:none}
+/* the dish being edited right now */
+.dish--editing{box-shadow:var(--sh-hard-tom)}
+.dish--editing::after{
+  content:"";position:absolute;inset:3px;border-radius:calc(var(--r-lg) - 4px);
+  border:2px dashed var(--tomato-500);pointer-events:none;z-index:5;
+}
+.editing-tag{
+  position:absolute;left:8px;top:8px;z-index:6;
+  padding:5px 10px;border-radius:var(--r-pill);
+  background:var(--tomato-600);color:var(--ink-invert);border:2px solid var(--char-900);
+  box-shadow:var(--sh-hard-xs);
+  font:900 9.5px/1 var(--font-display);letter-spacing:.13em;text-transform:uppercase;
+}
+
+.dish__body{display:flex;flex-direction:column;gap:7px;padding:13px 13px 12px;flex:1;min-width:0}
+.dish__id{display:flex;align-items:center;gap:8px;min-width:0}
+.dish__name{
+  min-width:0;font:900 13.5px/1.2 var(--font-display);letter-spacing:-.005em;text-transform:uppercase;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dish__desc{
+  font:var(--t-small);color:var(--ink-soft);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:38px;
+}
+.dish__nums{
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;
+  margin-top:auto;padding-top:10px;border-top:1.5px dashed var(--line-strong);
+}
+.dish__price{font:900 17px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.025em;color:var(--ink);white-space:nowrap}
+.dish__price .cur{font-size:.62em;color:var(--ink-soft);margin-right:1px}
+.dish__prep{font:600 11px/1 var(--font-ticket);letter-spacing:.04em;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dish__units{margin-left:auto;font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dish__foot{display:flex;align-items:center;gap:6px;margin-top:9px;padding-top:9px;border-top:1.5px solid var(--line)}
+.dish__more{margin-left:auto;border-color:var(--line-strong);background:var(--surface-2);color:var(--ink);box-shadow:none;width:42px;min-height:42px}
+.dish__more:hover{background:var(--semolina-2);border-color:var(--char-900)}
+.dish__more:active{transform:translate(2px,2px)}
+.dish__more svg{width:20px;height:20px}
+.dish__why{font:var(--t-micro);color:var(--tomato-700);padding-top:3px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   13 · THE SWITCH (E5)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.swx{
+  display:inline-flex;align-items:center;gap:10px;min-height:var(--tap);
+  padding:0 4px 0 0;border-radius:var(--r-sm);flex:0 0 auto;
+}
+.swx__track{
+  position:relative;width:60px;height:32px;flex:0 0 auto;border-radius:var(--r-pill);
+  background:var(--semolina-2);border:2px solid var(--char-900);box-shadow:var(--sh-hard-xs);
+  transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
+}
+.swx__track::after{
+  content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--char-900);
+  transition:transform var(--dur) var(--ease);
+}
+.swx[aria-checked="true"] .swx__track{background:var(--basil-600)}
+.swx[aria-checked="true"] .swx__track::after{transform:translateX(28px)}
+.swx:active .swx__track{transform:translate(2px,2px);box-shadow:none}
+.swx__txt{font:900 10.5px/1.2 var(--font-display);letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);text-align:left}
+.swx[aria-checked="true"] .swx__txt{color:var(--basil-700)}
+.swx--off .swx__txt{color:var(--tomato-700)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   14 · THE FOOD (E1/E2) — every dish is drawn, never a grey placeholder box
+   ═══════════════════════════════════════════════════════════════════════════ */
+.art{position:relative;z-index:1;pointer-events:none}
+
+/* ── the pie ───────────────────────────────────────────────────────────── */
+.pie{
+  width:var(--pw,78%);aspect-ratio:1;border-radius:50%;
+  background:
+    radial-gradient(ellipse 6% 5% at 50% 3.5%,  var(--food-char), #0000 74%),
+    radial-gradient(ellipse 5% 4% at 86% 20%,   var(--food-char), #0000 74%),
+    radial-gradient(ellipse 6% 5% at 13% 74%,   var(--food-char), #0000 74%),
+    radial-gradient(ellipse 5% 4% at 71% 94%,   var(--food-char), #0000 74%),
+    radial-gradient(ellipse 4% 4% at 4.5% 33%,  var(--food-char), #0000 74%),
+    radial-gradient(ellipse 5% 4% at 95% 62%,   var(--food-char), #0000 74%),
+    radial-gradient(circle at 50% 50%,
+      var(--base,var(--food-sauce)) 0 62%,
+      var(--food-sauce-2) 62% 65%,
+      var(--food-crust-1) 65% 73%,
+      var(--food-crust-2) 73% 85%,
+      var(--food-crust-3) 85% 95%,
+      var(--food-crust-4) 95% 100%);
+  box-shadow:0 5px 0 rgba(20,16,13,.5), inset 0 0 22px rgba(20,16,13,.30);
+}
+/* the melt */
+.pie::before{
+  content:"";position:absolute;inset:14%;border-radius:50%;
+  background:
+    radial-gradient(ellipse 27% 21% at 30% 26%, var(--food-mozz), var(--food-mozz-2) 64%, #0000 72%),
+    radial-gradient(ellipse 23% 18% at 69% 33%, var(--food-mozz), var(--food-mozz-2) 64%, #0000 72%),
+    radial-gradient(ellipse 25% 20% at 45% 63%, var(--food-mozz), var(--food-mozz-2) 64%, #0000 72%),
+    radial-gradient(ellipse 19% 16% at 20% 66%, var(--food-mozz), var(--food-mozz-2) 62%, #0000 72%),
+    radial-gradient(ellipse 21% 17% at 76% 70%, var(--food-mozz), var(--food-mozz-2) 62%, #0000 72%),
+    radial-gradient(ellipse 15% 13% at 52% 16%, var(--food-mozz-2), #0000 74%);
+}
+/* the toppings */
+.pie::after{content:"";position:absolute;inset:13%;border-radius:50%;background:var(--top,none)}
+
+.pie--marg{--top:
+  radial-gradient(ellipse 8% 5.5% at 31% 29%, var(--food-herb) 0 78%, #0000 82%),
+  radial-gradient(ellipse 5.5% 8% at 63% 25%, var(--food-herb-2) 0 78%, #0000 82%),
+  radial-gradient(ellipse 8% 5.5% at 71% 59%, var(--food-herb) 0 78%, #0000 82%),
+  radial-gradient(ellipse 5.5% 8% at 36% 67%, var(--food-herb-2) 0 78%, #0000 82%),
+  radial-gradient(ellipse 6.5% 4.5% at 50% 45%, var(--food-herb) 0 78%, #0000 82%),
+  radial-gradient(ellipse 3% 4% at 20% 46%, var(--food-herb-2) 0 78%, #0000 82%)}
+
+.pie--diavola{--top:
+  radial-gradient(ellipse 11% 10% at 30% 27%, var(--food-salami) 0 60%, var(--food-salami-2) 64% 88%, #0000 92%),
+  radial-gradient(ellipse 10% 9% at 66% 24%, var(--food-salami) 0 60%, var(--food-salami-2) 64% 88%, #0000 92%),
+  radial-gradient(ellipse 11% 10% at 74% 62%, var(--food-salami) 0 60%, var(--food-salami-2) 64% 88%, #0000 92%),
+  radial-gradient(ellipse 10% 9% at 33% 69%, var(--food-salami) 0 60%, var(--food-salami-2) 64% 88%, #0000 92%),
+  radial-gradient(ellipse 9% 8% at 50% 47%, var(--food-salami) 0 60%, var(--food-salami-2) 64% 88%, #0000 92%),
+  radial-gradient(ellipse 3% 2.4% at 45% 20%, var(--food-herb-2) 0 76%, #0000 80%),
+  radial-gradient(ellipse 3% 2.4% at 58% 80%, var(--food-herb-2) 0 76%, #0000 80%)}
+
+.pie--paneer{--top:
+  radial-gradient(ellipse 7% 6.5% at 30% 28%, var(--food-mozz) 0 66%, var(--food-mozz-2) 70% 90%, #0000 94%),
+  radial-gradient(ellipse 7% 6.5% at 64% 26%, var(--food-mozz) 0 66%, var(--food-mozz-2) 70% 90%, #0000 94%),
+  radial-gradient(ellipse 7% 6.5% at 70% 63%, var(--food-mozz) 0 66%, var(--food-mozz-2) 70% 90%, #0000 94%),
+  radial-gradient(ellipse 7% 6.5% at 34% 68%, var(--food-mozz) 0 66%, var(--food-mozz-2) 70% 90%, #0000 94%),
+  radial-gradient(ellipse 8% 3% at 48% 44%, var(--food-onion) 0 74%, #0000 80%),
+  radial-gradient(ellipse 3% 8% at 22% 50%, var(--food-onion) 0 74%, #0000 80%),
+  radial-gradient(ellipse 8% 3% at 76% 42%, var(--food-onion) 0 74%, #0000 80%),
+  radial-gradient(ellipse 3% 2.4% at 52% 74%, var(--food-herb) 0 76%, #0000 80%),
+  radial-gradient(ellipse 2.6% 2.2% at 40% 16%, var(--food-herb) 0 76%, #0000 80%)}
+
+.pie--peri{--top:
+  radial-gradient(ellipse 9% 7% at 32% 30%, var(--food-chick) 0 68%, var(--food-chick-2) 72% 90%, #0000 94%),
+  radial-gradient(ellipse 9% 7% at 68% 27%, var(--food-chick) 0 68%, var(--food-chick-2) 72% 90%, #0000 94%),
+  radial-gradient(ellipse 9% 7% at 62% 66%, var(--food-chick) 0 68%, var(--food-chick-2) 72% 90%, #0000 94%),
+  radial-gradient(ellipse 8% 6% at 30% 66%, var(--food-chick) 0 68%, var(--food-chick-2) 72% 90%, #0000 94%),
+  radial-gradient(ellipse 9% 3.4% at 50% 46%, var(--food-sauce) 0 76%, #0000 82%),
+  radial-gradient(ellipse 3.4% 9% at 78% 47%, var(--food-pep) 0 76%, #0000 82%),
+  radial-gradient(ellipse 8% 3% at 44% 78%, var(--food-pep) 0 76%, #0000 82%),
+  radial-gradient(ellipse 7% 2.8% at 22% 44%, var(--food-onion) 0 74%, #0000 80%)}
+
+.pie--formaggi{--base:var(--food-cream);--top:
+  radial-gradient(ellipse 13% 11% at 33% 30%, var(--food-gorg) 0 72%, #0000 78%),
+  radial-gradient(ellipse 11% 10% at 66% 28%, var(--food-mozz-2) 0 72%, #0000 78%),
+  radial-gradient(ellipse 13% 11% at 68% 66%, var(--food-gorg) 0 72%, #0000 78%),
+  radial-gradient(ellipse 11% 10% at 32% 66%, var(--food-mozz-2) 0 72%, #0000 78%),
+  radial-gradient(ellipse 9% 8% at 50% 48%, var(--food-gorg) 0 72%, #0000 78%),
+  radial-gradient(ellipse 3.4% 3% at 42% 20%, rgba(20,16,13,.34) 0 70%, #0000 76%),
+  radial-gradient(ellipse 3% 2.6% at 74% 46%, rgba(20,16,13,.30) 0 70%, #0000 76%)}
+
+.pie--funghi{--base:var(--food-cream);--top:
+  radial-gradient(ellipse 10% 6% at 32% 29%, var(--food-shroom) 0 70%, var(--food-shroom-2) 74% 90%, #0000 94%),
+  radial-gradient(ellipse 6% 10% at 66% 30%, var(--food-shroom) 0 70%, var(--food-shroom-2) 74% 90%, #0000 94%),
+  radial-gradient(ellipse 10% 6% at 68% 65%, var(--food-shroom) 0 70%, var(--food-shroom-2) 74% 90%, #0000 94%),
+  radial-gradient(ellipse 6% 10% at 31% 64%, var(--food-shroom) 0 70%, var(--food-shroom-2) 74% 90%, #0000 94%),
+  radial-gradient(ellipse 8% 5% at 50% 47%, var(--food-shroom) 0 70%, var(--food-shroom-2) 74% 90%, #0000 94%),
+  radial-gradient(ellipse 2.6% 2.2% at 45% 18%, var(--food-herb-2) 0 76%, #0000 80%),
+  radial-gradient(ellipse 2.6% 2.2% at 56% 82%, var(--food-herb-2) 0 76%, #0000 80%),
+  radial-gradient(ellipse 2.4% 2% at 22% 48%, var(--food-herb-2) 0 76%, #0000 80%)}
+
+/* marinara wears NO cheese — the melt layer is removed, not tinted */
+.pie--marinara::before{display:none}
+.pie--marinara{--top:
+  radial-gradient(ellipse 5% 3% at 30% 30%, var(--food-mozz) 0 74%, #0000 80%),
+  radial-gradient(ellipse 3% 5% at 64% 27%, var(--food-mozz) 0 74%, #0000 80%),
+  radial-gradient(ellipse 5% 3% at 70% 64%, var(--food-mozz) 0 74%, #0000 80%),
+  radial-gradient(ellipse 3% 5% at 33% 66%, var(--food-mozz) 0 74%, #0000 80%),
+  radial-gradient(ellipse 4% 2.6% at 50% 47%, var(--food-mozz) 0 74%, #0000 80%),
+  radial-gradient(ellipse 2.2% 2% at 44% 18%, var(--food-herb-2) 0 76%, #0000 80%),
+  radial-gradient(ellipse 2.2% 2% at 58% 79%, var(--food-herb-2) 0 76%, #0000 80%),
+  radial-gradient(ellipse 2% 1.8% at 24% 52%, var(--food-herb-2) 0 76%, #0000 80%),
+  radial-gradient(ellipse 2% 1.8% at 78% 40%, var(--food-herb-2) 0 76%, #0000 80%)}
+
+/* ── the breads ─────────────────────────────────────────────────────────── */
+.loaf{
+  width:84%;aspect-ratio:2.05;border-radius:26% 26% 30% 30% / 46% 46% 54% 54%;
+  background:
+    radial-gradient(ellipse 5% 16% at 16% 40%, var(--food-char), #0000 72%),
+    radial-gradient(ellipse 4% 13% at 62% 66%, var(--food-char), #0000 72%),
+    radial-gradient(ellipse 5% 15% at 86% 38%, var(--food-char), #0000 72%),
+    linear-gradient(168deg, var(--food-crust-1), var(--food-crust-2) 44%, var(--food-crust-3) 80%, var(--food-crust-4));
+  box-shadow:0 5px 0 rgba(20,16,13,.5), inset 0 -7px 12px rgba(20,16,13,.24);
+}
+/* the scored slashes */
+.loaf::before{
+  content:"";position:absolute;inset:6% 5%;border-radius:inherit;
+  background:repeating-linear-gradient(112deg,
+    #0000 0 8%, rgba(20,16,13,.20) 8% 9.4%, rgba(255,240,205,.28) 9.4% 10.6%, #0000 10.6% 18%);
+}
+/* parsley + garlic */
+.loaf::after{
+  content:"";position:absolute;inset:8% 7%;border-radius:inherit;background:var(--top,
+    radial-gradient(ellipse 3% 6% at 22% 34%, var(--food-herb) 0 74%, #0000 80%),
+    radial-gradient(ellipse 2.4% 5% at 44% 62%, var(--food-herb-2) 0 74%, #0000 80%),
+    radial-gradient(ellipse 3% 6% at 68% 30%, var(--food-herb) 0 74%, #0000 80%),
+    radial-gradient(ellipse 2.4% 5% at 84% 64%, var(--food-herb-2) 0 74%, #0000 80%),
+    radial-gradient(ellipse 2% 4% at 56% 26%, var(--food-herb) 0 74%, #0000 80%));
+}
+.loaf--cheesy::before{
+  background:
+    radial-gradient(ellipse 22% 42% at 24% 46%, var(--food-mozz), var(--food-mozz-2) 66%, #0000 74%),
+    radial-gradient(ellipse 20% 38% at 52% 40%, var(--food-mozz), var(--food-mozz-2) 66%, #0000 74%),
+    radial-gradient(ellipse 22% 40% at 78% 52%, var(--food-mozz), var(--food-mozz-2) 66%, #0000 74%),
+    radial-gradient(ellipse 15% 30% at 38% 66%, var(--food-mozz-2), #0000 74%);
+}
+.loaf--cheesy{--top:
+  radial-gradient(ellipse 2.6% 5% at 28% 36%, var(--food-sauce) 0 74%, #0000 80%),
+  radial-gradient(ellipse 2.6% 5% at 58% 60%, var(--food-sauce) 0 74%, #0000 80%),
+  radial-gradient(ellipse 2.4% 4.6% at 76% 34%, var(--food-sauce) 0 74%, #0000 80%),
+  radial-gradient(ellipse 2.2% 4.4% at 44% 30%, var(--food-sauce-2) 0 74%, #0000 80%)}
+.loaf--nduja::before{
+  background:
+    radial-gradient(ellipse 20% 36% at 28% 44%, var(--food-sauce) 0 62%, var(--food-sauce-2) 70%, #0000 78%),
+    radial-gradient(ellipse 18% 32% at 66% 54%, var(--food-sauce) 0 62%, var(--food-sauce-2) 70%, #0000 78%),
+    radial-gradient(ellipse 12% 22% at 46% 34%, var(--food-mozz), #0000 74%),
+    radial-gradient(ellipse 11% 20% at 82% 40%, var(--food-mozz), #0000 74%);
+}
+.loaf--nduja{--top:
+  radial-gradient(ellipse 2.4% 5% at 36% 66%, var(--food-herb-2) 0 74%, #0000 80%),
+  radial-gradient(ellipse 2.4% 5% at 72% 26%, var(--food-herb-2) 0 74%, #0000 80%)}
+
+/* garlic knots — three of them */
+.knots{
+  width:88%;aspect-ratio:2.6;
+  background:
+    radial-gradient(ellipse 15% 46% at 20% 56%, var(--food-crust-1) 0 34%, var(--food-crust-2) 58%, var(--food-crust-3) 84%, #0000 90%),
+    radial-gradient(ellipse 16% 50% at 50% 46%, var(--food-crust-1) 0 34%, var(--food-crust-2) 58%, var(--food-crust-3) 84%, #0000 90%),
+    radial-gradient(ellipse 15% 46% at 80% 58%, var(--food-crust-1) 0 34%, var(--food-crust-2) 58%, var(--food-crust-3) 84%, #0000 90%);
+  filter:drop-shadow(0 5px 0 rgba(20,16,13,.5));
+}
+.knots::after{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 2.6% 8% at 18% 44%, var(--food-herb) 0 72%, #0000 78%),
+    radial-gradient(ellipse 2.6% 8% at 52% 32%, var(--food-herb-2) 0 72%, #0000 78%),
+    radial-gradient(ellipse 2.6% 8% at 82% 48%, var(--food-herb) 0 72%, #0000 78%),
+    radial-gradient(ellipse 2.2% 7% at 34% 62%, var(--food-herb-2) 0 72%, #0000 78%);
+}
+
+/* the chilli cheese toast — a square, so it reads as not-a-pizza at a glance */
+.toast{
+  width:66%;aspect-ratio:1.18;border-radius:var(--r-xs);
+  background:linear-gradient(168deg, var(--food-crust-1), var(--food-crust-2) 52%, var(--food-crust-3));
+  box-shadow:0 5px 0 rgba(20,16,13,.5), inset 0 -6px 10px rgba(20,16,13,.22);
+}
+.toast::before{
+  content:"";position:absolute;inset:7%;border-radius:3px;
+  background:
+    radial-gradient(ellipse 30% 26% at 30% 30%, var(--food-mozz), var(--food-mozz-2) 66%, #0000 74%),
+    radial-gradient(ellipse 28% 24% at 70% 34%, var(--food-mozz), var(--food-mozz-2) 66%, #0000 74%),
+    radial-gradient(ellipse 30% 26% at 46% 68%, var(--food-mozz), var(--food-mozz-2) 66%, #0000 74%),
+    radial-gradient(ellipse 22% 20% at 80% 72%, var(--food-mozz-2), #0000 74%);
+}
+.toast::after{
+  content:"";position:absolute;inset:9%;
+  background:
+    radial-gradient(ellipse 4% 12% at 32% 40%, var(--food-pep) 0 74%, #0000 80%),
+    radial-gradient(ellipse 12% 4% at 62% 56%, var(--food-pep) 0 74%, #0000 80%),
+    radial-gradient(ellipse 4% 11% at 74% 28%, var(--food-herb-2) 0 74%, #0000 80%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   15 · BAND STATES — loading + empty (E9)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dish-sk{
+  border:2px solid var(--line);border-radius:var(--r-lg);background:var(--surface);
+  overflow:hidden;box-shadow:var(--sh-hard-sm);
+}
+.dish-sk .sk-shot{
+  aspect-ratio:4/3;background:var(--semolina-2);border-bottom:2px solid var(--line);
+  animation:prove 1.6s var(--ease) infinite;
+}
+.dish-sk .sk-body{padding:13px;display:grid;gap:9px}
+.sk{display:block;height:12px;border-radius:var(--r-xs);background:var(--semolina-2);animation:prove 1.6s var(--ease) infinite}
+.sk--t{height:15px;width:72%}
+.sk--d{width:100%}
+.sk--d2{width:58%}
+.sk--f{height:30px;width:64%;margin-top:5px;border-radius:var(--r-pill)}
+.dish-sk:nth-child(2) .sk,.dish-sk:nth-child(2) .sk-shot{animation-delay:.18s}
+.dish-sk:nth-child(3) .sk,.dish-sk:nth-child(3) .sk-shot{animation-delay:.36s}
+.loading-line{display:inline-flex;align-items:center;gap:8px;font:var(--t-small);color:var(--ink-soft)}
+.loading-line i{width:9px;height:9px;border-radius:50%;background:var(--amber-500);border:1.5px solid var(--char-900);animation:prove 1.2s var(--ease) infinite}
+
+.empty{
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;
+  padding:clamp(30px,5vw,54px) 22px;border-radius:var(--r-lg);
+  border:2px dashed var(--char-900);background:var(--surface-2);
+}
+.empty-tile{
+  width:66px;height:66px;display:grid;place-items:center;border-radius:var(--r-arch);
+  background:var(--semolina-2);border:2px solid var(--char-900);color:var(--ink-soft);
+  box-shadow:var(--sh-hard-xs);
+}
+.empty-tile svg{width:32px;height:32px}
+.empty h3{font:var(--t-h2);text-transform:uppercase;color:var(--ink)}
+.empty p{max-width:46ch;font:var(--t-small);color:var(--ink-soft)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   16 · THE TAPED NOTICE (§5E, verbatim) — spent on "no section" (E11)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.notice{
+  position:relative;margin-top:clamp(20px,2.6vw,30px);
+  transform:rotate(-.55deg);transform-origin:50% 0;
+  transition:transform var(--dur) var(--ease);
+  display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;
+  padding:18px 18px 16px;
+}
+.notice:hover,.notice:focus-within{transform:rotate(0deg)}
+@media (hover:none){.notice{transform:none}}
+.notice::before,.notice::after{
+  content:"";position:absolute;top:-13px;width:118px;height:26px;
+  background:linear-gradient(180deg,rgba(255,249,240,.86),rgba(232,214,184,.78));
+  border-left:2px dashed rgba(28,19,16,.28);border-right:2px dashed rgba(28,19,16,.28);
+  box-shadow:0 1px 0 rgba(28,19,16,.18);pointer-events:none;z-index:3;
+}
+.notice::before{left:32px;transform:rotate(-2.4deg)}
+.notice::after{right:32px;transform:rotate(2.4deg)}
+.notice-ico{
+  width:52px;height:52px;flex:0 0 auto;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--amber-500);color:var(--char-900);
+  border:2px solid var(--char-900);box-shadow:var(--sh-hard-xs);
+}
+.notice-ico svg{width:28px;height:28px}
+.notice-body{min-width:0;flex:1 1 320px}
+.notice-body h3{font:var(--t-h2);text-transform:uppercase;letter-spacing:.02em;color:var(--ink)}
+.notice-body p{margin-top:5px;font:var(--t-small);color:var(--amber-700)}
+.reorders{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.reorder{
+  display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 11px;
+  border-radius:var(--r-sm);background:var(--surface);border:2px solid var(--char-900);
+  box-shadow:var(--sh-hard-xs);font:600 12.5px/1.2 var(--font-sans);color:var(--ink);
+}
+.reorder b{font:var(--t-ticket);font-weight:700;color:var(--amber-700);font-variant-numeric:tabular-nums}
+.reorder .qty{font:var(--t-micro);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.notice .btn{margin-left:auto;align-self:center}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   17 · THE DIALOG (E7) + FORM CONTROLS (E6)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:clamp(8px,2.4vw,30px)}
+.modal__scrim{position:absolute;inset:0;background:rgba(20,16,13,.72)}
+.modal__box{
+  position:relative;z-index:1;width:min(760px,100%);max-height:calc(100dvh - 24px);
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--surface);border:2px solid var(--char-900);border-radius:var(--r-lg);
+  box-shadow:var(--sh-hard-lg);
+  animation:fire-in .28s var(--ease) both;
+}
+/* the charred header, wearing the crust edge (§5B) */
+.modal__head{
+  position:relative;isolation:isolate;overflow:hidden;flex:0 0 auto;
+  background-color:var(--char-900);color:var(--char-ink);
+  padding:18px 18px calc(16px + 16px);
+  -webkit-mask:
+    radial-gradient(circle 16px at 16px 16px,#000 98%,#0000 100%) 0 100%/32px 32px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 16px) no-repeat;
+  mask:
+    radial-gradient(circle 16px at 16px 16px,#000 98%,#0000 100%) 0 100%/32px 32px repeat-x,
+    linear-gradient(#000 0 0) 0 0/100% calc(100% - 16px) no-repeat;
+}
+.modal__head > *{position:relative;z-index:2}
+.modal-ember{
+  position:absolute;left:0;right:0;bottom:-60px;height:190px;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 100% at 50% 100%, rgba(226,59,20,.5), rgba(240,164,21,.16) 46%, transparent 74%);
+  animation:flicker 8s var(--ease) infinite;
+}
+.modal__eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.modal__head h2{margin-top:10px;font:var(--t-h1);text-transform:uppercase;letter-spacing:-.02em;color:var(--char-ink)}
+.modal__head p{margin-top:6px;font:var(--t-small);color:var(--char-ink-soft);font-variant-numeric:tabular-nums}
+.modal__x{
+  position:absolute;top:12px;right:12px;z-index:3;
+  width:42px;height:42px;display:grid;place-items:center;border-radius:var(--r-sm);
+  border:2px solid var(--char-500);color:var(--char-ink);
+}
+.modal__x:hover{background:var(--char-700)}
+.modal__x:active{transform:translate(2px,2px)}
+.modal__x svg{width:20px;height:20px}
+.modal__body{padding:4px 18px 20px;overflow:auto;flex:1;min-height:0}
+.modal__foot{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 18px;background:var(--semolina-2);border-top:2px solid var(--char-900);
+}
+.modal__foot .right{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+.btn--danger{background:var(--surface);color:var(--tomato-700);border-color:var(--tomato-700);box-shadow:2px 2px 0 var(--tomato-700)}
+.btn--danger:hover{background:var(--tomato-50)}
+.btn--danger:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--tomato-700)}
+
+.form{display:grid;gap:15px;margin-top:16px}
+.form-row{display:grid;gap:15px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:620px){.form-row--2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form-row--3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.field > .label{display:block;margin-bottom:7px}
+.inp{
+  display:block;width:100%;min-height:var(--tap);padding:11px 13px;border-radius:var(--r-sm);
+  background:var(--surface-2);border:2px solid var(--char-900);box-shadow:var(--sh-inset);
+  font:600 14px/1.4 var(--font-sans);color:var(--ink);
+}
+.inp::placeholder{color:var(--ink-soft);font-weight:400}
+.inp:hover{background:var(--surface)}
+textarea.inp{min-height:82px;resize:vertical;font-weight:400}
+.inp--num{font-family:var(--font-ticket);font-variant-numeric:tabular-nums;font-weight:700}
+.inp--money{padding-left:32px}
+.money-wrap{position:relative}
+.money-wrap .rs{position:absolute;left:13px;top:50%;transform:translateY(-50%);font:900 14px/1 var(--font-display);color:var(--ink-soft);pointer-events:none}
+.selw{position:relative}
+.selw select{appearance:none;-webkit-appearance:none;padding-right:42px;cursor:pointer}
+.selw svg{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink);pointer-events:none}
+.hint{margin-top:6px;font:var(--t-micro);color:var(--ink-soft)}
+
+/* the photo field — the plate again, at dialog scale */
+.photo-field{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.photo-field .shot{width:180px;flex:0 0 auto;border:2px solid var(--line-char);border-radius:var(--r-sm)}
+.photo-side{flex:1 1 240px;min-width:0;display:grid;gap:9px}
+
+.swx-field{
+  display:flex;align-items:center;gap:12px;
+  padding:9px 12px;border-radius:var(--r-sm);
+  background:var(--surface-2);border:2px solid var(--line-strong);
+}
+.swx-field .txt{min-width:0;flex:1}
+.swx-field .txt b{display:block;font:900 11.5px/1.2 var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.swx-field .txt span{display:block;margin-top:3px;font:var(--t-micro);color:var(--ink-soft)}
+.swx-field .swx{margin-left:auto}
+.swx-field--veg{background:var(--basil-50);border-color:var(--basil-500)}
+.swx-field--non{background:var(--tomato-50);border-color:var(--tomato-700)}
+
+.dlg-facts{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;
+  padding:12px;border-radius:var(--r-sm);background:var(--surface-2);border:2px dashed var(--line-strong);
+}
+.dlg-facts div{text-align:center}
+.dlg-facts b{display:block;font:900 15px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--ink)}
+.dlg-facts span{display:block;margin-top:5px;font:var(--t-label);letter-spacing:.09em;color:var(--ink-soft)}
+
+/* the row-action menu — one element, moved to whichever card asked for it */
+.rowmenu{
+  position:absolute;z-index:70;width:210px;padding:6px;border-radius:var(--r-sm);
+  background:var(--surface);border:2px solid var(--char-900);box-shadow:var(--sh-hard);
+  display:grid;gap:2px;
+}
+.rowmenu .lbl{padding:7px 9px 5px;font:var(--t-label);letter-spacing:.14em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.rowmenu button{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  min-height:var(--tap);padding:0 10px;border-radius:var(--r-xs);
+  font:600 12.5px/1.2 var(--font-sans);color:var(--ink);
+}
+.rowmenu button:hover{background:var(--surface-2)}
+.rowmenu button svg{width:17px;height:17px;flex:0 0 auto;color:var(--ink-soft)}
+.rowmenu .danger{color:var(--tomato-700)}
+.rowmenu .danger svg{color:var(--tomato-700)}
+.rowmenu .danger:hover{background:var(--tomato-50)}
+.rowmenu hr{height:2px;border:0;background:var(--line);margin:4px 2px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   18 · OFF-CANVAS CHROME  (verbatim)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.backdrop{position:fixed;inset:0;background:rgba(20,16,13,.62);z-index:45;opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
+body.nav-open .backdrop{opacity:1;pointer-events:auto}
+body.nav-open,body.modal-open{overflow:hidden}
+.tabbar{display:none}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   19 · RESPONSIVE LADDER (§4, verbatim + this screen's additions)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:1279px){
+  .shell{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .sidebar{padding:16px 8px 14px;align-items:center}
+  .brand{justify-content:center;padding:4px 0}
+  .switcher{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center;border-radius:var(--r-sm)}
+  .switch-tile{width:30px;height:30px}
+  .switcher .switch-meta,.switcher > .chev{display:none}
+  .outlets{position:absolute;left:calc(100% + 8px);top:0;width:216px;z-index:70}
+  .nav-link{justify-content:center;padding:0;width:var(--tap);margin:0 auto}
+  .nav-link[aria-current="page"]::before{left:-8px}
+  .nav-badge{position:absolute;top:2px;right:-2px;margin:0;padding:2px 5px;font-size:9px}
+  .brand-text,.brand-tag,.nav-group > .label,.nav-link span,.switch-meta{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .nav-group+.nav-group{margin-top:12px;position:relative;padding-top:12px}
+  .nav-group+.nav-group::before{content:"";position:absolute;top:0;left:16%;right:16%;height:2px;background:var(--char-600)}
+  .user-btn{width:var(--tap);min-height:var(--tap);padding:0;justify-content:center}
+  .user-meta,.user-btn > .chev{display:none}
+  .user-menu{position:absolute;bottom:0;left:calc(100% + 8px);width:214px;margin:0;z-index:70}
+  .side-foot{position:relative}
+}
+
+/* the rail unrolls into a horizontal strip before the sidebar collapses */
+@media (max-width:1119px){
+  .rail-col{gap:12px}
+  .sections{
+    display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:thin;
+  }
+  /* width:auto matters — flex-basis:auto would otherwise read the base
+     rule's width:100% and the first section would eat the whole scroller */
+  .sec-link{flex:0 0 auto;width:auto;padding:0 13px;border-color:var(--line)}
+  .sec-link[aria-current="true"]{border-color:var(--char-900)}
+  .sec-nm{flex:0 0 auto}
+  .grip{display:none}
+  .sec-new{width:auto;flex:0 0 auto;margin-top:0;padding:0 14px}
+  .sec-strip{display:flex;gap:8px;align-items:center;overflow-x:auto}
+  .health dl{grid-template-columns:repeat(2,minmax(0,1fr));display:grid}
+  .rail-note{display:none}
+}
+
+@media (max-width:1023px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:286px;
+    padding:20px 12px 16px;align-items:stretch;
+    border-right:0;box-shadow:8px 0 0 rgba(20,16,13,.35);
+    transform:translateX(-104%);transition:transform .26s var(--ease);z-index:60;
+  }
+  body.nav-open .sidebar{transform:none}
+  .brand{justify-content:flex-start;padding:4px 6px 2px}
+  .brand-text,.brand-tag,.nav-group > .label,.nav-link span,.switch-meta{
+    position:static;width:auto;height:auto;margin:0;overflow:visible;clip-path:none;
+  }
+  .switcher{width:100%;min-height:56px;padding:8px 10px;justify-content:flex-start}
+  .switcher .switch-meta{display:block}
+  .switcher > .chev{display:block}
+  .switch-tile{width:34px;height:34px}
+  .outlets{position:static;width:auto;margin-top:6px}
+  .nav-link{justify-content:flex-start;padding:0 11px;width:auto}
+  .nav-link[aria-current="page"]::before{left:-12px}
+  .nav-badge{position:static;margin-left:auto;padding:4px 7px;font-size:10px}
+  .nav-group+.nav-group{position:static;padding-top:0;margin-top:14px}
+  .nav-group+.nav-group::before{content:none}
+  .user-btn{width:100%;min-height:56px;padding:8px 10px;justify-content:flex-start}
+  .user-meta,.user-btn > .chev{display:block}
+  .user-menu{position:static;width:auto;margin-top:6px}
+
+  .main{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px) + 20px)}
+  .hamburger{display:inline-flex}
+  .mast-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+  /* the ONE glass surface in the theme */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:55;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+    background:color-mix(in srgb, var(--char-900) 86%, transparent);
+    backdrop-filter:blur(14px) saturate(1.5);
+    border-top:2px solid var(--tomato-600);box-shadow:var(--sh-up);
+  }
+  .tab{
+    display:grid;place-items:center;gap:3px;min-height:var(--tap);padding:5px 2px;
+    border-radius:var(--r-xs);color:var(--char-ink-soft);
+    font:900 9.5px/1.2 var(--font-display);letter-spacing:.08em;text-transform:uppercase;
+  }
+  .tab svg{width:21px;height:21px}
+  .tab:hover{color:var(--char-ink);background:var(--char-700)}
+  .tab[aria-current="page"],.tab[aria-expanded="true"]{color:var(--char-ink);background:var(--tomato-700)}
+}
+
+@media (max-width:640px){
+  .hero-top{padding-top:34px}
+  .hero-body{align-items:flex-start}
+  .hero-cta{width:100%}
+  .hero-cta .btn{flex:1 1 auto}
+  .mast-title{font-size:clamp(26px,7.6vw,32px)}
+  .notice .btn{margin-left:0;width:100%}
+  /* the toolbar stops sticking: it would collide with the fixed variant badge */
+  .toolbar{position:static}
+  .search{max-width:none}
+  .tool-act{width:100%}
+  .tool-act .btn{flex:1 1 auto}
+  .applied .clear{margin-left:0}
+  .modal{padding:0}
+  .modal__box{max-height:100dvh;height:100dvh;border-radius:0;border-left:0;border-right:0;box-shadow:none;width:100%}
+  .photo-field .shot{width:100%}
+  .health dl{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:430px){
+  .dishes{grid-template-columns:minmax(0,1fr)}
+  .dish__units{margin-left:0;width:100%}
+  .dlg-facts{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body class="modal-open">
+
+<!-- ═══ ORNAMENT SPRITE — the shared Forno vocabulary, copied verbatim ═══════
+     Consumers are aria-hidden + pointer-events:none without exception. ═══════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+
+  <!-- FLAME — the section mark and the ember. The signature glyph. -->
+  <symbol id="i-flame" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M13.2 1.4c.6 3.3-.6 5.2-2.3 6.9-1.9 1.9-4.2 3.6-4.2 7.1A7.3 7.3 0 0 0 14 22.5c3.9 0 6.6-3 6.6-6.9 0-4.7-3.4-7-4.6-10.4-.4 1.4-1.2 2.3-2.2 2.9.4-2.3.2-4.7-.6-6.7z"/>
+    <path fill="var(--amber-500)" opacity=".85" d="M13 12.3c.3 1.6-.3 2.5-1.1 3.4-.9.9-2 1.7-2 3.4A3.5 3.5 0 0 0 13.4 23c1.8 0 3.1-1.4 3.1-3.3 0-2.2-1.6-3.3-2.2-5-.2.7-.5 1.1-1 1.4.2-1.1 0-2.2-.3-3.2z"/>
+  </symbol>
+
+  <!-- PIZZA SLICE — menu, dishes, the sellers list -->
+  <symbol id="i-slice" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2 3.4 19.4a1.6 1.6 0 0 0 2.1 2.1L22.6 13z"/>
+    <circle cx="10" cy="10.5" r="1.6" fill="currentColor"/>
+    <circle cx="8" cy="16" r="1.4" fill="currentColor"/>
+    <circle cx="14.5" cy="14" r="1.5" fill="currentColor"/>
+  </symbol>
+
+  <!-- PEEL — the paddle. The Operato brand tile inside Forno. -->
+  <symbol id="i-peel" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15.6 2.4a5.6 5.6 0 0 1 0 7.9l-3.1 3.1-7.9-7.9 3.1-3.1a5.6 5.6 0 0 1 7.9 0z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m10.4 13.6-8 8"/>
+  </symbol>
+
+  <!-- WHEAT — semolina, flour, breads, inventory -->
+  <symbol id="i-wheat" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 22V9"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9c0-2.4 1.4-4.2 3.4-5-.2 2.6-1.3 4.2-3.4 5zM12 9C12 6.6 10.6 4.8 8.6 4c.2 2.6 1.3 4.2 3.4 5zM12 14.5c0-2.4 1.4-4.2 3.4-5-.2 2.6-1.3 4.2-3.4 5zM12 14.5c0-2.4-1.4-4.2-3.4-5 .2 2.6 1.3 4.2 3.4 5z"/>
+  </symbol>
+
+  <!-- BASIL — fresh, veg-adjacent decoration (NOT the FSSAI mark) -->
+  <symbol id="i-basil" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M20.5 3.2c-6.6-.6-11 1.5-13.1 5-1.6 2.7-1.4 5.7.1 7.7L3.6 19.8a1 1 0 1 0 1.4 1.4l3.9-3.9c2 1.5 5 1.7 7.7.1 3.5-2.1 5.5-6.5 4.9-13.1a1 1 0 0 0-1-1.1z"/>
+  </symbol>
+
+  <!-- OVEN ARCH — the mouth -->
+  <symbol id="i-oven" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M2.5 20V11a9.5 9.5 0 0 1 19 0v9z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M7 20v-8a5 5 0 0 1 10 0v8"/>
+  </symbol>
+
+  <!-- BLISTER — the 3-dot char cluster that sits above every crust edge -->
+  <symbol id="i-blister" viewBox="0 0 44 14">
+    <ellipse cx="8" cy="7" rx="7" ry="4.4" fill="currentColor"/>
+    <ellipse cx="24" cy="6" rx="4.4" ry="3" fill="currentColor" opacity=".8"/>
+    <ellipse cx="37" cy="8" rx="5.6" ry="3.6" fill="currentColor" opacity=".65"/>
+  </symbol>
+
+  <!-- CLOCK / oven timer -->
+  <symbol id="i-timer" viewBox="0 0 24 24">
+    <circle cx="12" cy="13" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8.5V13l3 2M9.5 1.5h5"/>
+  </symbol>
+
+</defs></svg>
+
+<div class="variant-badge">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>
+  Menu · Forno
+</div>
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ══════════════════════════ SIDEBAR — the charred slab ═════════════════ -->
+  <aside class="sidebar brick leopard" id="sidebar" aria-label="Main navigation" inert>
+    <span class="sidebar-ember" aria-hidden="true"></span>
+
+    <a class="brand" href="#" title="Operato">
+      <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-peel"/></svg></span>
+      <span class="brand-text">
+        <span class="wordmark">OPERAT<i>O</i></span>
+        <span class="brand-tag">AI ops for small business</span>
+      </span>
+    </a>
+
+    <div class="switch-wrap">
+      <button class="switcher" type="button" id="switchBtn" aria-expanded="false" aria-controls="outlets">
+        <span class="switch-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-oven"/></svg></span>
+        <span class="switch-meta">
+          <span class="switch-name">Forno Pizzeria</span>
+          <span class="switch-role">Bandra West · Owner</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+      </button>
+
+      <div class="outlets" id="outlets" hidden>
+        <p class="grp">Your outlets</p>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno Pizzeria · Bandra <span class="cur">Current</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno · Khar Danda</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-oven"/></svg> Forno Express · Andheri</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add a new outlet</a>
+      </div>
+    </div>
+
+    <nav class="nav-group" aria-label="Floor">
+      <span class="label">The floor</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="forno-dashboard.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+          <span>Overview</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h4"/></svg>
+          <span>Orders</span><span class="nav-badge nav-badge--hot">12</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 13.8 8 19.5 9.8 13.8 11.6 12 17.2 10.2 11.6 4.5 9.8 10.2 8z"/><path d="M18.5 15.5l.8 2.4 2.4.8-2.4.8-.8 2.4-.8-2.4-2.4-.8 2.4-.8z"/></svg>
+          <span>Ask AI</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="Kitchen">
+      <span class="label">The kitchen</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-slice"/></svg>
+          <span>Menu</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M21 8.5 12 3.5 3 8.5v7L12 20.5l9-5z"/><path d="M3 8.5 12 13.5l9-5M12 13.5v7"/></svg>
+          <span>Inventory</span><span class="nav-badge">5</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="People">
+      <span class="label">People</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.4a3 3 0 0 1 0 5.6M18.5 20a6.6 6.6 0 0 0-2.7-5"/></svg>
+          <span>Staff</span></a></li>
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>
+          <span>Customers</span></a></li>
+      </ul>
+    </nav>
+
+    <nav class="nav-group" aria-label="Account">
+      <span class="label">Account</span>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3"/><path d="M2.5 10h19M6 14.5h4"/></svg>
+          <span>Billing</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      <button class="user-btn" type="button" id="userBtn" aria-expanded="false" aria-controls="userMenu">
+        <span class="av" aria-hidden="true">RQ</span>
+        <span class="user-meta">
+          <span class="user-name">Rehan Qureshi</span>
+          <span class="user-mail">rehan@fornopizzeria.in</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+      </button>
+      <ul class="user-menu" id="userMenu" hidden>
+        <li class="lbl">Rehan · Owner</li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Profile</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Theme · System</a></li>
+        <li><a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Sign out</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════ MAIN ═══════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ══════════ THE MASTHEAD — the hero band, shrunk (§4) ══════════ -->
+    <header class="hero hero--mast brick leopard">
+      <span class="hero-ember" aria-hidden="true"></span>
+      <span class="hero-arch" aria-hidden="true"></span>
+
+      <div class="hero-in">
+        <div class="hero-top">
+          <button class="btn btn--onchar btn--icon hamburger" type="button" id="navToggle"
+                  aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <span class="hero-kicker">Forno Pizzeria <span class="sep" aria-hidden="true">·</span> <em>Bandra West</em></span>
+          <span class="live"><i aria-hidden="true"></i> Menu is live</span>
+        </div>
+
+        <div class="hero-body">
+          <div class="hero-l">
+            <h1 class="mast-title">The <em>menu</em></h1>
+            <span class="hero-rule" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <p class="hero-line">
+              Every price on the counter tablet, on the QR card and on every ticket
+              in the kitchen is read from this page. Change it here and it is live
+              in about <b>ten seconds</b> — including mid-rush, which is
+              <span class="hot">right now</span>.
+            </p>
+          </div>
+
+          <div class="hero-cta">
+            <button class="btn btn--onchar" type="button" data-open-modal="sectionsDlg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h4M4 12h4M4 18h4M11 6h9M11 12h9M11 18h9"/></svg>
+              Manage sections
+            </button>
+            <button class="btn btn--hot" type="button" data-open-modal="dishDlg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Add a dish
+            </button>
+          </div>
+        </div>
+
+        <div class="mast-stats">
+          <div><b class="num">21</b><span>Dishes</span></div>
+          <div><b class="num">5</b><span>Sections</span></div>
+          <div><b class="num warn">2</b><span>Off tonight</span></div>
+          <div><b class="num">18</b><span>Veg of 21</span></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ══════════ THE TOOLBAR ══════════ -->
+      <div class="toolbar rise" style="--i:1" role="group" aria-label="Menu filters">
+        <div class="search" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+          <label class="sr-only" for="q">Search dishes</label>
+          <input id="q" type="search" placeholder="Search dishes, toppings, SKU…">
+        </div>
+
+        <div class="seg" role="group" aria-label="Availability">
+          <button type="button" aria-pressed="true">All <span class="num">21</span></button>
+          <button type="button" aria-pressed="false">On <span class="num">19</span></button>
+          <button type="button" aria-pressed="false">86'd <span class="num">2</span></button>
+        </div>
+
+        <div class="selw" style="flex:0 0 auto;width:190px">
+          <label class="sr-only" for="sort">Sort the menu</label>
+          <select class="inp" id="sort">
+            <option>Sort · Section order</option>
+            <option>Sort · Best sellers</option>
+            <option>Sort · Price, high to low</option>
+            <option>Sort · Recently changed</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+
+        <span class="tool-sp"></span>
+
+        <div class="tool-act">
+          <div class="seg seg--icons" role="group" aria-label="View">
+            <button type="button" aria-pressed="true" aria-label="Card view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+            </button>
+            <button type="button" aria-pressed="false" aria-label="List view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+          </div>
+          <button class="btn btn--ghost" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><rect x="4" y="8" width="16" height="7" rx="2"/><path d="M7 15h10v6H7z"/></svg>
+            Print the board
+          </button>
+        </div>
+
+        <!-- E9 · filtered — one applied facet, and every count above is post-filter -->
+        <div class="applied" id="appliedRow">
+          <span class="label">Filters</span>
+          <span class="fchip">
+            Hiding archived <b>4</b>
+            <button type="button" aria-label="Stop hiding archived dishes" data-clear-filter>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+          </span>
+          <button class="clear" type="button" data-clear-filter>Clear all</button>
+        </div>
+      </div>
+
+      <!-- ══════════ THE LAYOUT — rail + bands ══════════ -->
+      <div class="menu-lay">
+
+        <!-- ── the section rail: the paper menu, and the category manager ── -->
+        <div class="rail-col">
+          <section class="card rise" style="--i:2" aria-labelledby="rail-h">
+            <div style="display:flex;align-items:center;gap:9px">
+              <h2 id="rail-h" style="font:var(--t-h2);text-transform:uppercase;color:var(--ink)">Sections</h2>
+              <span class="label" style="margin-left:auto">Drag to reorder</span>
+            </div>
+
+            <div class="sections" role="group" aria-label="Menu sections">
+              <button class="sec-link" type="button" aria-current="true">
+                <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+                <span class="sec-nm">All dishes</span>
+                <span class="sec-ct num">21</span>
+              </button>
+              <button class="sec-link" type="button">
+                <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+                <span class="sec-nm">The oven · Pizzas</span>
+                <span class="sec-ct num">8</span>
+              </button>
+              <button class="sec-link" type="button">
+                <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+                <span class="sec-nm">Breads &amp; sides</span>
+                <span class="sec-ct num">5</span>
+              </button>
+              <button class="sec-link" type="button">
+                <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+                <span class="sec-nm">Sodas &amp; sweets</span>
+                <span class="sec-ct sec-ct--wait num">6</span>
+              </button>
+              <button class="sec-link" type="button">
+                <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+                <span class="sec-nm">Specials board</span>
+                <span class="sec-ct sec-ct--zero num">0</span>
+              </button>
+              <button class="sec-link" type="button">
+                <svg class="grip" viewBox="0 0 14 18" aria-hidden="true" style="opacity:.3"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+                <span class="sec-nm">Uncategorised</span>
+                <span class="sec-ct num">2</span>
+              </button>
+            </div>
+
+            <button class="sec-new" type="button" data-open-modal="sectionsDlg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              New section
+            </button>
+            <p class="rail-note">Sections print on the paper board in this order. Uncategorised never prints — it is a holding pen.</p>
+          </section>
+
+          <section class="card card--basil health rise" style="--i:3" aria-labelledby="health-h">
+            <span class="label">Menu health</span>
+            <h2 id="health-h" style="font:var(--t-h2);text-transform:uppercase;color:var(--ink);margin-top:5px">The state of it</h2>
+
+            <div class="bar-wrap">
+              <span class="heat heat--basil" style="--p:86%" role="img" aria-label="18 of 21 dishes are vegetarian, 86 percent"><i></i></span>
+              <span class="bar-cap"><span>18 of 21 veg</span><span>86%</span></span>
+            </div>
+
+            <dl>
+              <div class="row"><dt>Live on the counter</dt><dd class="num">19</dd></div>
+              <div class="row"><dt>86'd tonight</dt><dd class="num warn">2</dd></div>
+              <div class="row"><dt>Average pizza</dt><dd class="num">₹473</dd></div>
+              <div class="row"><dt>Cheapest → dearest</dt><dd class="num">₹139 – ₹699</dd></div>
+              <div class="row"><dt>Prices last changed</dt><dd class="num">14 Aug</dd></div>
+            </dl>
+          </section>
+        </div>
+
+        <!-- ── the bands ── -->
+        <div class="bands">
+
+          <!-- ══ BAND 1 · PIZZAS — loaded ══ -->
+          <section class="band" aria-labelledby="b-pizza">
+            <div class="band__head">
+              <h2 class="band__title" id="b-pizza">
+                <svg style="color:var(--tomato-500)" aria-hidden="true"><use href="#i-slice"/></svg>
+                The oven · Pizzas
+              </h2>
+              <span class="band__ct num">8 dishes</span>
+              <span class="band__sub">7 on the counter · 1 off · 12 in. is the house size</span>
+              <span class="band__act"><button class="btn btn--ghost btn--sm" type="button" data-open-modal="dishDlg">Add to this section</button></span>
+            </div>
+
+            <div class="dishes">
+
+              <article class="dish rise" style="--i:4">
+                <div class="shot">
+                  <span class="flag"><b>01</b> Best seller</span>
+                  <span class="size">8 IN.</span>
+                  <span class="art pie pie--marg" style="--pw:60%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Margherita</h3>
+                  </div>
+                  <p class="dish__desc">San Marzano, fior di latte, torn basil, a thread of Sicilian olive oil.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>249</span>
+                    <span class="dish__prep">9 MIN</span>
+                    <span class="dish__units num">1,284 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Margherita 8 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Margherita 8 inch" data-dish="Margherita 8 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:5">
+                <div class="shot">
+                  <span class="size">12 IN.</span>
+                  <span class="art pie pie--marg" style="--pw:84%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Margherita</h3>
+                  </div>
+                  <p class="dish__desc">San Marzano, fior di latte, torn basil, a thread of Sicilian olive oil.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>429</span>
+                    <span class="dish__prep">12 MIN</span>
+                    <span class="dish__units num">396 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Margherita 12 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Margherita 12 inch" data-dish="Margherita 12 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- the dish currently open in the dialog -->
+              <article class="dish dish--editing rise" style="--i:6" id="dishDiavola">
+                <div class="shot">
+                  <span class="editing-tag">Editing now</span>
+                  <span class="size">12 IN.</span>
+                  <span class="art pie pie--diavola" style="--pw:84%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+                    <h3 class="dish__name">Diavola</h3>
+                  </div>
+                  <p class="dish__desc">Spicy salami, chilli honey, fior di latte, oregano. The margin-maker.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>549</span>
+                    <span class="dish__prep">13 MIN</span>
+                    <span class="dish__units num">742 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Diavola 12 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Diavola 12 inch" data-dish="Diavola 12 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:7">
+                <div class="shot">
+                  <span class="flag"><b>05</b> Best seller</span>
+                  <span class="size">12 IN.</span>
+                  <span class="art pie pie--paneer" style="--pw:84%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Paneer Tikka</h3>
+                  </div>
+                  <p class="dish__desc">Tandoori paneer, red onion, coriander, a swirl of green chutney.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>499</span>
+                    <span class="dish__prep">13 MIN</span>
+                    <span class="dish__units num">511 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Paneer Tikka 12 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Paneer Tikka 12 inch" data-dish="Paneer Tikka 12 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:8">
+                <div class="shot">
+                  <span class="flag"><b>06</b> Best seller</span>
+                  <span class="size">8 IN.</span>
+                  <span class="art pie pie--peri" style="--pw:60%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+                    <h3 class="dish__name">Chicken Peri-Peri</h3>
+                  </div>
+                  <p class="dish__desc">Peri-peri chicken, roast red pepper, green pepper, red onion.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>329</span>
+                    <span class="dish__prep">10 MIN</span>
+                    <span class="dish__units num">468 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Chicken Peri-Peri 8 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Chicken Peri-Peri 8 inch" data-dish="Chicken Peri-Peri 8 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:9">
+                <div class="shot">
+                  <span class="size">12 IN.</span>
+                  <span class="art pie pie--formaggi" style="--pw:84%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Quattro Formaggi</h3>
+                  </div>
+                  <p class="dish__desc">Fior di latte, gorgonzola, scamorza, grana padano. No sauce, no apology.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>649</span>
+                    <span class="dish__prep">14 MIN</span>
+                    <span class="dish__units num">205 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Quattro Formaggi 12 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Quattro Formaggi 12 inch" data-dish="Quattro Formaggi 12 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:10">
+                <div class="shot">
+                  <span class="size">12 IN.</span>
+                  <span class="art pie pie--funghi" style="--pw:84%" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Funghi e Tartufo</h3>
+                  </div>
+                  <p class="dish__desc">Button and oyster mushroom, truffle cream, thyme. The dearest pie we make.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>699</span>
+                    <span class="dish__prep">14 MIN</span>
+                    <span class="dish__units num">131 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Funghi e Tartufo 12 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Funghi e Tartufo 12 inch" data-dish="Funghi e Tartufo 12 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <!-- E4 · the 86'd card: strap + chip + reason, full-contrast text -->
+              <article class="dish dish--off rise" style="--i:11">
+                <div class="shot">
+                  <span class="size">12 IN.</span>
+                  <span class="art pie pie--marinara" style="--pw:84%" aria-hidden="true"></span>
+                  <span class="strap">86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Marinara</h3>
+                  </div>
+                  <p class="dish__desc">Passata, garlic, oregano, olive oil. No cheese, and no argument about it.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>379</span>
+                    <span class="dish__prep">10 MIN</span>
+                    <span class="dish__units num">61 sold</span>
+                  </div>
+                  <p class="dish__why">Off since 7:15 pm — deck two is running cold.</p>
+                  <div class="dish__foot">
+                    <button class="swx swx--off" type="button" role="switch" aria-checked="false" aria-label="Marinara 12 inch available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">86'd</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Marinara 12 inch" data-dish="Marinara 12 in.">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+            </div>
+          </section>
+
+          <!-- ══ BAND 2 · BREADS & SIDES — loaded ══ -->
+          <section class="band" aria-labelledby="b-bread">
+            <div class="band__head">
+              <h2 class="band__title" id="b-bread">
+                <svg style="color:var(--amber-500)" aria-hidden="true"><use href="#i-wheat"/></svg>
+                Breads &amp; sides
+              </h2>
+              <span class="band__ct num">5 dishes</span>
+              <span class="band__sub">Same dough, same deck · 1,890 sold in 14 nights</span>
+              <span class="band__act"><button class="btn btn--ghost btn--sm" type="button" data-open-modal="dishDlg">Add to this section</button></span>
+            </div>
+
+            <div class="dishes">
+
+              <article class="dish rise" style="--i:12">
+                <div class="shot">
+                  <span class="flag"><b>02</b> Best seller</span>
+                  <span class="art loaf" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Garlic bread · classic</h3>
+                  </div>
+                  <p class="dish__desc">Wood-fired, garlic butter, parsley. Goes out with two orders in three.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>149</span>
+                    <span class="dish__prep">6 MIN</span>
+                    <span class="dish__units num">968 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Garlic bread classic available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Garlic bread classic" data-dish="Garlic bread · classic">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:13">
+                <div class="shot">
+                  <span class="art loaf loaf--cheesy" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Garlic bread · cheesy</h3>
+                  </div>
+                  <p class="dish__desc">Double fior di latte, garlic butter, chilli flakes on the side.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>189</span>
+                    <span class="dish__prep">7 MIN</span>
+                    <span class="dish__units num">421 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Garlic bread cheesy available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Garlic bread cheesy" data-dish="Garlic bread · cheesy">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:14">
+                <div class="shot">
+                  <span class="size">6 PC</span>
+                  <span class="art knots" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Garlic knots</h3>
+                  </div>
+                  <p class="dish__desc">Knotted offcut dough, garlic confit, grana padano, sea salt.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>169</span>
+                    <span class="dish__prep">7 MIN</span>
+                    <span class="dish__units num">287 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Garlic knots available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Garlic knots" data-dish="Garlic knots · 6 pc">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish rise" style="--i:15">
+                <div class="shot">
+                  <span class="art loaf loaf--nduja" aria-hidden="true"></span>
+                  <span class="strap" hidden>86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai fssai--non" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+                    <h3 class="dish__name">Nduja garlic bread</h3>
+                  </div>
+                  <p class="dish__desc">Calabrian nduja, stracciatella, a lick of honey. Ordered by name or not at all.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>229</span>
+                    <span class="dish__prep">8 MIN</span>
+                    <span class="dish__units num">96 sold</span>
+                  </div>
+                  <div class="dish__foot">
+                    <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Nduja garlic bread available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">On tonight</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Nduja garlic bread" data-dish="Nduja garlic bread">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="dish dish--off rise" style="--i:16">
+                <div class="shot">
+                  <span class="size">2 PC</span>
+                  <span class="art toast" aria-hidden="true"></span>
+                  <span class="strap">86'd</span>
+                </div>
+                <div class="dish__body">
+                  <div class="dish__id">
+                    <span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span>
+                    <h3 class="dish__name">Chilli cheese toast</h3>
+                  </div>
+                  <p class="dish__desc">Cheddar-and-Amul mix, green chilli, on yesterday's focaccia. Bandra style.</p>
+                  <div class="dish__nums">
+                    <span class="dish__price"><span class="cur">₹</span>139</span>
+                    <span class="dish__prep">5 MIN</span>
+                    <span class="dish__units num">118 sold</span>
+                  </div>
+                  <p class="dish__why">Off since Thursday — no focaccia base until the Monday bake.</p>
+                  <div class="dish__foot">
+                    <button class="swx swx--off" type="button" role="switch" aria-checked="false" aria-label="Chilli cheese toast available tonight">
+                      <span class="swx__track" aria-hidden="true"></span>
+                      <span class="swx__txt">86'd</span>
+                    </button>
+                    <button class="btn btn--icon dish__more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for Chilli cheese toast" data-dish="Chilli cheese toast">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+            </div>
+          </section>
+
+          <!-- ══ BAND 3 · SODAS & SWEETS — LOADING (E9) ══ -->
+          <section class="band" aria-labelledby="b-soda" aria-busy="true">
+            <div class="band__head">
+              <h2 class="band__title" id="b-soda">
+                <svg style="color:var(--slate-500)" aria-hidden="true"><use href="#i-slice"/></svg>
+                Sodas &amp; sweets
+              </h2>
+              <span class="band__ct num">6 dishes</span>
+              <span class="loading-line"><i aria-hidden="true"></i> Loading 6 dishes from the counter…</span>
+            </div>
+
+            <div class="dishes">
+              <div class="dish-sk" aria-hidden="true">
+                <div class="sk-shot"></div>
+                <div class="sk-body">
+                  <span class="sk sk--t"></span><span class="sk sk--d"></span><span class="sk sk--d2"></span><span class="sk sk--f"></span>
+                </div>
+              </div>
+              <div class="dish-sk" aria-hidden="true">
+                <div class="sk-shot"></div>
+                <div class="sk-body">
+                  <span class="sk sk--t"></span><span class="sk sk--d"></span><span class="sk sk--d2"></span><span class="sk sk--f"></span>
+                </div>
+              </div>
+              <div class="dish-sk" aria-hidden="true">
+                <div class="sk-shot"></div>
+                <div class="sk-body">
+                  <span class="sk sk--t"></span><span class="sk sk--d"></span><span class="sk sk--d2"></span><span class="sk sk--f"></span>
+                </div>
+              </div>
+            </div>
+            <p class="sr-only" role="status">Loading six dishes in Sodas and sweets.</p>
+          </section>
+
+          <!-- ══ BAND 4 · SPECIALS BOARD — EMPTY (E9) ══ -->
+          <section class="band" aria-labelledby="b-spec">
+            <div class="band__head">
+              <h2 class="band__title" id="b-spec">
+                <svg style="color:var(--tomato-500)" aria-hidden="true"><use href="#i-flame"/></svg>
+                Specials board
+              </h2>
+              <span class="band__ct num">0 dishes</span>
+              <span class="band__sub">Nothing pinned since the 9 August truffle run</span>
+            </div>
+
+            <div class="empty">
+              <span class="empty-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-slice"/></svg></span>
+              <h3>The board is bare</h3>
+              <p>Whatever you pin here prints at the top of the paper board, shows first on the counter tablet and gets the flame on the QR menu. Most nights it is one pie and one bread.</p>
+              <button class="btn btn--ghost" type="button" data-open-modal="dishDlg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Pin the first dish
+              </button>
+            </div>
+          </section>
+
+          <!-- ══ THE ONE TAPED NOTICE (§5E / E11) ══ -->
+          <section aria-labelledby="nosec-h">
+            <div class="card card--amber notice rise" style="--i:17">
+              <span class="notice-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4.5M12 17.5h.01"/><path d="M10.3 3.4 2.3 17.5A2 2 0 0 0 4 20.5h16a2 2 0 0 0 1.7-3L13.7 3.4a2 2 0 0 0-3.4 0z"/></svg>
+              </span>
+              <div class="notice-body">
+                <h3 id="nosec-h">2 dishes are in the holding pen</h3>
+                <p>They are sellable and they are priced, but with no section they never print on the paper board and they sit at the bottom of the QR menu. File them before Monday's reprint.</p>
+                <div class="reorders">
+                  <span class="reorder"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> Chilli oil · 100 ml <span class="qty">retail</span> <b>₹150</b></span>
+                  <span class="reorder"><span class="fssai" title="Vegetarian" aria-label="Vegetarian"><i></i></span> Kids margherita · 7 in. <span class="qty">added 19 Aug</span> <b>₹199</b></span>
+                </div>
+              </div>
+              <button class="btn btn--primary" type="button" data-open-modal="sectionsDlg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h4M4 12h4M4 18h4M11 6h9M11 12h9M11 18h9"/></svg>
+                File them
+              </button>
+            </div>
+          </section>
+
+        </div><!-- /.bands -->
+      </div><!-- /.menu-lay -->
+    </div><!-- /.wrap -->
+  </main>
+</div>
+
+<!-- the row-action menu, moved to whichever card asked for it -->
+<div class="rowmenu" id="rowmenu" role="menu" hidden>
+  <p class="lbl" id="rowmenuLbl">Diavola 12 in.</p>
+  <button type="button" role="menuitem" data-open-modal="dishDlg">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>
+    Edit dish
+  </button>
+  <button type="button" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3H6a2.5 2.5 0 0 0-2.5 2.5V13A2.5 2.5 0 0 0 6 15.5h2"/></svg>
+    Duplicate as 8 in.
+  </button>
+  <button type="button" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h4M4 12h4M4 18h4M11 6h9M11 12h9M11 18h9"/></svg>
+    Move to a section
+  </button>
+  <hr>
+  <button type="button" role="menuitem" class="danger">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5 7.5 20h9l1-13.5M10 10.5v6M14 10.5v6"/></svg>
+    Delete dish
+  </button>
+</div>
+
+<!-- ═══ BOTTOM TABBAR (≤1023) — the one glass surface in the theme ═══ -->
+<nav class="tabbar" aria-label="Primary">
+  <a class="tab" href="forno-dashboard.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+    Overview
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h4"/></svg>
+    Orders
+  </a>
+  <a class="tab" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 13.8 8 19.5 9.8 13.8 11.6 12 17.2 10.2 11.6 4.5 9.8 10.2 8z"/></svg>
+    Ask AI
+  </a>
+  <a class="tab" href="#" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-slice"/></svg>
+    Menu
+  </a>
+  <button class="tab" type="button" id="tabMore" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    More
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     THE DIALOG (E7) — open on load, because this screen's job is to show a
+     dish mid-edit. Escape, the ✕, or a click on the scrim all close it and the
+     full menu is underneath. Focus is trapped while it is open and returns to
+     whatever opened it.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="modal" id="dishDlg" role="dialog" aria-modal="true" aria-labelledby="dishDlgH" data-invoker="dishDiavola">
+  <div class="modal__scrim" data-close-modal></div>
+
+  <div class="modal__box">
+    <div class="modal__head brick leopard">
+      <span class="modal-ember" aria-hidden="true"></span>
+      <button class="modal__x" type="button" aria-label="Close without saving" data-close-modal>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+
+      <div class="modal__eyebrow">
+        <span class="hero-kicker">Editing a dish</span>
+        <span class="hero-kicker" style="gap:7px">
+          <span class="fssai fssai--non fssai--lg" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+          Non-veg
+        </span>
+      </div>
+
+      <h2 id="dishDlgH">Diavola <span class="tick" style="font-size:.6em;color:var(--amber-300)">12 IN.</span></h2>
+      <p>The oven · Pizzas &nbsp;·&nbsp; added 4 Feb 2026 &nbsp;·&nbsp; last edited by Rehan, 14 Aug 4:12 pm</p>
+    </div>
+
+    <div class="modal__body">
+      <form class="form" onsubmit="return false">
+
+        <div class="form-row form-row--2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
+          <div class="field">
+            <label class="label" for="f-name">Name</label>
+            <input class="inp" id="f-name" type="text" value="Diavola" placeholder="Margherita">
+            <p class="hint">This is what prints on the ticket. Keep it short — the printer is 32 characters wide.</p>
+          </div>
+          <div class="field">
+            <label class="label" for="f-size">Size</label>
+            <div class="selw">
+              <select class="inp" id="f-size">
+                <option>8 in.</option>
+                <option selected>12 in.</option>
+                <option>Not sized</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <p class="hint">Each size is its own line on the menu.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="f-desc">Description</label>
+          <textarea class="inp" id="f-desc" placeholder="Optional.">Spicy salami, chilli honey, fior di latte, oregano. The margin-maker.</textarea>
+        </div>
+
+        <div class="field">
+          <span class="label">Photo</span>
+          <div class="photo-field">
+            <div class="shot" aria-label="Current photo of Diavola" role="img">
+              <span class="art pie pie--diavola" style="--pw:80%" aria-hidden="true"></span>
+            </div>
+            <div class="photo-side">
+              <button class="btn btn--ghost" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 15v3.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V15"/></svg>
+                Replace photo
+              </button>
+              <label class="sr-only" for="f-url">Or paste an existing photo URL</label>
+              <input class="inp" id="f-url" type="url" placeholder="Or paste an existing photo URL">
+              <p class="hint">JPG or PNG, 1200 px on the short edge. It shows on the QR menu, the counter tablet and the aggregator listing.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row form-row--3">
+          <div class="field">
+            <label class="label" for="f-price">Price</label>
+            <div class="money-wrap">
+              <span class="rs" aria-hidden="true">₹</span>
+              <input class="inp inp--num inp--money" id="f-price" type="text" inputmode="numeric" value="549" placeholder="480">
+            </div>
+            <p class="hint">No paise. GST is added at the till.</p>
+          </div>
+          <div class="field">
+            <label class="label" for="f-prep">Prep time</label>
+            <input class="inp inp--num" id="f-prep" type="text" inputmode="numeric" value="13" placeholder="25">
+            <p class="hint">Minutes, from ticket to pass.</p>
+          </div>
+          <div class="field">
+            <label class="label" for="f-sec">Section</label>
+            <div class="selw">
+              <select class="inp" id="f-sec">
+                <option selected>The oven · Pizzas</option>
+                <option>Breads &amp; sides</option>
+                <option>Sodas &amp; sweets</option>
+                <option>Specials board</option>
+                <option>Uncategorised</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <p class="hint">Sets where it prints on the board.</p>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="swx-field swx-field--non">
+            <span class="fssai fssai--non fssai--lg" title="Non-vegetarian" aria-label="Non-vegetarian"><i></i></span>
+            <span class="txt">
+              <b>Vegetarian</b>
+              <span>Off — this dish carries the maroon FSSAI mark.</span>
+            </span>
+            <button class="swx swx--off" type="button" role="switch" aria-checked="false" aria-label="Diavola is vegetarian">
+              <span class="swx__track" aria-hidden="true"></span>
+              <span class="swx__txt">No</span>
+            </button>
+          </div>
+
+          <div class="swx-field">
+            <span class="txt">
+              <b>Available tonight</b>
+              <span>On — orderable at the counter and on the QR menu.</span>
+            </span>
+            <button class="swx" type="button" role="switch" aria-checked="true" aria-label="Diavola available tonight">
+              <span class="swx__track" aria-hidden="true"></span>
+              <span class="swx__txt">On</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="dlg-facts">
+        <div><b class="num">742</b><span>Sold · 14 nights</span></div>
+        <div><b class="num">₹4,07,400</b><span>Revenue · 14 nights</span></div>
+        <div><b class="num">6</b><span>Inventory links</span></div>
+      </div>
+      <p class="hint" style="margin-top:9px">Deleting a dish keeps it on every past order and every past report — it only leaves the menu.</p>
+    </div>
+
+    <div class="modal__foot">
+      <button class="btn btn--danger" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5 7.5 20h9l1-13.5M10 10.5v6M14 10.5v6"/></svg>
+        Delete
+      </button>
+      <span class="right">
+        <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+        <button class="btn btn--primary" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12.5 5 5L20 6.5"/></svg>
+          Save dish
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MANAGE SECTIONS — the category manager, closed ═══ -->
+<div class="modal" id="sectionsDlg" role="dialog" aria-modal="true" aria-labelledby="secDlgH" hidden>
+  <div class="modal__scrim" data-close-modal></div>
+
+  <div class="modal__box" style="width:min(560px,100%)">
+    <div class="modal__head brick leopard">
+      <span class="modal-ember" aria-hidden="true"></span>
+      <button class="modal__x" type="button" aria-label="Close" data-close-modal>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="modal__eyebrow"><span class="hero-kicker">The paper board</span></div>
+      <h2 id="secDlgH">Manage sections</h2>
+      <p>Drag to set the print order · 5 sections · 21 dishes</p>
+    </div>
+
+    <div class="modal__body">
+      <div class="sections" role="list" style="margin-top:16px">
+        <div class="sec-link" role="listitem" style="cursor:default">
+          <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+          <span class="sec-nm">The oven · Pizzas</span><span class="sec-ct num">8</span>
+        </div>
+        <div class="sec-link" role="listitem" style="cursor:default">
+          <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+          <span class="sec-nm">Breads &amp; sides</span><span class="sec-ct num">5</span>
+        </div>
+        <div class="sec-link" role="listitem" style="cursor:default">
+          <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+          <span class="sec-nm">Sodas &amp; sweets</span><span class="sec-ct num">6</span>
+        </div>
+        <div class="sec-link" role="listitem" style="cursor:default">
+          <svg class="grip" viewBox="0 0 14 18" aria-hidden="true"><circle cx="4" cy="4" r="1.6" fill="currentColor"/><circle cx="10" cy="4" r="1.6" fill="currentColor"/><circle cx="4" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="4" cy="14" r="1.6" fill="currentColor"/><circle cx="10" cy="14" r="1.6" fill="currentColor"/></svg>
+          <span class="sec-nm">Specials board</span><span class="sec-ct sec-ct--zero num">0</span>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:16px">
+        <label class="label" for="f-newsec">Add a section</label>
+        <input class="inp" id="f-newsec" type="text" placeholder="Salads &amp; bowls">
+        <p class="hint">Uncategorised is not a section — it is where a dish waits. It never prints.</p>
+      </div>
+    </div>
+
+    <div class="modal__foot">
+      <span class="right">
+        <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+        <button class="btn btn--primary" type="button">Save order</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── the shell: drawer, rail, menus — copied verbatim from the Overview ── */
+  var body = document.body;
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('backdrop');
+  var drawerMQ = window.matchMedia('(max-width: 1023px)');
+  var toggles = [document.getElementById('navToggle'), document.getElementById('tabMore')];
+  var opener = null;
+
+  function isOpen(){ return body.classList.contains('nav-open'); }
+
+  function syncSidebar(){
+    if (drawerMQ.matches){
+      sidebar.setAttribute('role','dialog');
+      sidebar.setAttribute('aria-modal','true');
+      sidebar.setAttribute('aria-label','Navigation');
+      if (isOpen()) sidebar.removeAttribute('inert');
+      else sidebar.setAttribute('inert','');
+    } else {
+      sidebar.removeAttribute('role');
+      sidebar.removeAttribute('aria-modal');
+      sidebar.removeAttribute('inert');
+      sidebar.setAttribute('aria-label','Main navigation');
+    }
+  }
+
+  function expand(btn, panel, open){
+    if (!btn || !panel) return;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  }
+  var userBtn  = document.getElementById('userBtn');
+  var userMenu = document.getElementById('userMenu');
+  var switchBtn= document.getElementById('switchBtn');
+  var outlets  = document.getElementById('outlets');
+
+  function setNav(open, from){
+    var was = isOpen();
+    body.classList.toggle('nav-open', open);
+    toggles.forEach(function(t){ if(t) t.setAttribute('aria-expanded', String(open)); });
+    if (open){
+      opener = from || opener || toggles[0];
+      syncSidebar();
+      var first = sidebar.querySelector('.nav-link');
+      if (first) first.focus();
+    } else {
+      expand(userBtn, userMenu, false);
+      expand(switchBtn, outlets, false);
+      syncSidebar();
+      if (was && drawerMQ.matches && opener) opener.focus();
+      opener = null;
+    }
+  }
+
+  toggles.forEach(function(t){
+    if (!t) return;
+    t.addEventListener('click', function(){ setNav(!isOpen(), t); });
+  });
+  backdrop.addEventListener('click', function(){ setNav(false); });
+
+  if (userBtn) userBtn.addEventListener('click', function(){
+    var open = userMenu.hidden;
+    expand(switchBtn, outlets, false);
+    expand(userBtn, userMenu, open);
+  });
+  if (switchBtn) switchBtn.addEventListener('click', function(){
+    var open = outlets.hidden;
+    expand(userBtn, userMenu, false);
+    expand(switchBtn, outlets, open);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Tab' || !isOpen() || !drawerMQ.matches) return;
+    var nodes = Array.prototype.filter.call(
+      sidebar.querySelectorAll('a[href], button:not([disabled])'),
+      function(el){ return el.offsetWidth > 0 || el.offsetHeight > 0; }
+    );
+    if (!nodes.length) return;
+    var first = nodes[0], last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+
+  if (drawerMQ.addEventListener) drawerMQ.addEventListener('change', function(){ setNav(false); syncSidebar(); });
+  else if (drawerMQ.addListener) drawerMQ.addListener(function(){ setNav(false); syncSidebar(); });
+  syncSidebar();
+
+  /* ── E7 · the dialogs ──────────────────────────────────────────────────── */
+  var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
+  var modalStack = [];
+
+  function visibleFocusables(root){
+    return Array.prototype.filter.call(root.querySelectorAll(FOCUSABLE), function(el){
+      return el.offsetWidth > 0 || el.offsetHeight > 0;
+    });
+  }
+
+  function openModal(id, invoker){
+    var m = document.getElementById(id);
+    if (!m || modalStack.indexOf(m) > -1) return;
+    m.__invoker = invoker || document.activeElement;
+    m.hidden = false;
+    modalStack.push(m);
+    body.classList.add('modal-open');
+    var f = visibleFocusables(m);
+    if (f.length) f[0].focus();
+  }
+
+  function closeModal(m){
+    m = m || modalStack[modalStack.length - 1];
+    if (!m) return;
+    m.hidden = true;
+    modalStack = modalStack.filter(function(x){ return x !== m; });
+    if (!modalStack.length) body.classList.remove('modal-open');
+    /* return focus to whatever opened it — or, for the dialog that is open on
+       load, to the card it is editing. */
+    var back = m.__invoker || document.getElementById(m.getAttribute('data-invoker') || '');
+    if (back && back.focus) back.focus();
+  }
+
+  document.addEventListener('click', function(e){
+    var opener = e.target.closest('[data-open-modal]');
+    if (opener){
+      var top = modalStack[modalStack.length - 1];
+      if (top) closeModal(top);
+      closeRowMenu();
+      openModal(opener.getAttribute('data-open-modal'), opener);
+      return;
+    }
+    if (e.target.closest('[data-close-modal]')){ closeModal(); return; }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){
+      if (!rowmenu.hidden){ closeRowMenu(true); return; }
+      if (modalStack.length){ closeModal(); return; }
+      if (isOpen()) { setNav(false); return; }
+      if (userMenu && !userMenu.hidden) { expand(userBtn, userMenu, false); userBtn.focus(); }
+      if (outlets && !outlets.hidden) { expand(switchBtn, outlets, false); switchBtn.focus(); }
+      return;
+    }
+    if (e.key === 'Tab' && modalStack.length){
+      var m = modalStack[modalStack.length - 1];
+      var nodes = visibleFocusables(m);
+      if (!nodes.length) return;
+      var first = nodes[0], last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* the dialog ships open — the screen's job is to show a dish mid-edit */
+  (function(){
+    var d = document.getElementById("dishDlg");
+    body.classList.add("modal-open");
+    modalStack.push(d);
+    var f = visibleFocusables(d);
+    if (f.length) f[0].focus({preventScroll:true});
+  })();
+
+  /* ── E5 · the availability switch, optimistic like the real one ────────── */
+  document.addEventListener('click', function(e){
+    var sw = e.target.closest('.swx');
+    if (!sw) return;
+    var on = sw.getAttribute('aria-checked') !== 'true';
+    sw.setAttribute('aria-checked', String(on));
+    sw.classList.toggle('swx--off', !on);
+    var txt = sw.querySelector('.swx__txt');
+    var inDialog = !!sw.closest('.modal');
+    if (txt) txt.textContent = inDialog
+      ? (sw.getAttribute('aria-label').indexOf('vegetarian') > -1 ? (on ? 'Yes' : 'No') : (on ? 'On' : 'Off'))
+      : (on ? 'On tonight' : "86'd");
+
+    var dish = sw.closest('.dish');
+    if (dish){
+      dish.classList.toggle('dish--off', !on);
+      var strap = dish.querySelector('.strap');
+      if (strap) strap.hidden = on;
+    }
+  });
+
+  /* ── the segmented controls ────────────────────────────────────────────── */
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.seg button');
+    if (!b) return;
+    Array.prototype.forEach.call(b.parentNode.children, function(sib){
+      sib.setAttribute('aria-pressed', String(sib === b));
+    });
+  });
+
+  /* ── the section rail doubles as the filter ────────────────────────────── */
+  document.addEventListener('click', function(e){
+    var s = e.target.closest('.rail-col .sec-link');
+    if (!s) return;
+    Array.prototype.forEach.call(s.parentNode.children, function(sib){
+      if (sib === s) sib.setAttribute('aria-current','true');
+      else sib.removeAttribute('aria-current');
+    });
+  });
+
+  /* ── E9 · clearing the applied filter ──────────────────────────────────── */
+  document.addEventListener('click', function(e){
+    if (!e.target.closest('[data-clear-filter]')) return;
+    var row = document.getElementById('appliedRow');
+    if (row) row.remove();
+  });
+
+  /* ── the row-action menu — one element, repositioned per card ──────────── */
+  var rowmenu = document.getElementById('rowmenu');
+  var rowmenuLbl = document.getElementById('rowmenuLbl');
+  var rowmenuBtn = null;
+
+  function closeRowMenu(refocus){
+    if (rowmenu.hidden) return;
+    rowmenu.hidden = true;
+    if (rowmenuBtn){
+      rowmenuBtn.setAttribute('aria-expanded','false');
+      if (refocus) rowmenuBtn.focus();
+      rowmenuBtn = null;
+    }
+  }
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.dish__more');
+    if (btn){
+      if (rowmenuBtn === btn){ closeRowMenu(true); return; }
+      closeRowMenu();
+      rowmenuBtn = btn;
+      btn.setAttribute('aria-expanded','true');
+      rowmenuLbl.textContent = btn.getAttribute('data-dish') || 'Dish';
+      rowmenu.hidden = false;
+      var r = btn.getBoundingClientRect();
+      var w = rowmenu.offsetWidth, h = rowmenu.offsetHeight;
+      var left = Math.min(r.right + window.scrollX - w, window.scrollX + document.documentElement.clientWidth - w - 10);
+      var top = r.bottom + window.scrollY + 6;
+      if (r.bottom + h + 12 > window.innerHeight) top = r.top + window.scrollY - h - 6;
+      rowmenu.style.left = Math.max(window.scrollX + 10, left) + 'px';
+      rowmenu.style.top = top + 'px';
+      var f = visibleFocusables(rowmenu);
+      if (f.length) f[0].focus();
+      return;
+    }
+    if (!e.target.closest('#rowmenu')) closeRowMenu();
+  });
+  window.addEventListener('resize', function(){ closeRowMenu(); });
+  window.addEventListener('scroll', function(){ closeRowMenu(); }, true);
+
+  /* the dropdowns in the sidebar close on an outside click */
+  document.addEventListener('click', function(e){
+    if (userMenu && !userMenu.hidden && !userMenu.contains(e.target) && !userBtn.contains(e.target)) expand(userBtn, userMenu, false);
+    if (outlets && !outlets.hidden && !outlets.contains(e.target) && !switchBtn.contains(e.target)) expand(switchBtn, outlets, false);
+  });
+})();
+</script>
+</body>
+</html>
