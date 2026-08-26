@@ -23,21 +23,21 @@ export default function SignUpPage() {
         <CardDescription>You&apos;ll set up your restaurant next.</CardDescription>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap">
         <SignUpForm />
 
         {googleEnabled ? (
           <>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-sm">
               <span className="bg-border h-px flex-1" />
-              <span className="text-muted-foreground text-xs">or</span>
+              <span className="text-muted-foreground text-small">or</span>
               <span className="bg-border h-px flex-1" />
             </div>
             <GoogleButton label="Sign up with Google" />
           </>
         ) : null}
 
-        <p className="text-muted-foreground text-center text-sm">
+        <p className="text-muted-foreground text-body text-center">
           Already have an account?{" "}
           <Link href="/sign-in" className="text-foreground font-medium underline-offset-4 hover:underline">
             Sign in

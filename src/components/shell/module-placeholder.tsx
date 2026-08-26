@@ -15,13 +15,13 @@ export function ModulePlaceholder({
   description: string;
 }) {
   return (
-    <div className="flex flex-1 items-center justify-center p-8">
-      <div className="flex max-w-sm flex-col items-center gap-3 text-center">
-        <div className="bg-muted text-muted-foreground flex size-11 items-center justify-center rounded-lg">
+    <div className="flex flex-1 items-center justify-center p-page">
+      <div className="flex max-w-sm flex-col items-center gap-sm text-center">
+        <div className="bg-muted text-muted-foreground flex size-tap items-center justify-center rounded-lg">
           <Icon className="size-5" />
         </div>
-        <h2 className="font-medium">{title}</h2>
-        <p className="text-muted-foreground text-sm text-balance">{description}</p>
+        <h2 className="font-heading text-h2">{title}</h2>
+        <p className="text-muted-foreground text-body text-balance">{description}</p>
       </div>
     </div>
   );

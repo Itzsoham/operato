@@ -4,75 +4,95 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
 /* ============================================================================
- * MANDI COUNTER — Operato's design system.
+ * OPERATO — FOUR SWITCHABLE VISUAL THEMES, TWO INDEPENDENT DIMENSIONS.
  *
- * Named for the Indian wholesale produce market, not the salad bar. Pine-green
- * identity over warm paper: the GROUND stays warm (every neutral is Lab hue
- * 69-93 deg with real chroma, verified numerically — against a cool grey, food
- * photography on the Menu screen reads sickly and the product feels clinical),
- * while the IDENTITY is green. Cocoa carries the buttons.
+ * DIMENSION 1 — MODE.    next-themes' `.dark` class on <html>. Unchanged.
+ * DIMENSION 2 — PALETTE. `data-palette="crema|forno|lievito|saffron"` on <html>,
+ *                        written by src/components/palette-provider.tsx and
+ *                        stamped BEFORE FIRST PAINT by the inline script in
+ *                        src/app/layout.tsx. CREMA IS THE DEFAULT.
  *
- * Five rules this palette enforces:
- *  1. GREEN IS SCENERY OR IT IS SETTLED — IT IS NEVER AN ACTION. The hero hue is
- *     banned from carrying meaning. Green appears at wash lightness or at ink
- *     darkness, never in the mid-band where a control lives.
- *  2. IDENTITY, INTERACTIVE AND ALARM ARE THREE DIFFERENT COLOURS, ENFORCED BY
- *     MEASUREMENT. Identity is pine --brand, interactive is cocoa --primary,
- *     alarm is tomato --ready. Every pair clears dE2000 12 under normal vision,
- *     deuteranopia AND protanopia. This rule was previously ASSERTED here and was
- *     measurably FALSE: --primary/--brand were 2.66 apart in dark under
- *     protanopia. It is now a measured guarantee, not a claim.
- *  3. --ready IS QUARANTINED. Tomato is the only fully saturated warm solid in
- *     the light theme and appears ONLY on the READY chip and READY floor tile.
- *     If it were also a button, staff would stop seeing it.
- *  4. NEUTRALS ARE WARM, VERIFIED. Light paper #faf4e7 is C* 6.97 at hue 91.57;
- *     dark ground #16110c is C* 3.36 at hue 69.10.
- *  5. STATUS IS ORDINAL, AND ENCODED FOUR TIMES — hue, a five-segment meter
- *     (bars >=6px with >=3px gaps; a 3px bar is sub-acuity beyond ~1m and is not
- *     a real channel in a kitchen), fill weight, and the label itself. Any one
- *     channel removed by greyscale, glare, dichromacy or forced-colors must still
- *     leave the sequence readable.
+ * The two are orthogonal: eight combinations, one contract.
  *
- * CHARTS LIVE ON --card, NEVER ON --background: --chart-2 is 4.53:1 on --card but
- * 4.23:1 on the page ground, i.e. below AA. Every chart sits inside a .card.
+ * SOURCE ORDER IS LOAD-BEARING — do not reorder these eight blocks:
  *
- * Every ratio and every dE2000 figure quoted below is COMPUTED — CIEDE2000 with
- * the G chroma correction, and Vienot/Brettel/Mollon dichromat simulation applied
- * in linear sRGB — not estimated. See design-concepts/system/styleguide.html.
+ *   :root, [data-palette="crema"]        crema  LIGHT   (0,1,0) — the default
+ *   [data-palette="forno"]               forno  LIGHT   (0,1,0) — later wins
+ *   [data-palette="lievito"]             lievito LIGHT  (0,1,0)
+ *   [data-palette="saffron"]             saffron LIGHT  (0,1,0)
+ *   .dark, .dark[data-palette="crema"]   crema  DARK    (0,1,0)/(0,2,0)
+ *   .dark[data-palette="forno"]          forno  DARK    (0,2,0) — beats .dark
+ *   .dark[data-palette="lievito"]        lievito DARK   (0,2,0)
+ *   .dark[data-palette="saffron"]        saffron DARK   (0,2,0)
+ *
+ * `:root` still matches <html> when data-palette="forno", so every non-crema
+ * LIGHT block must restate the full contract — equal specificity, later source.
+ * Same story in dark: `.dark` (crema) is (0,1,0) and would out-rank a palette's
+ * LIGHT block, so `.dark[data-palette=X]` at (0,2,0) is what actually lands.
+ *
+ * THE CONTRACT — 131 tokens. Every palette defines EVERY ONE OF THEM under the
+ * EXACT SAME NAME. A palette that omits a token silently inherits Crema's; a
+ * palette that renames one breaks a component. The vocabulary is:
+ *   colour (63) · gradients (11) · radii (12) · shadows + scrim (10) ·
+ *   type (16) · spacing/layout (14) · motion (6).
+ * The dark blocks restate colour + shadow + scrim ONLY. Geometry, type, spacing
+ * and motion are mode-INDEPENDENT and live once, in each palette's LIGHT block;
+ * the gradients are built from var() tokens and re-theme themselves.
+ *
+ * WHY THE THEMES ARE ACTUALLY DIFFERENT, NOT FOUR HUE SETS: radii, shadows,
+ * type faces and spacing are tokens too, so a palette switch changes FORM.
+ *   CREMA    rounded 4-20px, EVERY card elevated, serif headings, generous pads.
+ *   FORNO    chunky 1-44px dough radii, HARD 5px offsets with ZERO blur, black
+ *            Arial-Black display, and a CHARRED SIDEBAR IN LIGHT MODE.
+ *   LIEVITO  0/2/3px — no pill exists — and NO CONTENT SHADOWS AT ALL. A card is
+ *            a hairline. Futura at weight 200, .24em caps.
+ *   SAFFRON  1/2/3/5/7/10/14px, --r-2xl deliberately 2px (the squared chip),
+ *            sharp 1px brass rules, Palatino display serif, .20em caps.
+ * Do not flatten the four into one shape with four colour sets.
+ *
+ * FSSAI: --veg / --nonveg are statutory Indian food-labelling marks. They stay
+ * green / maroon in EVERY palette and EVERY mode. They are not a design surface.
+ *
+ * Every ratio and every dE2000 figure quoted below is COMPUTED (WCAG 2.x
+ * relative luminance; CIEDE2000 with the G chroma correction, dichromat
+ * simulation applied in linear sRGB), not estimated.
  * ========================================================================== */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* shadcn's init wrote `--font-sans: var(--font-sans)`, which is self-referential and
-     resolves to nothing — the whole app silently fell back to the browser's serif.
-     These must point at the variables next/font actually defines in app/layout.tsx.
+  /* ── THE FOUR TYPE STACKS — ONE INDIRECTION, FOUR PALETTES ──────────────────
+     shadcn's init wrote `--font-sans: var(--font-sans)`, which is self-referential,
+     resolves to nothing, and silently rendered the whole app in the browser's serif.
+     The fix used to be to hard-code the Jakarta stack here. That is no longer
+     possible: TYPE IS PART OF THE PALETTE CONTRACT, and Crema (Iowan display serif),
+     Forno (Arial Black), Lievito (Futura at 200) and Saffron (Palatino) each ship a
+     different --font-heading.
 
-     DECLARED TWICE, ON PURPOSE. The stacks live here (so `font-sans` / `font-mono` /
-     `font-num` exist as utilities) AND in :root §9 (so the `--t-*` font shorthands can
-     read them with var()). @theme variables are emitted only when Tailwind judges them
-     USED, so raw CSS must never depend on one being present. The two copies are
-     identical and must stay identical.
+     So each utility points at a PRIVATE POINTER, `--font-stack-*`, which every
+     palette block defines. `@theme inline` inlines the VALUE, so `.font-heading`
+     emits `font-family: var(--font-stack-heading)` — resolved on the element, at
+     runtime, per palette. Rename these and the palette switch stops changing type.
 
-     The var() fallbacks are the second half of the same bug: an undefined
-     --font-jakarta makes the whole font-family invalid at computed-value time and the
-     page renders in Times. Naming the family is the difference between "no webfont"
-     and "no design". */
-  --font-sans:
-    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui,
-    "Segoe UI", Roboto, sans-serif;
-  --font-heading:
-    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
-  --font-mono:
-    var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
-    Menlo, monospace;
-  /* Same stack as --font-sans, named separately so the intent reads at the call site:
-     money, quantities, stock balances, timers. It always pairs with tabular-nums.
+     The contract names (--font-sans / --font-heading / --font-mono / --font-num) are
+     still declared in every palette block, because the `--t-*` `font` shorthands read
+     them with var() and a @theme variable is emitted only when Tailwind judges it
+     used — raw CSS must never depend on one being present.
+
+     The var() fallbacks inside the palette stacks are the second half of the original
+     bug: an undefined --font-jakarta makes the whole font-family invalid at
+     computed-value time and the page renders in Times. Naming the family is the
+     difference between "no webfont" and "no design". */
+  --font-sans: var(--font-stack-sans);
+  --font-heading: var(--font-stack-heading);
+  --font-mono: var(--font-stack-mono);
+  /* Named separately from --font-sans so the intent reads at the call site: money,
+     quantities, stock balances, timers. It always pairs with tabular-nums.
      --font-mono is reserved for exactly two things — the SQL Ask AI exposes and
      inventory ledger IDs. It is not a "code-ish" decoration. */
-  --font-num:
-    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-stack-num);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -268,6 +288,20 @@
   --spacing-sidebar-mobile: var(--sidebar-w-mobile); /* 18rem */
   --container-measure: var(--measure);          /* max-w-measure — 1180px */
 
+  /* The palette's OWN rhythm. --pad-* and --gap-* are declared by all four
+     palettes (Crema pads a card 22px, Forno 18, Lievito 24, Saffron 22) but had
+     no Tailwind name, so every component reached for a stock numeric step and a
+     palette switch could not move a single edge. These are CONSUMERS of the
+     :root tokens exactly like the radii above — no new token is introduced.
+     `--spacing-*` also feeds m-/w-/h-/inset-, which is intended: `-mx-card` is
+     how a dialog footer bleeds back out of its own p-card. */
+  --spacing-card: var(--pad-card);
+  --spacing-card-sm: var(--pad-card-sm);
+  --spacing-page: var(--pad-page);
+  --spacing-xs: var(--gap-xs);
+  --spacing-sm: var(--gap-sm);
+  --spacing-lg: var(--gap-lg);
+
   /* ── MOTION ───────────────────────────────────────────────────────────────────
      Tailwind's --ease-* namespace cannot hold a key called plain `--ease`, and
      `--ease-io: var(--ease-io)` would be the self-referential bug documented at the
@@ -280,457 +314,1690 @@
   --animate-shimmer: shimmer 1.4s var(--ease-io) infinite;
   --animate-step-advance: step-advance var(--dur) var(--ease);
   --animate-ready-pulse: ready-pulse 2.4s var(--ease-io) infinite;
+
+  /* ── THE ALIASES WITH NO CONSUMER, AND WHY EACH ONE STAYS ─────────────────────
+     A dead alias is a lie: it implies the palettes differ along an axis nothing
+     actually renders. Every name above was checked against the whole of /src (both
+     as a utility and as a raw var()); these eight are the only ones with zero users,
+     and each is kept for a stated reason rather than left to rot. If you add a
+     consumer for one, delete its line here.
+
+     --color-destructive-foreground   The label ink on a SOLID danger fill. Nothing
+     --color-success-foreground       paints one: the button's `destructive` variant
+     --color-warning-foreground       is a tint (bg-destructive/10 + text-destructive),
+     --color-info-foreground          the inventory meter and the staff dot are bars
+                                      with no text, and --ready is by law "the only
+                                      SOLID-FILLED chip in the system"
+                                      (order-status-badge.tsx) — which is why
+                                      --color-ready-foreground IS used and these four
+                                      are not. They are the second half of a semantic
+                                      pair contract: dropping them would let a future
+                                      solid fill inherit ambient ink at ~1.2:1. The
+                                      underlying --X-foreground tokens are contract
+                                      members and cannot be dropped regardless.
+                                      NOTE: --grad-destructive is annotated "ONLY the
+                                      confirming button inside an AlertDialog" — that
+                                      button does not exist yet; alert-dialog.tsx is
+                                      built but imported nowhere.
+
+     --color-sidebar-primary-foreground  shadcn's sidebar pair. --sidebar-primary is
+                                      used, but as a 4px active rule with no text on
+                                      it, so its ink has no site. Half a shadcn pair
+                                      is worse than an unused one.
+
+     --shadow-2xs / --shadow-2xl      DEFENSIVE COLLAPSES, not spare rungs. Tailwind
+                                      ships eight shadow steps and this system has
+                                      five; these two exist so that writing
+                                      `shadow-2xs` or `shadow-2xl` emits a TINTED
+                                      cast from the palette instead of Tailwind's
+                                      untinted grey default. Deleting them re-opens
+                                      exactly the hole §8 exists to close. They are
+                                      meant to be unused. */
 }
 
-:root {
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 1 · CREMA — LIGHT.  THE DEFAULT PALETTE, and the :root fallback.
+ *
+ * A speciality coffee roaster's counter at 7am. Espresso ink on chalk paper,
+ * caramel identity, sage secondary, crema gold as the single solid alarm.
+ * Rounded rectangles (4-20px), EVERY card elevated, serif-led headings, generous
+ * spacing. Source: design-concepts/mockups/crema-{dashboard,menu,orders}.html.
+ *
+ * Ratios below are COMPUTED (WCAG 2.x relative luminance, sRGB), not estimated.
+ * Gradients that carry text were sampled at 201 points in gamma-encoded sRGB;
+ * the worst sample and its position are quoted.
+ * ════════════════════════════════════════════════════════════════════════════ */
+:root,
+[data-palette="crema"] {
   color-scheme: light;
 
-  /* --- surfaces: warm neutrals, verified numerically (law 11) --- */
-  --background: #faf4e7;  /* L* 96.33 C* 6.97 h 91.57 - warm */
-  --foreground: #241c13;  /* 15.32:1 on --background */
-  --card: #fffcf5;  /* L* 99.01 C* 3.70 h 93.22; --card-foreground 16.39:1 */
-  --card-foreground: #241c13;  /* 16.39:1 on --card */
-  --popover: #ffffff;  /* the only pure white; raised layer + menu photo mat */
-  --popover-foreground: #241c13;  /* 16.79:1 on --popover */
-  --muted: #f0e7d4;  /* L* 91.88 C* 10.33 h 90.61 - warm */
-  --muted-foreground: #665441;  /* 6.59:1 on --background, 5.87:1 on --muted, 7.04:1 on --card */
-  --accent: #f3eada;  /* hover surface only, never a resting state */
-  --accent-foreground: #3a2c1e;  /* 11.28:1 on --accent */
-  --border: #e5d9c2;  /* L* 87.08 C* 12.82 h 88.43 - decorative hairline, 1.27:1 on --background */
-  --input: #9c8459;  /* carries the 1.4.11 control boundary: 3.27:1 on --background, 3.50:1 on --card */
-  --ring: #2a1e14;  /* 14.80:1 on --background, 15.84:1 on --card - 2px core + 2px --background offset ring */
+  /* --- surfaces: chalk, ceramic, oat. Pure #ffffff is BANNED (spec 5.12). --- */
+  --background: #FBF8F3;  /* chalk — the page ground */
+  --foreground: #23180F;  /* ink — 16.40:1 on --background */
+  --card: #FFFDFA;  /* ceramic, warm near-white — never #ffffff */
+  --card-foreground: #23180F;  /* 17.11:1 on --card */
+  --popover: #FFFDFA;  /* same ceramic; Crema has no whiter surface to raise to */
+  --popover-foreground: #23180F;  /* 17.11:1 on --popover */
+  --muted: #F4EDE3;  /* --surface-2 — inset panel, row stripe, quiet well */
+  --muted-foreground: #6B5747;  /* 6.44:1 on --background, 5.87:1 on --muted, 6.72:1 on --card */
+  --accent: #EAE0D2;  /* --surface-3 — pressed/hover only, never a resting state */
+  --accent-foreground: #23180F;  /* 13.31:1 on --accent */
+  --border: #E7DCCB;  /* --line, the 1px workhorse. A card is a HAIRLINE FIRST and a shadow second */
+  --input: #9C8B72;  /* DERIVED. Crema's --line-strong #D8C9B2 cannot carry the 1.4.11 control boundary; this is the same tan pushed to 3.12:1 on --background, 3.26:1 on --card */
+  --ring: #7A4C17;  /* caramel-700 — "every focus ring" (spec 1.5). 6.90:1 on --background, 7.20:1 on --card */
 
-  /* --- interactive --- */
-  --primary: #664a35;  /* 7.38:1 on --background as a block; vs --brand dE 12.14, vs --ready dE 12.91, vs --destructive dE 12.04 (min over normal/deutan/protan) */
-  --primary-foreground: #fff8ec;  /* 7.66:1 ink */
-  --secondary: #efe3ce;
-  --secondary-foreground: #4a3927;  /* 8.68:1 ink */
+  /* --- interactive: the espresso button. In light it is the DARKEST object on a
+         page of paper — that is the whole gesture. --- */
+  --primary: #2A1D16;  /* espresso */
+  --primary-foreground: #FBF6EE;  /* ink-invert — 15.18:1 */
+  --secondary: #EFE3D2;  /* oat — the quiet fill */
+  --secondary-foreground: #3B2A1E;  /* 10.80:1 on --secondary */
 
-  /* --- identity: Pine Mandi. Never a button. --- */
-  --brand: #083227;  /* 13.27:1 ink; vs --primary dE 12.14, vs --veg dE 25.32 */
-  --brand-foreground: #f4faf6;  /* 13.27:1 ink */
-  --brand-subtle: #ecf8f2;  /* 9.95:1 with its ink */
-  --brand-subtle-foreground: #174534;  /* 9.95:1 on --brand-subtle, 10.58:1 on --card */
+  /* --- identity: CARAMEL. Never the alarm; the alarm is --ready. --- */
+  --brand: #7A4C17;  /* caramel-700, THE ACCESSIBLE CARAMEL. caramel-500 #B07636 is 3.77:1 and is fill-only, so it cannot be a labelled brand fill */
+  --brand-foreground: #FDF5EA;  /* caramel-50 — 6.76:1 on --brand */
+  --brand-subtle: #F7E8D2;  /* caramel-100 */
+  --brand-subtle-foreground: #7A4C17;  /* 6.06:1 on --brand-subtle, 7.20:1 on --card */
 
-  /* --- the alarm: Ripe Tomato. QUARANTINED - READY chip + READY floor tile only. --- */
-  --ready: #c0480f;  /* 4.59:1 on --background as a block; 5.03:1 ink; vs --warning dE 12.02, vs --primary dE 12.91 */
-  --ready-foreground: #ffffff;  /* 5.03:1 ink */
+  /* --- the alarm: CREMA GOLD. The ONLY solid-filled chip in the theme (spec 1.7).
+         Nothing else may compete with it — it is how a barista finds the next cup
+         at arm's length. --- */
+  --ready: #D9A566;  /* caramel-300 */
+  --ready-foreground: #2A1D16;  /* 7.41:1 on --ready */
 
   /* --- semantic states --- */
-  --success: #4a7c69;  /* 4.80:1 ink - TIGHTEST LABEL IN THE SYSTEM, hold L* <= 48.12; vs --destructive dE 12.08, vs --veg dE 12.28 */
-  --success-foreground: #ffffff;  /* 4.80:1 ink */
-  --success-subtle: #ecfae0;  /* 9.05:1 with its ink */
-  --success-subtle-foreground: #1f4c30;  /* 9.05:1 on the wash, 9.60:1 on --card */
-  --warning: #c28c1d;  /* 5.65:1 ink; vs --ready dE 12.02, vs --veg dE 14.22. Meter fill inside a bordered chip - 2.71:1 on paper, NEVER a standalone graphic */
-  --warning-foreground: #241c13;  /* 5.65:1 ink */
-  --warning-subtle: #f3e5bb;  /* 5.51:1 with its ink */
-  --warning-subtle-foreground: #7a5209;  /* 5.51:1 on the wash, 6.75:1 on --card */
-  --warning-border: #d9b463;  /* opaque chip edge, 1.57:1 on its wash (decorative by declaration) */
-  --info: #2c6b85;  /* 5.92:1 ink; vs --success dE 20.72 */
-  --info-foreground: #ffffff;  /* 5.92:1 ink */
-  --info-subtle: #baecff;  /* 6.54:1 with its ink */
-  --info-subtle-foreground: #1f5468;  /* 6.54:1 on the wash, 8.11:1 on --card */
-  --destructive: #871c4f;  /* 9.09:1 ink; vs --primary dE 12.04, vs --nonveg dE 19.19 */
-  --destructive-foreground: #ffffff;  /* 9.09:1 ink */
-  --destructive-subtle: #f4dfe6;  /* 7.91:1 with its ink */
-  --destructive-subtle-foreground: #7c1b42;  /* 7.91:1 on the wash, 9.79:1 on --card */
-  --destructive-border: #e2a5bc;  /* opaque chip edge, 1.60:1 on its wash (decorative by declaration) */
+  --success: #556A58; /* sage, ROTATED to hue 147 (was #52664C at h137). Deuteranopia collapses the red-green axis, so the old sage sat dE 10.97 from --destructive and 8.90 from the statutory --veg. At h147 it is dE 12.07 from destructive and 12.01 from veg. 5.44:1 with its ink */
+  --success-foreground: #FBF6EE;  /* 5.80:1 on --success */
+  --success-subtle: #E3EADF;  /* --ok-bg */
+  --success-subtle-foreground: #3C4C37;  /* sage-700 — 7.50:1 on the wash, 9.07:1 on --card */
+  --warning: #96501B;  /* --warn-fg promoted to a solid; also the hairline-meter fill */
+  --warning-foreground: #FBF6EE;  /* 5.64:1 on --warning */
+  --warning-subtle: #FBEBDC;  /* --warn-bg */
+  --warning-subtle-foreground: #96501B;  /* 5.21:1 on the wash, 5.98:1 on --card */
+  --warning-border: #E9C7A4;  /* --warn-line. Opaque chip edge, decorative by declaration */
+  --info: #35586B;  /* DERIVED — enamel blue, the colour of cafe crockery. Crema names no blue; this is the lowest-chroma cool tone that still separates from sage */
+  --info-foreground: #FBF6EE;  /* 7.07:1 on --info */
+  --info-subtle: #E4EBED;  /* DERIVED — the enamel wash, warmed off pure blue-grey */
+  --info-subtle-foreground: #2E4E5E;  /* DERIVED — 7.35:1 on the wash, 8.74:1 on --card */
+  --destructive: #6C2342; /* CLARET, moved off the rust axis (was #8B3626 at h38.7, which sat dE 2.84 from the statutory --nonveg mark under deuteranopia and dE 2.70 from --brand). Forno and Lievito already put danger on claret; Crema was the outlier. dE 17.17 vs nonveg, 21.32 vs brand, 12.15 vs primary. 9.98:1 with its ink */
+  --destructive-foreground: #FBF6EE;  /* 7.36:1 on --destructive */
+  --destructive-subtle: #F9E7E3;  /* --bad-bg */
+  --destructive-subtle-foreground: #6C2342; /* 8.98:1 on the wash, 10.57:1 on --card */
+  --destructive-border: #E7C6BC;  /* --bad-line. Opaque chip edge, decorative by declaration */
 
-  /* --- FSSAI statutory marks. RESERVED: hue is the identity, never re-tokenise. --- */
-  --veg: #1b7a3d;  /* 5.26:1 on --card, 4.92:1 on --background; Lab hue 147.95 */
-  --nonveg: #a02724;  /* 7.29:1 on --card, 6.82:1 on --background; Lab hue 33.39 */
+  /* --- FSSAI statutory marks. Green / maroon, fixed by law, never tinted or
+         "harmonised into the palette" (spec 1.8). Rendered as a 14px square with a
+         1.6px outline and a 6px filled dot. --- */
+  --veg: #1A7F3C;  /* 4.99:1 on --card, 4.78:1 on --background */
+  --nonveg: #8B1E1E;  /* 8.98:1 on --card, 8.61:1 on --background */
 
-  /* --- KPI deltas. Always with an icon + label. --- */
-  --delta-up: #1f4c30;  /* 9.60:1 on --card, 8.97:1 on --background */
-  --delta-down: #6c0943;  /* 11.66:1 on --card, 10.90:1 on --background; vs --delta-up dE 13.19 (was 4.21 - a deuteranope could not tell rising from falling) */
+  /* --- KPI deltas. Colour is NEVER the sole carrier: every delta prints an arrow
+         glyph AND a signed number (spec 1.7). --- */
+  --delta-up: #556A58; /* 5.76:1 on --card. Tracks --success — the KPI arrow and the Paid chip must not diverge */
+  --delta-down: #6C2342; /* 10.57:1 on --card; vs --delta-up dE 12.07 */
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;  /* 12px — Crema's --r. min(--r-sm,10px)=8px keeps the button/select clamps inert */
 
-  /* --- chart ramp. Slot -> hue map is IDENTICAL in both themes. --- */
-  --chart-1: #005308;  /* 9.15:1 on --card, --chart-foreground 9.37:1 on it; L* 29.92 C* 50.60 h 137.91 */
-  --chart-2: #067cb1;  /* 4.53:1 on --card, --chart-foreground 4.64:1 on it; L* 49.04 C* 37.01 h 256.17 */
-  --chart-3: #9a6b57;  /* 4.44:1 on --card, --chart-foreground 4.55:1 on it; L* 49.59 C* 24.76 h 49.14 */
-  --chart-4: #63247f;  /* 9.81:1 on --card, --chart-foreground 10.05:1 on it; L* 27.97 C* 58.35 h 318.01 */
-  --chart-5: #9c6b01;  /* 4.54:1 on --card, --chart-foreground 4.65:1 on it; L* 48.99 C* 57.09 h 77.78. dE 0.00 from --ready under deuteranopia - CONTAINED, never render --ready on a chart route */
-  --chart-6: #8b4679;  /* 6.31:1 on --card, --chart-foreground 6.46:1 on it; L* 40.00 C* 39.71 h 336.26 */
-  --chart-grid: #e5d9c2;  /* = --border. 1.36:1 on --card - decorative structure, deliberately below the axis text */
-  --chart-axis: #665441;  /* = --muted-foreground. 7.04:1 on --card, 6.59:1 on --background - PASSES as label TEXT */
-  --chart-foreground: #ffffff;  /* in-body label. Worst of the six slots: 4.55:1 */
+  /* --- chart ramp. Crema 1.9 names three series; six are required, so 4-6 are
+         DERIVED inside this colour world. Every series is the ACCESSIBLE tier, not
+         the ornament tier: --chart-foreground is TEXT, so caramel-500 #B07636
+         (4.35:1 under the label) is disqualified in favour of caramel-700. Slot
+         order is FIXED for nominal categories — never cycled, never by rank. --- */
+  --chart-1: #7A4C17;  /* caramel — takings. 7.20:1 on --card, --chart-foreground 6.76:1 on it */
+  --chart-2: #556A58; /* sage — second category. 5.76:1 on --card, --chart-foreground 5.41:1 on it */
+  --chart-3: #6B5747;  /* ink-soft — the deliberately NEUTRAL series (spec 1.9); separated from slot 1 by chroma, not hue, and every Crema series carries a printed callout. 6.72:1 on --card */
+  --chart-4: #35586B;  /* DERIVED = --info, enamel blue. 7.49:1 on --card */
+  /* DERIVED — fig deepened to AUBERGINE (was #6D3B57 at hue 344.6). THE LAW THIS
+     COMMENT DECLARES was being broken by the palette that declares it: when
+     --destructive moved off the rust axis onto claret #6C2342, the fig landed dE 5.85
+     from it under deuteranopia, so a data series read as a void in exactly the theme
+     that forbids it — and the citation below still named the retired #8B3626. Pushed
+     to hue 315.8 it is dE 14.0 from --destructive and ≥12 from every other slot.
+     11.93:1 on --card, --chart-foreground 11.21:1 on it. */
+  --chart-5: #4D2168;  /* Kept off --destructive #6C2342 so a series can never read as a void */
+  --chart-6: #2F5D53;  /* DERIVED — eucalyptus, sage pushed to teal. 7.36:1 on --card */
+  --chart-grid: #EADFCE;  /* --c-grid. Horizontal hairlines only — no vertical grid, no plot border, no axis spines (spec 5.10) */
+  --chart-axis: #6B5747;  /* = --muted-foreground. 6.72:1 on --card, 6.44:1 on --background — PASSES as label TEXT */
+  --chart-foreground: #FDF5EA;  /* caramel-50 in-body label. Worst of the six slots: 5.78:1 */
 
-  /* --- sidebar (re-themes separately; --primary alone does nothing here) --- */
-  --sidebar: #f4ebd9;
-  --sidebar-foreground: #3a2c1e;  /* 11.37:1 on --sidebar */
-  --sidebar-primary: #664a35;  /* tracks --primary; vs --brand dE 12.14 (the identity square sits beside it) */
-  --sidebar-primary-foreground: #fff8ec;  /* 7.66:1 on --sidebar-primary */
-  --sidebar-accent: #eadfc7;
-  --sidebar-accent-foreground: #241c13;  /* 12.70:1 on --sidebar-accent */
-  --sidebar-border: #d6c4a4;
-  --sidebar-ring: #2a1e14;  /* 13.70:1 on --sidebar */
+  /* --- sidebar: A PANEL OF PALE WOOD, not glass, not a flat white rail. The ACTIVE
+         item is a ceramic card LIFTED OFF that wood, which is why --sidebar-accent
+         is LIGHTER than --sidebar. --- */
+  --sidebar: #F6EEE2;  /* --wood-1 */
+  --sidebar-foreground: #23180F;  /* 15.09:1 on --sidebar */
+  --sidebar-primary: #2A1D16;  /* tracks --primary; 14.19:1 on --sidebar */
+  --sidebar-primary-foreground: #FBF6EE;  /* 15.18:1 on --sidebar-primary */
+  --sidebar-accent: #FFFDFA;  /* the lifted ceramic active card */
+  --sidebar-accent-foreground: #23180F;  /* 17.11:1 on --sidebar-accent */
+  --sidebar-border: #E7DCCB;  /* = --border */
+  --sidebar-ring: #7A4C17;  /* 6.35:1 on --sidebar */
 
-  /* ── 6. Gradients ───────────────────────────────────────────────────────────
-     Every token below declares TEXT-BEARING or DECORATIVE ONLY (law L13).
-     Interpolation is sRGB (the default). NEVER add `in oklch` — it voids law L12,
-     and L12 is the reason any of this is safe:
+  /* ── Gradients ──────────────────────────────────────────────────────────────
+     Crema spends gradients on exactly four things: the masthead wash, the sidebar
+     wood, the espresso card and a chart area wash. NO gradient fills on buttons —
+     which is why --grad-primary resolves NEAR-FLAT by construction (espresso
+     #2A1D16 and ink #23180F are ~2 dE apart), and that flatness is the design.
+     sRGB interpolation only. Never "in oklch". */
 
-       linear-gradient() and color-mix(in srgb, …) interpolate GAMMA-ENCODED sRGB,
-       and the sRGB EOTF is convex, so an intermediate stop's luminance is ≤ the
-       linear interpolation of its endpoints. Light text between two DARK stops is
-       therefore safe from the endpoints alone; DARK text between two LIGHT stops
-       can dip below BOTH endpoints and must be sampled. Where that case occurs
-       below it was sampled at 201 points and the worst sample is quoted with its
-       position.
+  /* --app-bg · DECORATIVE; carries --foreground. Chalk settling to warm paper down
+     the page. Sampled: worst 15.48:1 at 96% (dark 14.89:1 at 96%). */
+  --app-bg: linear-gradient(180deg,
+              var(--background) 0%,
+              color-mix(in srgb, var(--muted) 60%, var(--background)) 100%);
 
-     The mechanism for every text-bearing ramp is
-       color-mix(in srgb, var(--X) 85%, var(--foreground))
-     which darkens in light (--foreground is near-black) and lightens in dark
-     (--foreground is near-white). Monotone-safe in both directions by construction,
-     so ONE declaration serves both themes and .dark repeats none of them. */
-
-  /* --app-bg · DECORATIVE ONLY as a surface; it carries --foreground and nothing
-     else. Mint → sidebar sand → paper → card → honey wash: the produce counter,
-     left to right, greens at the left hand and warm spice at the right. DARK TEXT
-     OVER LIGHT STOPS — sampled, not assumed: worst of 201 samples 13.38:1 at 100%
-     (endpoints 15.41 → 13.38). Dark: worst 11.03:1.
-     Goes on .main behind the cards (.bg-app), NEVER on <body> and never behind a
-     table: --card is only 1.07:1 above --background, so a card reads as a card by
-     its ring and shadow, and a gradient sliding under it steals exactly that. */
-  --app-bg: linear-gradient(140deg,
-              var(--brand-subtle)    0%,
-              var(--sidebar)        26%,
-              var(--background)     48%,
-              var(--card)           68%,
-              var(--warning-subtle) 100%);
-
-  /* --grad-hero · DECORATIVE ONLY. Marketing band, onboarding, styleguide header.
-     Dark text over light stops — sampled: worst 15.32:1 at 50% (dark 11.04:1). */
-  --grad-hero: linear-gradient(135deg,
-                 var(--brand-subtle)   0%,
-                 var(--background)    50%,
-                 var(--success-subtle) 100%);
+  /* --grad-hero · DECORATIVE; carries --foreground. THE MASTHEAD WASH at the spec's
+     158deg: oat -> surface-2 -> chalk. Worst 13.72:1 at 0% (dark 12.81:1). All
+     masthead copy is --foreground, never --muted-foreground (spec 5.1). */
+  --grad-hero: linear-gradient(158deg,
+                 var(--secondary) 0%,
+                 var(--muted)    44%,
+                 var(--background) 100%);
 
   /* --grad-primary · TEXT-BEARING — carries --primary-foreground.
-     LIGHT: #664a35 → #5c4330 · 7.66:1 → 8.63:1, every intermediate stop ≥ 7.66:1
-     by L12 (monotone, both endpoints dark).
-     DARK : #c4ac95 → #cbb5a0 · 7.87:1 → 8.68:1.
-     It replaces a flat bg-primary with hover:bg-primary/80, which measured ~5.4:1
-     and made the HOVER state lighter than the rest — i.e. hovering made the button
-     look disabled. This ramp darkens on hover instead (the mix deepens to 75%:
-     9.35:1 light, 9.26:1 dark), and :active collapses to flat var(--primary) plus
-     translateY(1px). */
+     LIGHT: #2A1D16 -> #291C15 · 15.18:1 -> 15.31:1 (visually FLAT: no gradient
+     fills on buttons).  DARK: #EFE0C8 -> #F0E2CC · 12.57:1 -> 12.75:1. */
   --grad-primary: linear-gradient(180deg,
                     var(--primary) 0%,
                     color-mix(in srgb, var(--primary) 85%, var(--foreground)) 100%);
+  /* --grad-primary-hover · Crema's own hover LIFTS espresso (.btn--primary:hover
+     background #3A2A20), so this ramp moves toward --secondary rather than toward
+     --foreground. It works in both directions: light lifts espresso to #3A2D25, dark
+     settles oat to #E0D1BA. LIGHT worst 10.97:1 at 94% · DARK worst 10.15:1 at 93%. */
   --grad-primary-hover: linear-gradient(180deg,
-                    var(--primary) 0%,
-                    color-mix(in srgb, var(--primary) 75%, var(--foreground)) 100%);
+                    color-mix(in srgb, var(--primary) 92%, var(--secondary)) 0%,
+                    color-mix(in srgb, var(--primary) 88%, var(--secondary)) 100%);
 
-  /* --grad-brand · TEXT-BEARING — carries --brand-foreground ONLY. Never
-     --primary-foreground (wrong family) and never white-in-dark (the dark brand is
-     a light mint; white on it fails outright).
-     LIGHT: #083227 → #0c2f24 · 13.27:1 → 13.76:1.
-     DARK : #90e5c8 → #9fe6cb · 12.15:1 → 12.49:1.
-     Wordmark tile, sidebar identity square, marketing hero, the AI rail. */
+  /* --grad-brand · TEXT-BEARING — carries --brand-foreground ONLY.
+     LIGHT: #7A4C17 -> #6D4416 · 6.76:1 -> 7.53:1.  DARK: #D9A566 -> #DDB079 ·
+     7.41:1 -> 8.32:1. Wordmark tile, sidebar identity square, the AI rail. */
   --grad-brand: linear-gradient(135deg,
                   var(--brand) 0%,
                   color-mix(in srgb, var(--brand) 85%, var(--foreground)) 100%);
 
   /* --grad-destructive · TEXT-BEARING — carries --destructive-foreground.
-     LIGHT: #871c4f → #781c46 ·  9.09:1 → 10.22:1.
-     DARK : #de82a4 → #e192ac ·  6.79:1 →  7.71:1.
-     ONLY for the single confirming button inside an AlertDialog — the one place a
-     solid red is correct, because it is the last chance to stop. The ordinary
-     destructive button variant is a TINT and stays a tint. */
+     LIGHT: #6C2342 -> #61213A, worst 9.98:1 at 100%.  DARK: #E39383 -> #E6A090,
+     worst 7.31:1 at 100%. AlertDialog's confirming button only. */
   --grad-destructive: linear-gradient(180deg,
                         var(--destructive) 0%,
                         color-mix(in srgb, var(--destructive) 85%, var(--foreground)) 100%);
 
-  /* --grad-sidebar · DECORATIVE ONLY. An 8% deepening down the rail so the nav
-     reads as a panel without spending a second surface token. Carries
-     --sidebar-foreground: 11.37:1 → 9.75:1 light, 13.36:1 → 11.03:1 dark. */
+  /* --grad-sidebar · DECORATIVE. THE WOOD: --sidebar #F6EEE2 deepening to #E5DDD1 —
+     the spec's --wood-1 -> --wood-2 rail, reproduced from one token. Carries
+     --sidebar-foreground: worst 12.90:1 at 98% (dark 11.75:1). */
   --grad-sidebar: linear-gradient(180deg,
                     var(--sidebar) 0%,
                     color-mix(in srgb, var(--sidebar) 92%, var(--foreground)) 100%);
 
-  /* --grad-ai · DECORATIVE ONLY. The Ask AI card, and only that card. Replaces
-     assistant-client.tsx's `bg-gradient-to-b from-primary/5 to-transparent`.
-     Carries --foreground: 14.51:1 → 16.39:1 light, 12.83:1 → 14.74:1 dark. */
+  /* --grad-ai · DECORATIVE. The Ask AI card, and only that card. Caramel, not
+     espresso — the AI rail is identity, and identity in Crema is caramel.
+     Carries --foreground: worst 14.70:1 at 0% (dark 12.41:1). */
   --grad-ai: linear-gradient(180deg,
-               color-mix(in srgb, var(--primary) 8%, var(--card)) 0%,
+               color-mix(in srgb, var(--brand) 10%, var(--card)) 0%,
                var(--card) 72%);
 
-  /* --grad-card-brand · DECORATIVE ONLY. .card--brand (identity / AI card).
-     Carries --foreground: 15.41:1 → 16.39:1 light, 11.04:1 → 14.74:1 dark. */
+  /* --grad-card-brand · DECORATIVE. .card--caramel (money / retail / identity).
+     Carries --foreground: worst 14.42:1 at 0% (dark 12.06:1). */
   --grad-card-brand: linear-gradient(160deg, var(--brand-subtle), var(--card) 70%);
 
-  /* --grad-card-warn · DECORATIVE ONLY. .card--warn (the reorder banner). Its ink
-     is --warning-subtle-foreground, NOT --foreground: 5.51:1 → 6.75:1 light,
-     8.29:1 → 11.07:1 dark. */
+  /* --grad-card-warn · DECORATIVE. The reorder banner. Its ink is
+     --warning-subtle-foreground, NOT --foreground: worst 5.21:1 at 0% (dark 7.77:1). */
   --grad-card-warn: linear-gradient(160deg, var(--warning-subtle), var(--card) 78%);
 
-  /* --grad-fade-x · DECORATIVE ONLY. The scroll affordance over the right edge of a
-     .scroll-x table, so a clipped column looks clipped on a tablet, where there is
-     no scrollbar to hint with. */
+  /* --grad-fade-x · DECORATIVE. The scroll affordance on a clipped table. */
   --grad-fade-x: linear-gradient(90deg, transparent, var(--card));
 
-  /* PROHIBITIONS, so they live in the file and not only in the review:
-     · --ready is never a gradient, never a mix, never carries an overlay.
-     · --veg / --nonveg are never a gradient and never a fill above 12px.
-     · No gradient crosses two semantic families — no cocoa→tomato, no pine→beet. A
-       gradient is the one construct that can smuggle a colour across the dE gap
-       that separates identity, interactive and alarm.
-     · No gradient on a table row, a chip, or a meter bar. */
+  /* ── Radii — ROUNDED RECTANGLES. 2 / 4 / 6 / 8 / 10 / 12 / 16 / 20.
+     Crema's vocabulary is small, square-ish and generous. Two deliberate breaks
+     from a monotone ladder:
+       · --r-2xl is the Badge/chip step (badge.tsx uses rounded-4xl). Crema sets it
+         to 6 — its --r-chip — because THERE ARE NO PILL CHIPS IN THIS THEME.
+       · --r-pill stays 999 and is spent EXACTLY ONCE per screen: the masthead
+         eyebrow tag. It is the only pill in the theme.
+     Nothing here is a hard corner — even the meter bar is softened. --- */
+  --r-hair:  2px;   /* the meter bars — Crema has no 1px corner              */
+  --r-2xs:   4px;   /* --r-xs: tick marks, the FSSAI square outline          */
+  --r-xs:    6px;   /* --r-chip: the jar-label chip, skeleton blocks         */
+  --r-sm:    8px;   /* nav links, small controls, the counter-switch track   */
+  --r:      10px;   /* --r-btn: THE BASE STEP — buttons are 10px rects       */
+  --r-md:   12px;   /* --r: an INNER panel, never the outer card             */
+  --r-lg:   16px;   /* --r-md                                                */
+  --r-xl:   20px;   /* --r-lg: THE CARD, and the masthead band               */
+  --r-2xl:   6px;   /* the chip. Deliberately BELOW --r-xl — see note above   */
+  --r-pill: 999px;  /* the masthead eyebrow tag, once per screen             */
+  --r-ctl:    min(var(--r-sm), 10px);   /* = 8px, inert by design */
+  --r-ctl-sm: min(var(--r-sm), 12px);   /* = 8px, inert by design */
 
-  /* ── 7. Radii — a working counter, not a confectionery ──────────────────────
-     --radius: 0.625rem (10px) is declared above and is HELD. Holding the seed is
-     what keeps the five min() clamps in button.tsx / select.tsx inert, and what
-     keeps all 95 existing radius sites exactly where they are.
+  /* ── Shadows — WARM, BROWN-TINTED, WIDE AND FAINT. Never neutral grey.
+     rgb(42 29 22) is --espresso. EVERY card in Crema is elevated — but a card is a
+     HAIRLINE FIRST and a shadow second: delete every shadow here and the layout
+     must still read. That is the test. --- */
+  --sh-xs:    0  1px  2px        rgb(42 29 22 / .04);
+  --sh-sm:    0  2px  6px  -2px  rgb(42 29 22 / .06);
+  --sh:       0 10px 30px -18px  rgb(42 29 22 / .22);    /* the resting card  */
+  --sh-lg:    0 26px 60px -34px  rgb(42 29 22 / .28);    /* popover, dropdown */
+  --sh-xl:    0 18px 40px -22px  rgb(42 29 22 / .45);    /* = --sh-dark: dialog, sheet, the espresso card */
+  --sh-brand: 0 12px 26px -14px  rgb(122 76 23 / .30);   /* caramel-700. The primary CTA, one per screen */
+  --sh-ready: 0 12px 26px -14px  rgb(217 165 102 / .42); /* crema gold. The READY chip under touch density, nothing else */
+  --sh-up:    0 -12px 30px -20px rgb(42 29 22 / .24);    /* the bottom tab bar */
+  --sh-rim:   inset 0 1px 0 0    rgb(255 255 255 / .60); /* lit top edge — a gloss in light, the PRIMARY elevation signal in dark */
+  --scrim:    rgb(42 29 22 / .38);                       /* the modal backdrop */
 
-     This ladder is the single source of truth: the Tailwind --radius-* steps in
-     @theme inline are consumers of it, and at --radius: 0.625rem it reproduces the
-     old calc() chain exactly (0.6/0.8/1/1.4/1.8/2.2/2.6 → 6/8/10/14/18/22/26px). */
-  --r-hair:  1px;   /* the ONLY hard radius: the five step-meter bars             */
-  --r-2xs:   2px;   /* tooltip arrow, tick marks, the FSSAI square outline        */
-  --r-xs:    6px;   /* = --radius-sm                                             */
-  --r-sm:    8px;   /* = --radius-md — nav links, small controls                 */
-  --r:      10px;   /* = --radius-lg = --radius — THE BASE STEP                  */
-  --r-md:   14px;   /* = --radius-xl — .card, dialog popup                       */
-  --r-lg:   18px;   /* = --radius-2xl — the floor tile, the KPI tile             */
-  --r-xl:   22px;   /* = --radius-3xl — hero band                                */
-  --r-2xl:  26px;   /* = --radius-4xl — .chip / Badge (a pill at h-5)            */
-  --r-pill: 999px;
-  /* The two control clamps that already exist in the app. INTENTIONAL: dense
-     chrome controls must not inflate when --radius grows. At --radius: 0.625rem
-     both are inert — min(8px, 10px) = 8px. */
-  --r-ctl:    min(var(--r-sm), 10px);
-  --r-ctl-sm: min(var(--r-sm), 12px);
-  /* NEVER ROUND: the FSSAI mark beyond --r-2xs (the square is statutory shape — a
-     pill-shaped veg mark is not a veg mark), and the meter bars beyond --r-hair. */
-
-  /* ── 8. Shadows — tinted with the INK hue, never neutral grey ───────────────
-     --foreground #241c13 = rgb(36 28 19). Every alpha below is that hue: a grey
-     shadow on a warm ground reads as dirt. Every blur carries a large negative
-     spread so the shadow stays tight to the element — a warm palette turns muddy
-     the moment a shadow spreads.
-     (The dark theme suspends the tint rule and replaces it with a rim — see the
-     note in .dark. That is documented, not an oversight.)
-     Elevation is the shadow; the HAIRLINE is still the ring. Do not delete the
-     `ring-1 ring-foreground/10` on cards — --card sits 1.07:1 above --background,
-     so the ring is what makes a card a card. The shadow goes underneath it. */
-  --sh-xs:    0 1px 2px          rgb(36 28 19 / .06);
-  --sh-sm:    0 2px 8px    -2px  rgb(36 28 19 / .10);
-  --sh:       0 10px 24px  -14px rgb(36 28 19 / .30);   /* the default card  */
-  --sh-lg:    0 22px 48px  -26px rgb(36 28 19 / .36);   /* popover, dropdown */
-  --sh-xl:    0 40px 80px  -40px rgb(36 28 19 / .44);   /* dialog, sheet     */
-  --sh-brand: 0 12px 26px  -14px rgb(102 74 53 / .40);  /* = --primary. The primary
-                        CTA only, one per screen.                              */
-  --sh-ready: 0 12px 26px  -14px rgb(192 72 15 / .34);  /* = --ready. The READY
-                        floor tile only, and only under touch density (a KDS read
-                        at 2 m). Nothing else may carry a coloured shadow.      */
-  --sh-up:    0 -12px 30px -20px rgb(36 28 19 / .34);   /* the bottom tab bar */
-  --sh-rim:   inset 0 1px 0 0    rgb(255 255 255 / .55);/* lit top edge — a
-                        near-invisible gloss in light, the PRIMARY elevation
-                        signal in dark.                                        */
-  --scrim:    rgb(36 28 19 / .38);                      /* modal backdrop. Replaces
-                        three hardcoded bg-black/10 scrims: 10% black over the dark
-                        ground is invisible.                                   */
-
-  /* ── 9. Type ───────────────────────────────────────────────────────────────
-     Plus Jakarta Sans (5 weights) + JetBrains Mono (3), loaded by next/font in
-     app/layout.tsx and exposed as --font-jakarta / --font-jetbrains. Zero
-     additional web fonts, zero layout shift.
-
-     These four stacks are the second copy of the ones in @theme inline (see the
-     note there): the `font` shorthand steps below need real :root variables, and a
-     @theme variable is emitted only when Tailwind judges it used. Identical
-     values, and they must stay identical.
-
-     Any replacement face MUST ship tabular figures: every ₹ column depends on
-     font-variant-numeric: tabular-nums being set globally on body, and a
-     proportional face makes those columns jitter as they update. */
-  --font-sans:
-    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui,
-    "Segoe UI", Roboto, sans-serif;
-  --font-heading:
-    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
-  --font-mono:
+  /* ── Type — SERIF-LED HEADINGS ON A HUMANIST SANS BODY. The display face is the
+     roaster's menu card; the numerals are LIGHT (weight 300), never bold — a big
+     bold figure reads as a supermarket shelf-edge label, which is the opposite of
+     this counter. --- */
+  --font-stack-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-stack-heading:
+    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-stack-mono:
     var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
     Menlo, monospace;
-  --font-num:
-    var(--font-jakarta, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
+  --font-stack-num:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans:    var(--font-stack-sans);
+  --font-heading: var(--font-stack-heading);
+  --font-mono:    var(--font-stack-mono);
+  --font-num:     var(--font-stack-num);
 
-  /* The six canonical steps, as the `font` shorthand: one token sets weight, size,
-     line-height and family together. Only the two display tiers are fluid — body
-     and below are fixed so line length stays predictable inside a table. */
-  --t-display: 800 clamp(28px, 3.6vw, 44px)/1.08 var(--font-heading);
-  --t-h1:      700 clamp(20px, 2.2vw, 26px)/1.20 var(--font-heading);
-  --t-h2:      600 16px/1.35 var(--font-heading);
-  --t-body:    400 14px/1.55 var(--font-sans);
-  --t-small:   400 12.5px/1.50 var(--font-sans);
-  --t-label:   600 11px/1.40 var(--font-sans);
-  --label-tracking: 0.12em;  /* tracking cannot live in the `font` shorthand */
+  --t-display: 400 clamp(34px, 4.4vw, 52px)/1.06 var(--font-heading);
+  --t-h1:      400 clamp(22px, 2.4vw, 30px)/1.18 var(--font-heading);
+  --t-h2:      400 clamp(17px, 1.6vw, 20px)/1.25 var(--font-heading);
+  --t-body:    400 14px/1.62 var(--font-sans);
+  --t-small:   400 12.5px/1.55 var(--font-sans);
+  --t-label:   600 10.5px/1.40 var(--font-sans);
+  --label-tracking: 0.18em;
+  --t-chrome:  400 15px/1.30 var(--font-heading);  /* the PageHeader h1 — a chrome strip, not a hero */
+  --t-metric:  300 clamp(30px, 3.4vw, 44px)/1.05 var(--font-num);  /* always with tabular-nums */
+  --t-chip:    600 10.5px/1 var(--font-sans);
+  --t-code:    500 12px/1.7 var(--font-mono);
 
-  /* Bound variants — they exist because the app already hard-codes these three
-     sizes; naming them IS the fix. */
-  --t-chrome: 600 14px/1.30 var(--font-heading);
-    /* The PageHeader <h1>. DELIBERATELY SMALL: the sticky header is a chrome strip,
-       not a hero. --t-h1 belongs to the marketing site, the styleguide and a future
-       KDS — never to the app shell.                                            */
-  --t-metric: 600 clamp(22px, 2.4vw, 28px)/1.1 var(--font-num);
-    /* The KPI figure. ALWAYS with tabular-nums and letter-spacing -0.02em.
-       Currency is Intl.NumberFormat('en-IN', {style:'currency', currency:'INR',
-       maximumFractionDigits:0}) → "₹4,86,300": lakh grouping, no paise.        */
-  --t-chip:   700 10.5px/1 var(--font-sans);
-    /* OrderStatusBadge. At 10.5px bold the label needs ≥4.5:1 on its own wash —
-       every -subtle pair above is ≥5.51:1, so it holds.                        */
-  --t-code:   500 12px/1.7 var(--font-mono);
-    /* The Ask AI <pre> SQL block and the result cells.                         */
-
-  /* ── 10. Spacing / layout — semantic decisions only ─────────────────────────
-     Tailwind's numeric scale covers the rest; these name what it cannot. */
+  /* ── Spacing / layout — GENEROUS. Crema's card padding is 22px, not 16. --- */
   --gap-xs:       8px;
   --gap-sm:      12px;
-  --gap:         16px;   /* the default grid/flex gap; = Tailwind gap-4     */
-  --gap-lg:      24px;
-  --pad-card:    16px;   /* = card.tsx's [--card-spacing:--spacing(4)]      */
-  --pad-card-sm: 12px;   /* = data-[size=sm]                               */
-  --pad-page:    16px;   /* = every page body's p-4                        */
-  --pad-head:    12px 16px;  /* PageHeader px-4 py-3                       */
+  --gap:         14px;
+  --gap-lg:      22px;
+  --pad-card:    22px;
+  --pad-card-sm: 16px;
+  --pad-page:    20px;
+  --pad-head:    14px 20px;
+  --sidebar-w:        16.75rem;  /* 268px */
+  --sidebar-w-mobile: 18rem;
+  --rail:              3rem;     /* 48px — must stay >= 48 with --tap at 44 */
+  --tap:              44px;      /* MINIMUM TOUCH TARGET. Non-negotiable */
+  --tap-sm:           36px;
+  --measure:        1240px;
 
-  --sidebar-w:        16rem;  /* 256px — SIDEBAR_WIDTH, sidebar.tsx          */
-  --sidebar-w-mobile: 18rem;  /* 288px — SIDEBAR_WIDTH_MOBILE                */
-  --rail:              3rem;  /* 48px  — SIDEBAR_WIDTH_ICON. With --tap at 44px
-                          that is 2px of gutter each side: legal, and tight. Rail
-                          buttons must be width:var(--tap); min-height:var(--tap);
-                          margin-inline:auto, and their labels CLIPPED, never
-                          display:none — the label is the accessible name of an
-                          icon-only control. If the rail is ever widened, 56px is
-                          the comfortable number; never go below 48.          */
-  --tap:                44px; /* MINIMUM TOUCH TARGET. Non-negotiable (law L15).
-                          The app's ambient control height is 32px — correct for
-                          the back office, illegal for a floor tablet.         */
-  --tap-sm:             36px; /* desktop-only chrome floor (dialog close)      */
-  --measure:          1180px; /* content max-width inside .wrap                */
-
-  /* ── 11. Motion ────────────────────────────────────────────────────────────
-     Faster than a consumer app on purpose: this is an operational tool and a
-     waiter taps the same button forty times a shift. Motion that lingers costs
-     money. */
-  --ease:     cubic-bezier(0.22, 1, 0.36, 1);  /* ease-out-quint            */
-  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);  /* drawer, sheet             */
-  --dur:      0.18s;   /* interactions: hover, press, chip, switch          */
-  --dur-lg:   0.28s;   /* off-canvas drawer, dialog                         */
-  --dur-rise: 0.40s;   /* entrance — not an interaction                     */
-  --stagger:  45ms;    /* per-item entrance delay unit                      */
+  /* ── Motion — Crema does not bounce. --- */
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur:      0.22s;
+  --dur-lg:   0.30s;
+  --dur-rise: 0.50s;
+  --stagger:  60ms;
 }
 
-.dark {
-  color-scheme: dark;
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 2 · FORNO — LIGHT.  data-palette="forno"
+ *
+ * A wood-fired counter-service pizzeria at 8:40 on a Saturday night. Charred oven
+ * mouth, blistered tomato, basil, mozzarella, semolina dust on the bench, a spike
+ * of receipt tickets on the pass.
+ *
+ * THE THREE THINGS THAT MAKE THIS NOT A RECOLOURED CREMA:
+ *  1. THE SHELL IS DARK WHILE THE PAGE IS CREAM — in LIGHT mode. The eight
+ *     --sidebar-* tokens below are charred (#14100D), not a tinted paper. This is
+ *     the direction's thesis and it is expressible only because --sidebar
+ *     re-themes independently of --background.
+ *  2. SHADOWS ARE HARD OFFSETS, ZERO BLUR. "5px 5px 0 #14100D". Every card, chip
+ *     and button is a printed sticker on a wall, not a floating pane. The only
+ *     blurs in the whole theme are --sh-ready (ember glow) and --sh-up.
+ *  3. TYPE IS BLACK-WEIGHT AND SHOUTED. --font-heading is Arial Black at 900, it
+ *     also carries the KPI figures (--font-num), and --label-tracking is .16em.
+ *
+ * Radii are dough, not glass: 1/2/6/10/16/22/30/36/44, every rung chunkier than
+ * Crema's, with --radius at 1rem.
+ *
+ * Every ratio is COMPUTED (WCAG 2.x relative luminance); every dE figure is
+ * CIEDE2000 with the G chroma correction, taken as the MINIMUM over normal vision,
+ * deuteranopia and protanopia (Vienot simulation in linear sRGB).
+ * ════════════════════════════════════════════════════════════════════════════ */
+[data-palette="forno"] {
+  color-scheme: light;
 
-  /* --- surfaces: warm neutrals, verified numerically (law 11) --- */
-  --background: #16110c;  /* L* 5.40 C* 3.36 h 69.10 - warm */
-  --foreground: #f4eadb;  /* 15.75:1 on --background */
-  --card: #1f1811;  /* L* 8.87 C* 6.11 h 69.73; --card-foreground 14.74:1 */
-  --card-foreground: #f4eadb;  /* 14.74:1 on --card */
-  --popover: #292017;  /* the raised layer */
-  --popover-foreground: #f4eadb;  /* 13.43:1 on --popover */
-  --muted: #2c2318;  /* L* 14.42 C* 9.27 h 75.86 - warm */
-  --muted-foreground: #b3a38c;  /* 7.62:1 on --background, 6.27:1 on --muted, 7.13:1 on --card */
-  --accent: #33291c;  /* hover surface only, never a resting state */
-  --accent-foreground: #f4eadb;  /* 11.96:1 on --accent */
-  --border: #3a2e20;  /* L* 19.87 C* 11.51 h 74.50 - decorative hairline, 1.42:1 on --background */
-  --input: #8a7654;  /* carries the 1.4.11 control boundary: 4.29:1 on --background, 4.01:1 on --card */
-  --ring: #f5e3c8;  /* 14.92:1 on --background, 13.95:1 on --card - 2px core + 2px --background offset ring */
+  /* --- surfaces: the bench. Semolina canvas, mozzarella card. --- */
+  --background: #F0E2CA;  /* semolina. L* 90.41 C* 13.48 h 86.19 — 6 L* points darker than Crema's paper, on purpose: this is a dusted bench, not a sheet of paper */
+  --foreground: #1C1310;  /* 14.29:1 on --background */
+  --card: #FFF9F0;  /* mozzarella. L* 98.15 C* 5.04 h 84.67 */
+  --card-foreground: #1C1310;  /* 17.44:1 on --card */
+  --popover: #FFF9F0;  /* SAME hex as --card, deliberately. In Forno a raised layer is raised by its 2px drawn ring (--sh-rim) and its hard offset, never by a lighter tint */
+  --popover-foreground: #1C1310;  /* 17.44:1 on --popover */
+  --muted: #E7D6B8;  /* semolina-2. L* 86.28 C* 16.99 h 86.17 — inset wells, table stripes, meter tracks */
+  --muted-foreground: #6B534A;  /* 5.55:1 on --background, 4.97:1 on --muted, 6.77:1 on --card */
+  --accent: #EBDCBE;  /* DERIVED — a hover wash between --background and --muted. Hover surface only, never a resting state */
+  --accent-foreground: #1C1310;  /* 13.49:1 on --accent */
+  --border: #C8B38C;  /* = the direction's --line-strong, NOT its --line. Forno hairlines are 1.5px and dark; since stroke WIDTH is not a token, the weight is carried by value. 1.53:1 on --background — decorative */
+  --input: #1C1310;  /* = --line-char. THE FORM DECISION: a Forno field is a DRAWN BOX. 14.29:1 on --background, 17.44:1 on --card (floor 3:1) */
+  --ring: #E23B14;  /* tomato-500 = the direction's --focus. 3.38:1 on --background, 4.12:1 on --card */
 
-  /* --- interactive --- */
-  --primary: #c4ac95;  /* 8.65:1 on --background as a block; vs --brand dE 12.04, vs --ready dE 14.29, vs --destructive dE 12.22 (min over normal/deutan/protan) */
-  --primary-foreground: #241a10;  /* 7.87:1 ink */
-  --secondary: #33291c;
-  --secondary-foreground: #f0e4d2;  /* 11.35:1 ink */
+  /* --- interactive: PRIMARY IS CHAR, NOT TOMATO. Forno 5G: "Primary is CHAR so the
+         solid-tomato READY chip stays unique." The button is a charred slab with a
+         tomato hard shadow (--sh-brand). --- */
+  --primary: #14100D;  /* char-900. 18.08:1 with its ink; vs --brand dE 15.36, vs --ready dE 28.22, vs --destructive dE 19.21 */
+  --primary-foreground: #FFF9F0;  /* 18.08:1 ink */
+  --secondary: #E7D6B8;
+  --secondary-foreground: #1C1310;  /* 12.79:1 ink */
 
-  /* --- identity: Pine Mandi. Never a button. --- */
-  --brand: #90e5c8;  /* 12.15:1 ink; vs --primary dE 12.04, vs --veg dE 20.52 */
-  --brand-foreground: #0b1a13;  /* 12.15:1 ink */
-  --brand-subtle: #23342b;  /* 8.53:1 with its ink */
-  --brand-subtle-foreground: #a6dcc0;  /* 8.53:1 on --brand-subtle, 11.38:1 on --card */
+  /* --- identity: the reduced sauce at the edge of the pan. Forno's identity and its
+         alarm are BOTH tomato — that is the direction, not an oversight. They are
+         split down the LIGHTNESS axis so the pair still clears the dE-12 law:
+         identity is the deep settled sauce, alarm is the bright ember. The
+         relationship inverts in dark, as it must. --- */
+  --brand: #6E1607;  /* 11.26:1 ink; vs --primary dE 15.36, vs --ready dE 14.79, vs --veg dE 11.08 */
+  --brand-foreground: #FFF9F0;  /* 11.26:1 ink */
+  --brand-subtle: #FFF1EC;  /* tomato-50. 7.19:1 with its ink */
+  --brand-subtle-foreground: #9B240A;  /* tomato-700. 7.19:1 on --brand-subtle, 7.57:1 on --card */
 
-  /* --- the alarm: Ripe Tomato. QUARANTINED - READY chip + READY floor tile only. --- */
-  --ready: #e87c4c;  /* 6.63:1 on --background as a block; 6.25:1 ink; vs --warning dE 12.18, vs --primary dE 14.29 */
-  --ready-foreground: #2a1206;  /* 6.25:1 ink */
+  /* --- the alarm: the ember. THE ONLY SOLID CHIP IN THE SYSTEM. --- */
+  --ready: #C4300D;  /* tomato-600, the READY chip's own hex. 5.31:1 ink; vs --warning dE 23.72, vs --primary dE 28.22, vs --brand dE 14.79 */
+  --ready-foreground: #FFF9F0;  /* 5.31:1 ink */
 
   /* --- semantic states --- */
-  --success: #aef3b2;  /* 13.02:1 ink; vs --destructive dE 21.37, vs --veg dE 19.55 */
-  --success-foreground: #0f2116;  /* 13.02:1 ink */
-  --success-subtle: #001c00;  /* 11.75:1 with its ink */
-  --success-subtle-foreground: #a9ddb6;  /* 11.75:1 on the wash, 11.45:1 on --card */
-  --warning: #f5c15d;  /* 10.32:1 ink; vs --ready dE 12.18, vs --veg dE 12.02 - the tightest dE in the system, re-run the full matrix before touching this token */
-  --warning-foreground: #241a0a;  /* 10.32:1 ink */
-  --warning-subtle: #3b2f0f;  /* 8.29:1 with its ink */
-  --warning-subtle-foreground: #ebc98a;  /* 8.29:1 on the wash, 11.07:1 on --card; vs --chart-5 dE 12.78 (this is the amber that shares the Overview with the charts) */
-  --warning-border: #705626;  /* opaque chip edge, 1.91:1 on its wash (decorative by declaration) */
-  --info: #7fc0d8;  /* 8.50:1 ink; vs --success dE 32.42 */
-  --info-foreground: #0b1e26;  /* 8.50:1 ink */
-  --info-subtle: #023547;  /* 8.27:1 with its ink */
-  --info-subtle-foreground: #a5d5e6;  /* 8.27:1 on the wash, 11.08:1 on --card */
-  --destructive: #de82a4;  /* 6.79:1 ink; vs --primary dE 12.22, vs --brand dE 12.13, vs --nonveg dE 21.30 */
-  --destructive-foreground: #2a0a16;  /* 6.79:1 ink */
-  --destructive-subtle: #240e1a;  /* 10.17:1 with its ink */
-  --destructive-subtle-foreground: #f3afc2;  /* 10.17:1 on the wash, 9.79:1 on --card */
-  --destructive-border: #6b3040;  /* opaque chip edge, 1.84:1 on its wash (decorative by declaration) */
+  --success: #22400F;  /* CHARRED BASIL — the leaf that touched the deck. 11.09:1 ink. Deliberately deeper than the mockup's basil-600: at #3E7A26 it measured dE 2.55 from the statutory --veg mark under deuteranopia. At #22400F it is dE 12.40. A green that can be confused with a food-safety mark is a bug, not a tint */
+  --success-foreground: #FFF9F0;  /* 11.09:1 ink */
+  --success-subtle: #EFF6E7;  /* basil-50. 7.16:1 with its ink */
+  --success-subtle-foreground: #2C5C1A;  /* basil-700. 7.16:1 on the wash, 7.56:1 on --card */
+  --warning: #F0A415;  /* amber-500 = the fire. 9.04:1 ink; vs --ready dE 23.72 */
+  --warning-foreground: #14100D;  /* 9.04:1 ink */
+  --warning-subtle: #FDF0D4;  /* amber-50. 5.44:1 with its ink */
+  --warning-subtle-foreground: #8A5606;  /* amber-700. 5.44:1 on the wash, 5.88:1 on --card */
+  --warning-border: #D99A1E;  /* = --amber-border, the 2px stroke on the reorder notice. 1.63:1 on its wash (decorative by declaration) */
+  --info: #40525E;  /* SLATE — "cold dough", the direction's own neutral-info: not in the oven yet. 7.76:1 ink; vs --success dE 24.71 */
+  --info-foreground: #FFF9F0;  /* 7.76:1 ink */
+  --info-subtle: #ECEFF1;  /* slate-50. 7.03:1 with its ink */
+  --info-subtle-foreground: #40525E;  /* 7.03:1 on the wash, 7.76:1 on --card */
+  --destructive: #8E2050;  /* DERIVED — chianti / cooked red onion: the one hue in a pizzeria that is neither the oven nor the sauce. Tomato cannot be destructive here because tomato is already identity AND alarm. 8.11:1 ink; vs --primary dE 19.21, vs --success dE 15.84, vs --nonveg dE 15.65 */
+  --destructive-foreground: #FFF9F0;  /* 8.11:1 ink */
+  --destructive-subtle: #F8DFE6;  /* 7.78:1 with its ink */
+  --destructive-subtle-foreground: #7F1B45;  /* 7.78:1 on the wash, 9.35:1 on --card */
+  --destructive-border: #C97A96;  /* opaque chip edge, 1.83:1 on its wash (decorative by declaration) */
 
-  /* --- FSSAI statutory marks. RESERVED: hue is the identity, never re-tokenise. --- */
-  --veg: #3ea95f;  /* 5.89:1 on --card, 6.29:1 on --background; Lab hue 148.10 */
-  --nonveg: #d2564a;  /* 4.32:1 on --card, 4.62:1 on --background; Lab hue 33.52 */
+  /* --- FSSAI statutory marks. RESERVED. Forno's canvas is L* 90.41 — six points
+         darker than Crema's paper — so the mockup's #0B7A34 measures 4.27:1 on it,
+         BELOW AA. The mark is deepened one step to hold the floor on this ground.
+         Same hue, same statutory meaning. --- */
+  --veg: #0A6E2F;  /* 6.11:1 on --card, 5.00:1 on --background; Lab hue 145.6 */
+  --nonveg: #94231A;  /* 7.98:1 on --card, 6.54:1 on --background; Lab hue 34.9 */
 
-  /* --- KPI deltas. Always with an icon + label. --- */
-  --delta-up: #aef3b2;  /* 13.59:1 on --card, 14.53:1 on --background */
-  --delta-down: #de82a4;  /* 6.55:1 on --card, 7.00:1 on --background; vs --delta-up dE 21.37 */
+  /* --- KPI deltas. Always with an arrow glyph + a signed number. --- */
+  --delta-up: #22400F;  /* 11.09:1 on --card, 9.09:1 on --background */
+  --delta-down: #8E2050;  /* 8.11:1 on --card, 6.65:1 on --background; vs --delta-up dE 15.84. The direction names tomato-700 here; tomato-700 vs basil-700 measures dE 7.51 and a deuteranope cannot tell rising from falling, so down moves to the chianti */
 
-  --radius: 0.625rem;
+  --radius: 1rem;  /* 16px — Forno's base step, vs Crema's 10px. This is the seed of the whole chunky ladder below */
 
-  /* --- chart ramp. Slot -> hue map is IDENTICAL in both themes. --- */
-  --chart-1: #2d9a2c;  /* 4.82:1 on --card, --chart-foreground 5.15:1 on it; L* 55.94 C* 69.78 h 138.00 */
-  --chart-2: #53bcff;  /* 8.36:1 on --card, --chart-foreground 8.94:1 on it; L* 72.91 C* 43.02 h 256.85 */
-  --chart-3: #a87c71;  /* 4.83:1 on --card, --chart-foreground 5.17:1 on it; L* 56.02 C* 20.07 h 39.28; vs --primary dE 12.42 */
-  --chart-4: #986ada;  /* 4.52:1 on --card, --chart-foreground 4.83:1 on it; L* 54.08 C* 65.52 h 308.99 */
-  --chart-5: #fecc01;  /* 11.57:1 on --card, --chart-foreground 12.37:1 on it; L* 84.10 C* 85.08 h 87.81. dE 6.53 from solid --warning - CONTAINED: solid --warning has zero consumers */
-  --chart-6: #ab6798;  /* 4.28:1 on --card, --chart-foreground 4.58:1 on it; L* 52.54 C* 37.69 h 336.32; vs --destructive/--delta-down dE 12.82 */
-  --chart-grid: #3a2e20;  /* = --border. 1.33:1 on --card - decorative structure, deliberately below the axis text */
-  --chart-axis: #b3a38c;  /* = --muted-foreground. 7.13:1 on --card, 7.62:1 on --background - PASSES as label TEXT */
-  --chart-foreground: #16110c;  /* = --background per SPEC 11, replacing the out-of-palette #111814. In-body label, worst of the six slots: 4.58:1 */
+  /* --- chart ramp: the mise en place. Slot -> hue map is IDENTICAL in both modes:
+         tomato / mushroom / basil / slate / red onion / chianti.
+         CEILING NOTE, measured not assumed: --chart-foreground must clear 4.5:1 on
+         all six, which pins every slot to L* 24-46. Six hues inside a 22-point dark
+         band cannot all clear dE 12 under dichromacy — the best family-unique set
+         available in this direction's world measures dE 8.29 (chart-1/chart-2).
+         CONTAINED the way Crema contains its own: the six are also separated by
+         legend order and by direct labelling, never by hue alone. --- */
+  --chart-1: #C4300D;  /* 5.31:1 on --card; L* 44.06 C* 77.32 h 42.86. IDENTICAL to --ready by construction (6 fixes the chart line at tomato, 1 fixes the READY chip at tomato-600). CONTAINED: --ready is quarantined to Orders/KDS and never renders on a chart route */
+  --chart-2: #7E603C;  /* 5.53:1 on --card; L* 42.96 C* 26.23 h 73.57 — mushroom */
+  --chart-3: #22400F;  /* 11.09:1 on --card; L* 23.81 C* 33.21 h 129.97 — = --success, and semantically aligned */
+  --chart-4: #40525E;  /* 7.76:1 on --card; L* 33.84 C* 9.99 h 247.95 — the only cool slot, and the one that survives dichromacy best */
+  --chart-5: #7A4A82;  /* 6.41:1 on --card; L* 38.98 C* 38.14 h 322.37 — red onion */
+  --chart-6: #85133A;  /* 9.32:1 on --card; L* 28.80 C* 48.75 h 9.23 — chianti */
+  --chart-grid: #C8B38C;  /* = --border. 1.53:1 on --card — decorative structure, deliberately below the axis text */
+  --chart-axis: #6B534A;  /* = --muted-foreground. 6.77:1 on --card, 5.55:1 on --background — PASSES as label TEXT */
+  --chart-foreground: #FFF9F0;  /* in-body label. Worst of the six slots: 5.31:1 */
 
-  /* --- sidebar (re-themes separately; --primary alone does nothing here) --- */
-  --sidebar: #1b150e;
-  --sidebar-foreground: #e8dcc8;  /* 13.36:1 on --sidebar */
-  --sidebar-primary: #c4ac95;  /* tracks --primary; vs --brand dE 12.04 (the identity square sits beside it) */
-  --sidebar-primary-foreground: #241a10;  /* 7.87:1 on --sidebar-primary */
-  --sidebar-accent: #2c2318;
-  --sidebar-accent-foreground: #f4eadb;  /* 12.96:1 on --sidebar-accent */
-  --sidebar-border: #463825;
-  --sidebar-ring: #f5e3c8;  /* 14.40:1 on --sidebar */
+  /* --- sidebar: THE CHARRED SLAB, IN LIGHT MODE. These eight are byte-identical to
+         the .dark block below. In Forno the oven does not change colour when the room
+         does — that is the entire point of signature move (a). Note --sidebar-primary
+         deliberately does NOT track --primary here: --primary is char and the rail is
+         char, so an active nav item painted in --primary would be invisible. It takes
+         the ember instead, exactly as the mockup's active nav does. --- */
+  --sidebar: #14100D;
+  --sidebar-foreground: #FFF9F0;  /* 18.08:1 on --sidebar */
+  --sidebar-primary: #C4300D;  /* the ember, NOT --primary — see above */
+  --sidebar-primary-foreground: #FFF9F0;  /* 5.31:1 on --sidebar-primary */
+  --sidebar-accent: #2A1F19;  /* char-700, the nav hover */
+  --sidebar-accent-foreground: #FFF9F0;  /* 15.33:1 on --sidebar-accent */
+  --sidebar-border: #3A2B22;  /* char-600 */
+  --sidebar-ring: #FF7B52;  /* tomato-300 — the light-mode --ring is a mid tomato and would measure 2.19:1 on the slab; on a dark rail the focus ring must be lifted. 7.40:1 on --sidebar */
 
-  /* ── 8. Shadows (dark) — the tint rule is SUSPENDED, and replaced ───────────
-     Below the ground there is nothing to tint with: rgb(36 28 19 / α) over #16110c
-     is invisible. A dark UI expresses elevation with (a) a heavier, blacker cast
-     and (b) a LIT TOP RIM, and every raised dark surface pairs them:
-     box-shadow: var(--sh-rim), var(--sh-lg). Any shadow token in here that is not
-     rgb(0 0 0 / α) — apart from the two deliberate colour blooms and the rim — is
-     a bug.
-     Geometry, type, spacing and motion are theme-INDEPENDENT and are not repeated
-     here; neither are the gradients, which are built from var() tokens and so
-     re-theme themselves. */
-  --sh-xs:    0 1px 2px          rgb(0 0 0 / .40);
-  --sh-sm:    0 2px 8px    -2px  rgb(0 0 0 / .50);
-  --sh:       0 10px 24px  -14px rgb(0 0 0 / .64);
-  --sh-lg:    0 22px 48px  -26px rgb(0 0 0 / .72);
-  --sh-xl:    0 40px 80px  -40px rgb(0 0 0 / .80);
-  --sh-brand: 0 12px 26px  -14px rgb(196 172 149 / .18);  /* dark --primary bloom */
-  --sh-ready: 0 12px 26px  -14px rgb(232 124 76 / .26);   /* dark --ready bloom   */
-  --sh-up:    0 -12px 30px -20px rgb(0 0 0 / .70);
-  --sh-rim:   inset 0 1px 0 0    rgb(244 234 219 / .07);  /* = --foreground at 7% */
-  --scrim:    rgb(0 0 0 / .62);   /* 10% black over #16110c is invisible; 62% is a
-                                     real scrim.                                */
+  /* ── Gradients ──────────────────────────────────────────────────────────────
+     Built from var() tokens and from color-mix(in srgb, …), so ONE declaration
+     serves both modes and the .dark block repeats none of them — same mechanism
+     Crema uses, same guarantee (gamma-encoded sRGB interpolation is convex, so
+     light text between two dark stops is safe from the endpoints alone; every
+     dark-text-over-light-stops case was sampled at 201 points and the worst sample
+     is quoted). */
+
+  /* --app-bg · DECORATIVE ONLY; carries --foreground and nothing else. NOT a linear
+     ramp — this is SPECKLE, the semolina dust on the bench, two tiled radials over
+     the flat ground. ".bg-app" already sets background-attachment: fixed, which is
+     exactly what the direction asks for. The dust colour is a mix of
+     --muted-foreground so it re-themes: warm brown grit on cream in light, pale
+     flour on char in dark. Base layer worst: 14.29:1 light, 18.59:1 dark. */
+  --app-bg:
+    radial-gradient(circle at 25% 25%,
+      color-mix(in srgb, var(--muted-foreground) 14%, transparent) 0 1.1px,
+      transparent 1.7px) 0 0 / 26px 26px repeat,
+    radial-gradient(circle at 72% 66%,
+      color-mix(in srgb, var(--muted-foreground) 10%, transparent) 0 1.3px,
+      transparent 1.9px) 0 0 / 37px 37px repeat,
+    linear-gradient(var(--background) 0 0);
+
+  /* --grad-hero · DECORATIVE ONLY. The warm band: tomato wash -> semolina -> amber
+     wash. Dark text over light stops — sampled: worst 14.29:1 at 50% light, 13.24:1
+     at 100% dark. (The literal charred hero of the mockup is not this token — it is
+     the --sidebar / --grad-sidebar recipe, which is where a cream-on-char band can
+     live safely.) */
+  --grad-hero: linear-gradient(135deg,
+                 var(--brand-subtle)   0%,
+                 var(--background)    50%,
+                 var(--warning-subtle) 100%);
+
+  /* --grad-primary · TEXT-BEARING — carries --primary-foreground.
+     LIGHT: #27231f -> #14100D · worst 14.90:1.   DARK: #dfd2bb -> #F0E2CA · 12.68:1.
+     The mix partner is --card, NOT --foreground: in this theme --primary and
+     --foreground are both near-black in light, so Crema's darken-on-hover ramp would
+     be invisible. Forno's button LIGHTENS toward char-800 on hover in light and
+     DARKENS in dark — one construction, "move toward the card", which is the correct
+     direction in both. :active still collapses to flat var(--primary) plus the
+     theme's signature translate(2px,2px). */
+  --grad-primary: linear-gradient(180deg,
+                    color-mix(in srgb, var(--primary) 92%, var(--card)) 0%,
+                    var(--primary) 100%);
+  --grad-primary-hover: linear-gradient(180deg,
+                    color-mix(in srgb, var(--primary) 84%, var(--card)) 0%,
+                    color-mix(in srgb, var(--primary) 94%, var(--card)) 100%);
+    /* hover worst 11.57:1 light, 10.68:1 dark */
+
+  /* --grad-brand · TEXT-BEARING — carries --brand-foreground ONLY. 155deg, matching
+     the wordmark tile in the mockup.
+     LIGHT: #6E1607 -> #64150a · worst 11.26:1.   DARK: #FFA184 -> #ffa88e · 9.63:1.
+     Deliberately NOT the tomato-600 -> tomato-700 ramp of the READY chip. */
+  --grad-brand: linear-gradient(155deg,
+                  var(--brand) 0%,
+                  color-mix(in srgb, var(--brand) 85%, var(--foreground)) 100%);
+
+  /* --grad-destructive · TEXT-BEARING — carries --destructive-foreground.
+     LIGHT: #8E2050 -> #802047 · 8.11:1 -> 9.10:1.  DARK: #E58AA6 -> #e797b0 ·
+     worst 7.02:1 at 0%. AlertDialog's confirming button only. */
+  --grad-destructive: linear-gradient(180deg,
+                        var(--destructive) 0%,
+                        color-mix(in srgb, var(--destructive) 85%, var(--foreground)) 100%);
+
+  /* --grad-sidebar · DECORATIVE ONLY. THE OVEN MOUTH: char-900 opening one step
+     toward char-600 down the rail. Mixed against --sidebar-border and NOT against
+     --foreground, because --sidebar is char in BOTH modes while --foreground flips —
+     mixing toward the ink would blow the rail out to cream in light. Carries
+     --sidebar-foreground: worst 16.31:1, identical in both modes. */
+  --grad-sidebar: linear-gradient(180deg,
+                    var(--sidebar) 0%,
+                    color-mix(in srgb, var(--sidebar) 88%, var(--sidebar-border)) 100%);
+
+  /* --grad-ai · DECORATIVE ONLY. The Ask AI card, and only that card. A sauce wash,
+     not a char wash. Carries --foreground: worst 15.05:1 light, 15.83:1 dark. */
+  --grad-ai: linear-gradient(180deg,
+               color-mix(in srgb, var(--brand) 10%, var(--card)) 0%,
+               var(--card) 72%);
+
+  /* --grad-card-brand · DECORATIVE ONLY. The money / identity card. Carries
+     --foreground: worst 15.58:1 light, 15.42:1 dark. */
+  --grad-card-brand: linear-gradient(160deg, var(--brand-subtle), var(--card) 70%);
+
+  /* --grad-card-warn · DECORATIVE ONLY. The reorder notice. Its ink is
+     --warning-subtle-foreground, NOT --foreground: worst 5.44:1 light, 9.12:1 dark. */
+  --grad-card-warn: linear-gradient(160deg, var(--warning-subtle), var(--card) 78%);
+
+  /* --grad-fade-x · DECORATIVE ONLY. The scroll affordance on a clipped table. */
+  --grad-fade-x: linear-gradient(90deg, transparent, var(--card));
+
+  /* ── Radii — DOUGH, NOT GLASS. 1/2/6/10/16/22/30/36/44, every rung chunkier than
+     Crema's 2/4/6/8/10/12/16/20. --r-2xl runs LONG here (44px on the Badge step is a
+     capsule) precisely because Crema's does not: the chip is where the two
+     directions part company most visibly. --- */
+  --r-hair:   1px;   /* the meter bars                                       */
+  --r-2xs:    2px;   /* tooltip arrow, tick marks, the FSSAI square outline   */
+  --r-xs:     6px;   /* skeleton blocks, small ticket corners                 */
+  --r-sm:    10px;   /* nav links, small controls                             */
+  --r:       16px;   /* THE BASE STEP = --radius — buttons are fat rects      */
+  --r-md:    22px;   /* an inner panel                                        */
+  --r-lg:    30px;   /* THE CARD                                              */
+  --r-xl:    36px;   /* the hero band, the oven arch                          */
+  --r-2xl:   44px;   /* .chip / Badge — a capsule, by contrast with Crema     */
+  --r-pill: 999px;
+  --r-ctl:    min(var(--r-sm), 10px);   /* = 10px */
+  --r-ctl-sm: min(var(--r-sm), 12px);   /* = 10px */
+
+  /* ── Shadows — HARD OFFSETS, ZERO BLUR. rgb(20 16 13) is char-900. A Forno card is
+     a printed sticker on a wall. The ONLY two blurred casts in the theme are
+     --sh-ready (the ember glow round the pass bell) and --sh-up (the tab bar).
+     --sh-rim is a 2px DRAWN RING, not a lit gloss — it is how a popover raises off
+     the bench when --popover and --card are the same hex. --- */
+  --sh-xs:    2px  2px  0 0 rgb(20 16 13);
+  --sh-sm:    3px  3px  0 0 rgb(20 16 13);
+  --sh:       5px  5px  0 0 rgb(20 16 13);   /* the resting card  */
+  --sh-lg:    8px  8px  0 0 rgb(20 16 13);   /* popover, dropdown */
+  --sh-xl:   10px 10px  0 0 rgb(20 16 13);   /* dialog, sheet     */
+  --sh-brand: 4px  4px  0 0 rgb(196 48 13);  /* tomato-600 under the primary CTA */
+  --sh-ready: 0 0 44px -6px rgb(226 59 20 / .55);  /* THE EMBER GLOW — one of two blurs */
+  --sh-up:    0 -10px 26px -18px rgb(20 16 13 / .5);
+  --sh-rim:   inset 0 0 0 2px rgb(20 16 13);       /* THE DRAWN RING */
+  --scrim:    rgb(20 16 13 / .55);
+
+  /* ── Type — BLACK-WEIGHT AND SHOUTED. Arial Black carries the headings AND the KPI
+     figures; the ticket mono is the kitchen's own voice; label tracking is .16em,
+     wider than Crema's .18em is tall. --- */
+  --font-stack-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-stack-heading:
+    "Arial Black", "Arial Bold", "Helvetica Neue", Impact, sans-serif;
+  --font-stack-mono:
+    ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-stack-num:
+    "Arial Black", "Arial Bold", "Helvetica Neue", Impact, sans-serif;
+  --font-sans:    var(--font-stack-sans);
+  --font-heading: var(--font-stack-heading);
+  --font-mono:    var(--font-stack-mono);
+  --font-num:     var(--font-stack-num);
+
+  --t-display: 900 clamp(26px, 3.2vw, 40px)/1 var(--font-heading);
+  --t-h1:      900 clamp(20px, 2.3vw, 28px)/1.05 var(--font-heading);
+  --t-h2:      900 16px/1.15 var(--font-heading);
+  --t-body:    400 14px/1.55 var(--font-sans);
+  --t-small:   400 12.5px/1.50 var(--font-sans);
+  --t-label:   900 10.5px/1.20 var(--font-heading);
+  --label-tracking: 0.16em;  /* SIGNATURE. Do not "fix" it to .12em */
+  --t-chrome:  900 15px/1.20 var(--font-heading);
+  --t-metric:  900 clamp(28px, 3.6vw, 44px)/0.95 var(--font-num);
+  --t-chip:    900 10.5px/1 var(--font-heading);
+  --t-code:    600 12.5px/1.40 var(--font-mono);  /* THE KITCHEN TICKET VOICE */
+
+  /* ── Spacing / layout --- */
+  --gap-xs:       8px;
+  --gap-sm:      12px;
+  --gap:         16px;
+  --gap-lg:      22px;
+  --pad-card:    18px;
+  --pad-card-sm: 14px;
+  --pad-page:    18px;
+  --pad-head:    14px 18px;
+  --sidebar-w:        16.75rem;  /* 268px */
+  --sidebar-w-mobile: 18rem;
+  --rail:              3rem;     /* 48px */
+  --tap:              46px;      /* a floor tablet with flour on it */
+  --tap-sm:           38px;
+  --measure:        1240px;
+
+  /* ── Motion --- */
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur:      0.20s;
+  --dur-lg:   0.28s;
+  --dur-rise: 0.50s;
+  --stagger:  55ms;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 3 · LIEVITO — LIGHT.  data-palette="lievito"
+ *
+ * Minimal Neapolitan. Flour, paper, charcoal, one dusty San Marzano.
+ * Derived from design-concepts/mockups/lievito-{dashboard,menu,orders}.html.
+ *
+ * The direction's four signatures survive as TOKENS, not as component CSS:
+ *   1. THE LEDGER GRID  -> --sh-* are ZERO in the content area. A card is a
+ *      hairline (--border) and nothing else. Delete every shadow and the design is
+ *      unchanged; that is the theme's stated test.
+ *   2. SQUARE CORNERS   -> the whole radius ladder collapses onto 0 / 2 / 3px.
+ *      --r-pill is 3px: THERE IS NO PILL IN LIEVITO. An avatar is a square.
+ *   3. WIDE-SET CAPS    -> --label-tracking .24em at 10px.
+ *   4. LIGHT DISPLAY / MEDIUM DATA -> --t-display is weight 200 geometric and
+ *      POSITIVE-tracked; --t-metric is weight 500 grotesque, never 300/700.
+ *
+ * Every ratio is computed (WCAG 2.x relative luminance); every dE is CIEDE2000
+ * with the G chroma correction.
+ * ════════════════════════════════════════════════════════════════════════════ */
+[data-palette="lievito"] {
+  color-scheme: light;
+
+  /* --- surfaces: bone / paper. NOTE THE INVERSION — --popover and --sidebar are
+         LIGHTER than --background. Lievito is a sheet of paper laid on stone. --- */
+  --background: #EFEDE6;  /* flour. Matte limestone: no texture, no noise, no gradient */
+  --foreground: #1B1A17;  /* charcoal ink, faintly warm, never brown. 14.86:1 on --background */
+  --card: #FCFBF7;  /* the ledger-cell face */
+  --card-foreground: #1B1A17;  /* 16.81:1 on --card */
+  --popover: #FDFCF9;  /* the paper sheet — the lightest surface in the theme */
+  --popover-foreground: #1B1A17;  /* 16.96:1 on --popover */
+  --muted: #F5F3EC;  /* inset well, row stripe, quiet panel */
+  --muted-foreground: #5C574E;  /* 6.12:1 on --background, 6.46:1 on --muted, 6.93:1 on --card */
+  --accent: #F8F6F0;  /* hover LIGHTENS toward paper — the inverse of a dark-hover theme */
+  --accent-foreground: #1B1A17;  /* 16.10:1 on --accent */
+  --border: #E2DFD4;  /* the hairline. It is also the BACKGROUND of every ledger grid; 1.14:1 on --background — structure, never text */
+  --input: #8C8576;  /* 1.4.11 control boundary: 3.13:1 on --background, 3.54:1 on --card */
+  --ring: #8A3F2C;  /* terracotta focus, per 1.5 "every focus ring". 6.34:1 on --background, 7.17:1 on --card */
+
+  /* --- interactive: THE CHARCOAL SLAB. Lievito's action is ink, not colour. --- */
+  --primary: #22211D;  /* 13.75:1 on --background as a block; vs --brand dE 28.70 */
+  --primary-foreground: #FBF9F4;  /* 15.31:1 ink */
+  --secondary: #E9E6DC;  /* pressed / ghost fill */
+  --secondary-foreground: #2E2C27;  /* 11.17:1 ink */
+
+  /* --- identity: San Marzano terracotta. 42% saturation, half of Forno's tomato. --- */
+  --brand: #8A3F2C;  /* terra-700 — terra-500 #A65A44 is 4.0:1 and is NOT legal as a label bed */
+  --brand-foreground: #FBF9F4;  /* 7.06:1 ink */
+  --brand-subtle: #FAF0EC;  /* terra-50; 15.53:1 with --foreground */
+  --brand-subtle-foreground: #8A3F2C;  /* 6.63:1 on --brand-subtle, 7.17:1 on --card */
+
+  /* --- READY: THE ONE SOLID CHIP, and it is INK, not fire (1.8). Deliberately the
+         same charcoal as --primary: Lievito has exactly one solid, and the theme
+         forbids a solid button in a row of chips so the two never meet. --- */
+  --ready: #22211D;  /* 13.75:1 on --background; components add its 3px --brand left rule */
+  --ready-foreground: #FBF9F4;  /* 15.31:1 ink */
+
+  /* --- semantic states --- */
+  --success: #526258; /* olive, basil ash, rotated to hue 156 (was #4E5C50 at h148, dE 9.27 from --destructive under deuteranopia). 6.15:1 ink; vs --destructive dE 12.93 */
+  --success-foreground: #FBF9F4;  /* 6.72:1 ink */
+  --success-subtle: #E4E9E2;  /* ok-bg; 8.04:1 with its ink */
+  --success-subtle-foreground: #3A463C;  /* 8.04:1 on the wash, 9.56:1 on --card */
+  --warning: #7A5518;  /* crust-700. crust-600 #9A7A3E is 3.9:1 — graphic only, illegal as a label bed. 6.36:1 ink */
+  --warning-foreground: #FBF9F4;  /* 6.36:1 ink */
+  --warning-subtle: #F5EAD4;  /* prove-bg; 5.61:1 with its ink */
+  --warning-subtle-foreground: #7A5518;  /* 5.61:1 on the wash, 6.46:1 on --card */
+  --warning-border: #E2CFA6;  /* prove-line, opaque chip edge (decorative by declaration) */
+  --info: #3F5A66;  /* DERIVED — "the marble vein", the theme's only cool. 6.96:1 ink; vs --success dE 12.88 */
+  --info-foreground: #FBF9F4;  /* 6.96:1 ink */
+  --info-subtle: #E6EDEF;  /* DERIVED cool wash; 8.16:1 with its ink */
+  --info-subtle-foreground: #2E4854;  /* 8.16:1 on the wash, 9.34:1 on --card */
+  --destructive: #652346; /* DERIVED — natural wine pushed to hue 349 (was #7A2434 at h16). Lievito's --primary is a near-black slab and --ready IS --primary, so a dark claret at h16 lost its luminance under protanopia and merged with both: dE 7.07. At h349 it is dE 12.03 vs primary/ready and 22.33 vs the statutory mark. 10.60:1 ink */
+  --destructive-foreground: #FBF9F4;  /* 9.37:1 ink */
+  --destructive-subtle: #F6E2E4;  /* 7.94:1 with its ink */
+  --destructive-subtle-foreground: #652346; /* 8.99:1 on the wash, 10.78:1 on --card */
+  --destructive-border: #E3C1C6;  /* opaque chip edge (decorative by declaration) */
+
+  /* --- FSSAI statutory marks. NOT a design surface. --- */
+  --veg: #1b7a3d;  /* 5.20:1 on --card, 4.60:1 on --background */
+  --nonveg: #a02724;  /* 7.22:1 on --card, 6.38:1 on --background */
+
+  /* --- KPI deltas. Colour is never the sole carrier: arrow glyph + signed number +
+         named basis. --- */
+  --delta-up: #526258; /* 6.25:1 on --card, 5.52:1 on --background */
+  --delta-down: #652346; /* 10.78:1 on --card, 9.52:1 on --background; vs --delta-up dE 12.93 */
+
+  --radius: 0.1875rem;  /* 3px — the ledger cell. The whole theme is 0/2/3 */
+
+  /* --- chart ramp. Lievito's chart ramp IS the palette's own ramp (1.10). Separation
+         is enforced WITHIN the six: worst pairwise dE2000 15.76. --- */
+  --chart-1: #9C4F38;  /* terracotta. 5.65:1 on --card, --chart-foreground 5.56:1 on it */
+  --chart-2: #4A6A54;  /* basil, one step greener than the chip. 5.83:1 on --card; vs --veg dE 12.33 */
+  --chart-3: #8A6A2A;  /* crust. 4.86:1 on --card */
+  --chart-4: #517180;  /* DERIVED marble slate. 5.04:1 on --card */
+  --chart-5: #6E3A4C;  /* DERIVED wine. 8.55:1 on --card */
+  --chart-6: #57506E;  /* DERIVED "the shadow on marble" violet-grey. 7.30:1 on --card */
+  --chart-grid: #E3DFD3;  /* horizontal hairlines ONLY — no vertical grid, no spines. 1.29:1 on --card */
+  --chart-axis: #5C574E;  /* = --muted-foreground. 6.93:1 on --card, 6.12:1 on --background — PASSES as text */
+  --chart-foreground: #FBF9F4;  /* in-body label. Worst of the six: 4.78:1 */
+
+  /* --- sidebar: PAPER ON STONE — lighter than the canvas (Lievito inverts Crema). --- */
+  --sidebar: #FDFCF9;
+  --sidebar-foreground: #5C574E;  /* 6.99:1 on --sidebar — the inactive nav weight; active steps to --foreground */
+  --sidebar-primary: #22211D;  /* tracks --primary */
+  --sidebar-primary-foreground: #FBF9F4;  /* 15.31:1 */
+  --sidebar-accent: #F5F3EC;  /* hover is a wash and NOTHING else — the active item has no fill, only a 2px terracotta left rule */
+  --sidebar-accent-foreground: #1B1A17;  /* 15.67:1 on --sidebar-accent */
+  --sidebar-border: #E2DFD4;
+  --sidebar-ring: #8A3F2C;  /* 7.24:1 on --sidebar */
+
+  /* ── Gradients — LIEVITO HAS NONE. "Lievito's surfaces are perfectly flat."
+     Every decorative ramp is declared as a TWO-IDENTICAL-STOP gradient so the token
+     keeps its shape and its consumers keep working, while the theme's no-wash rule
+     holds. The only real ramp left is --grad-fade-x, which is a functional scroll
+     affordance (a mask), not decoration.
+     They are built from var() tokens, so one declaration serves both modes —
+     .dark[data-palette="lievito"] repeats none of them. ─────────────────────── */
+  --app-bg: linear-gradient(0deg, var(--background), var(--background));
+                         /* matte stone. Carries --foreground 14.86:1 light / 17.19:1 dark */
+  --grad-hero: linear-gradient(0deg, var(--popover), var(--popover));
+                         /* the masthead band: flat paper. --foreground 16.96:1 light / 14.01:1 dark */
+  --grad-primary: linear-gradient(0deg, var(--primary), var(--primary));
+                         /* TEXT-BEARING: --primary-foreground 15.31:1 light / 13.95:1 dark */
+  --grad-primary-hover: linear-gradient(0deg,
+                    color-mix(in srgb, var(--primary) 90%, var(--background)) 0%,
+                    color-mix(in srgb, var(--primary) 90%, var(--background)) 100%);
+                         /* hover moves the fill TOWARD THE GROUND, which is the mockup's
+                            #31302A in light and the correct direction in dark:
+                            LIGHT #373531 · 11.63:1 · DARK #D5D1C6 · 11.41:1 */
+  --grad-brand: linear-gradient(0deg, var(--brand), var(--brand));
+                         /* TEXT-BEARING: --brand-foreground 7.06:1 light / 6.32:1 dark */
+  --grad-destructive: linear-gradient(0deg, var(--destructive), var(--destructive));
+                         /* TEXT-BEARING: --destructive-foreground 9.37:1 light / 6.59:1 dark */
+  --grad-sidebar: linear-gradient(0deg, var(--sidebar), var(--sidebar));
+                         /* flat sheet. --sidebar-foreground 6.99:1 light / 8.79:1 dark */
+  --grad-ai: linear-gradient(0deg, var(--card), var(--card));
+                         /* the Ask AI card is a hairline cell like every other. --foreground 16.81:1 / 15.68:1 */
+  --grad-card-brand: linear-gradient(0deg, var(--brand-subtle), var(--brand-subtle));
+                         /* a flat TINT is legal; a wash is not. --foreground 15.53:1 light / 14.13:1 dark */
+  --grad-card-warn: linear-gradient(0deg, var(--warning-subtle), var(--warning-subtle));
+                         /* ink is --warning-subtle-foreground: 5.61:1 light / 8.40:1 dark */
+  --grad-fade-x: linear-gradient(90deg, transparent, var(--card));  /* functional, kept */
+
+  /* ── Radii — 0 / 2 / 3 AND NOTHING ELSE. The ladder does not ascend; it caps.
+     --r-pill is 3px on purpose: no pill, no circle, no capsule, anywhere. ── */
+  --r-hair:  0;     /* squared caps — a Lievito rule has no rounded end       */
+  --r-2xs:   2px;   /* tooltip arrow, tick marks, the FSSAI square outline    */
+  --r-xs:    2px;   /* chips, buttons, inputs, avatars, swatches              */
+  --r-sm:    2px;   /* every control                                          */
+  --r:       3px;   /* THE BASE STEP — the ledger cell                        */
+  --r-md:    3px;   /* .card, dialog                                          */
+  --r-lg:    3px;   /* the floor tile, the KPI cell                           */
+  --r-xl:    3px;   /* hero band                                              */
+  --r-2xl:   2px;   /* .chip / Badge — a chip is a control, so it takes 2px   */
+  --r-pill:  3px;   /* THERE IS NO PILL. If you needed one, you misread the brief */
+  --r-ctl:    min(var(--r-sm), 10px);  /* = 2px */
+  --r-ctl-sm: min(var(--r-sm), 12px);  /* = 2px */
+
+  /* ── Shadows — LIEVITO IS SHADOWLESS IN THE CONTENT AREA. Separation is achieved
+     by rules and by whitespace, never by elevation. Shadow survives in exactly three
+     places: the popover, the dialog/slab, and the mobile drawer scrim. --sh-rim does
+     NOT carry a lit gloss here — it carries a PRINTED HAIRLINE, which is Lievito's
+     whole elevation vocabulary, so "box-shadow: var(--sh-rim), var(--sh-lg)" still
+     reads correctly. ────────────────────────────────────────────────────────── */
+  --sh-xs:    0 0 0 0 rgb(27 26 23 / 0);
+  --sh-sm:    0 0 0 0 rgb(27 26 23 / 0);
+  --sh:       0 0 0 0 rgb(27 26 23 / 0);             /* the resting card: NONE */
+  --sh-lg:    0 18px 44px -28px rgb(34 33 29 / .30); /* popover, dropdown     */
+  --sh-xl:    0 20px 48px -30px rgb(34 33 29 / .42); /* dialog, sheet, slab   */
+  --sh-brand: 0 0 0 0 rgb(27 26 23 / 0);             /* no coloured shadow exists in this theme */
+  --sh-ready: 0 20px 48px -30px rgb(34 33 29 / .42); /* the READY tile IS the charcoal slab, so it takes the slab's cast — an ink cast, not a bloom */
+  --sh-up:    0 -1px 0 0 rgb(226 223 212), 0 -10px 30px -26px rgb(34 33 29 / .18);
+                                                     /* the tab bar is closed by a RULE first, a cast second */
+  --sh-rim:   inset 0 0 0 1px rgb(226 223 212);      /* = --border. The printed rule that replaces the lit rim */
+  --scrim:    rgb(27 26 23 / .34);                   /* the mobile drawer scrim */
+
+  /* ── Type — LIEVITO HAS NO SERIF ANYWHERE. Geometric display at 200-400, never
+     bold, never negative-tracked. Grotesque for every label, control and number,
+     tabular, weight 500 — never 300, never 700. ───────────────────────────── */
+  --font-stack-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-stack-heading:
+    Futura, "Century Gothic", "Avenir Next", Avenir, "Trebuchet MS",
+    ui-rounded, system-ui, sans-serif;
+  --font-stack-mono:
+    var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
+    Menlo, monospace;                       /* DERIVED: the direction names no mono */
+  --font-stack-num:
+    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Arial, sans-serif;                      /* always with tabular-nums */
+  --font-sans:    var(--font-stack-sans);
+  --font-heading: var(--font-stack-heading);
+  --font-mono:    var(--font-stack-mono);
+  --font-num:     var(--font-stack-num);
+
+  --t-display: 200 clamp(38px, 5.6vw, 62px)/1.04 var(--font-heading);
+  --t-h1:      300 clamp(24px, 2.6vw, 32px)/1.18 var(--font-heading);
+  --t-h2:      400 clamp(16px, 1.5vw, 18px)/1.30 var(--font-heading);
+  --t-body:    400 14px/1.65 var(--font-sans);
+  --t-small:   400 12.5px/1.55 var(--font-sans);
+  --t-label:   600 10px/1.40 var(--font-sans);
+  --label-tracking: 0.24em;   /* HALF THE SIGNATURE. Do not "fix" it to .12em */
+  --t-chrome:  400 15px/1.30 var(--font-heading);  /* the chrome strip is display-faced and quiet */
+  --t-metric:  500 clamp(26px, 3.2vw, 38px)/1.02 var(--font-num);
+  --t-chip:    600 10px/1 var(--font-sans);
+  --t-code:    500 12px/1.70 var(--font-mono);
+
+  /* ── Spacing / layout — the ledger breathes by GAP, not by shadow. --- */
+  --gap-xs:       8px;
+  --gap-sm:      12px;
+  --gap:         12px;
+  --gap-lg:      28px;
+  --pad-card:    24px;
+  --pad-card-sm: 18px;
+  --pad-page:    24px;
+  --pad-head:    14px 24px;
+  --sidebar-w:        15.25rem;  /* 244px */
+  --sidebar-w-mobile: 18rem;
+  --rail:              3rem;     /* 48px */
+  --tap:              44px;
+  --tap-sm:           36px;
+  --measure:        1180px;
+
+  /* ── Motion — quieter than Crema's. Lievito never bounces. --- */
+  --ease:     cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur:      0.18s;
+  --dur-lg:   0.26s;
+  --dur-rise: 0.42s;
+  --stagger:  45ms;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 4 · SAFFRON HOUSE — LIGHT.  data-palette="saffron"
+ *
+ * A BONE ROOM, not an inversion. The direction's own spec says (D1) "dark ground is
+ * the default and only mode for this theme". Its light mode therefore had to be
+ * AUTHORED, and the mockups already contain the seed: 1.6 THE BONE CARD, the one
+ * inverted linen island per screen — #F5EFE4 ground, #241A22 ink, #6A5A62
+ * secondary, #7A5E12 brass accent, an rgba(36,26,34,.14) rule, and .btn--ink as
+ * "the ONLY button legal on bone". Light Saffron is that napkin scaled up to a
+ * whole room: linen ground, a paler napkin as --card, ink buttons, brass rules, ONE
+ * deep brass.
+ *
+ * THE ONE BRASS RULE. Saffron House has exactly one brass per mode, and --brand,
+ * --ready (and in dark --primary + --sidebar-primary) all name it. That is the
+ * direction's decision, not an oversight: the mockup's wordmark tile, its primary
+ * CTA and its S9 pass-bell chip are all --grad-brass. They are separated by SHAPE
+ * and by the five-step meter, never by hue (dE 0.00 between them — declared,
+ * contained, and the reason the meter is non-negotiable here). Light's --primary is
+ * the exception, because .btn--ink is the only button the bone card permits.
+ *
+ * FORM IS A TOKEN HERE. 1/2/3/5/7/10/14px radii, --r-2xl deliberately set to 2px
+ * (its only consumer is badge.tsx — this is D4/S6, the squared chip), a display
+ * serif on every heading and on the PageHeader, 0.20em label tracking, 22px card
+ * padding and a 1240px measure. A palette switch to saffron changes the geometry of
+ * the product, not its hue.
+ *
+ * Verified numerically (WCAG 2.x relative luminance; CIEDE2000 with the G chroma
+ * correction over normal / Vienot-deutan / Vienot-protan). 0 failures in both modes.
+ * ════════════════════════════════════════════════════════════════════════════ */
+[data-palette="saffron"] {
+  color-scheme: light;
+
+  /* ── surfaces: linen and napkin, aubergine ink ──────────────────────────── */
+  --background: #EFE6D5;                 /* the linen ground */
+  --foreground: #241A22;                 /* = --ink-on-bone. 13.60:1 on --background */
+  --card: #F8F2E7;                       /* the napkin */
+  --card-foreground: #241A22;            /* 15.13:1 on --card */
+  --popover: #FDF9F1;                    /* the raised layer, the lightest surface */
+  --popover-foreground: #241A22;         /* 16.05:1 on --popover */
+  --muted: #E7DCC8;                      /* = --bone-card-2 scaled to the room */
+  --muted-foreground: #645159;           /* 5.92:1 on --background, 5.40:1 on --muted, 6.58:1 on --card */
+  --accent: #EDE3D2;                     /* hover surface only, never a resting state */
+  --accent-foreground: #241A22;          /* 13.26:1 on --accent */
+  --border: #D2C9BC;                     /* opaque form of --rule-on-bone rgba(36,26,34,.14); 1.32:1 — decorative hairline */
+  --input: #907531;                      /* brass control boundary (1.4.11): 3.55:1 on --background, 3.95:1 on --card */
+  --ring: #584309;                       /* THE BRASS. 7.63:1 on --background, 8.48:1 on --card */
+
+  /* ── interactive: .btn--ink, the only button legal on bone ──────────────── */
+  --primary: #2E2130;                    /* aubergine ink; vs --brand dE 38.33, vs --ready dE 45.41 */
+  --primary-foreground: #F8F2E7;         /* 13.69:1 ink */
+  --secondary: #E7DCC8;
+  --secondary-foreground: #3A2C36;       /* 9.71:1 ink */
+
+  /* ── identity: THE BRASS. One value, deepened for bone. ─────────────────── */
+  --brand: #584309;                      /* deep leaf brass; vs --destructive dE 11.24, vs --warning dE 16.37 */
+  --brand-foreground: #FDF9F1;           /* 9.00:1 ink */
+  --brand-subtle: #F2E7C9;               /* 7.82:1 with its ink */
+  --brand-subtle-foreground: #56420A;    /* 7.82:1 on --brand-subtle, 8.65:1 on --card */
+
+  /* ── S9 THE PASS BELL. Solid brass, ink label, nothing else may be it. ──── */
+  --ready: #584309;                      /* = --brand by declaration (see header). 7.63:1 on --background as a block */
+  --ready-foreground: #FDF9F1;           /* 9.00:1 ink */
+
+  /* ── semantic states ────────────────────────────────────────────────────── */
+  --success: #3A7264; /* verdigris, nudged to hue 175 (was #4A7C69, dE 11.72 from --destructive). 5.57:1 ink — TIGHTEST LABEL HERE; vs --destructive dE 12.15 */
+  --success-foreground: #FFFFFF;         /* 4.80:1 ink */
+  --success-subtle: #DDEDE5;             /* 6.94:1 with its ink */
+  --success-subtle-foreground: #2C5546;  /* 6.94:1 on the wash, 7.55:1 on --card */
+  --warning: #C08214;                    /* saffron, deepened. 5.17:1 ink; 2.63:1 on paper — chip fill only, NEVER a standalone graphic */
+  --warning-foreground: #241A22;         /* 5.17:1 ink */
+  --warning-subtle: #F7E4C6;             /* 6.00:1 with its ink */
+  --warning-subtle-foreground: #7A4A08;  /* 6.00:1 on the wash, 6.71:1 on --card */
+  --warning-border: #DCB86A;             /* opaque chip edge, 1.52:1 on its wash (decorative by declaration) */
+  --info: #1F5F6B;                       /* PATINA — brass's own oxide. Derived. 7.22:1 ink */
+  --info-foreground: #FFFFFF;            /* 7.22:1 ink */
+  --info-subtle: #D6EBEF;                /* 7.06:1 with its ink */
+  --info-subtle-foreground: #17525E;     /* 7.06:1 on the wash, 7.84:1 on --card */
+  --destructive: #8A3144; /* the EMBER, deepened off the statutory maroon (was #993347, dE 9.66 from --nonveg). 8.07:1 ink; vs --nonveg dE 12.10, vs --success dE 12.15 */
+  --destructive-foreground: #FFFFFF;     /* 7.19:1 ink */
+  --destructive-subtle: #F6DEE5;         /* 6.69:1 with its ink */
+  --destructive-subtle-foreground: #872C40; /* 6.69:1 on the wash, 7.65:1 on --card */
+  --destructive-border: #DFA7B7;         /* opaque chip edge, 1.59:1 on its wash (decorative by declaration) */
+
+  /* ── FSSAI statutory marks. Identical in all four palettes. Not ours. ───── */
+  --veg: #1b7a3d;                        /* 4.84:1 on --card, 4.35:1 on --background */
+  --nonveg: #a02724;                     /* 6.71:1 on --card, 6.03:1 on --background */
+
+  /* ── KPI deltas. Always with the up/down/flat glyph (.delta contract). ──── */
+  --delta-up: #33685A;                   /* 5.77:1 on --card, 5.19:1 on --background */
+  --delta-down: #8E2C36;                 /* 7.35:1 on --card, 6.61:1 on --background; vs --delta-up dE 12.17 */
+
+  --radius: 0.3125rem;                   /* 5px — .r, the nav-link step. See RADII below */
+
+  /* ── chart ramp. Six in-world hues, spread by L* because gold/saffron/terra are
+        one colour to a dichromat. Worst pair chart-1/2 dE 9.59. ───────────── */
+  --chart-1: #6E5410;                    /* brass      · 6.41:1 on --card */
+  --chart-2: #A2680A;                    /* saffron    · 4.17:1 on --card */
+  --chart-3: #682114;                    /* terracotta · 10.38:1 on --card */
+  --chart-4: #3A7264; /* verdigris  · 5.00:1 on --card */
+  --chart-5: #7A2A52;                    /* aubergine  · 8.26:1 on --card */
+  --chart-6: #1F6B78;                    /* patina     · 5.49:1 on --card */
+  --chart-grid: #D2C9BC;                 /* = --border. 1.47:1 on --card — structure, below the axis text */
+  --chart-axis: #645159;                 /* = --muted-foreground. 6.58:1 on --card, 5.92:1 on --background — PASSES as text */
+  --chart-foreground: #FFFFFF;           /* in-body label. Worst of the six: 4.65:1 */
+
+  /* ── sidebar ────────────────────────────────────────────────────────────── */
+  --sidebar: #EAE0CD;
+  --sidebar-foreground: #3A2C36;         /* 10.07:1 on --sidebar */
+  --sidebar-primary: #2E2130;            /* tracks --primary (the ink CTA) */
+  --sidebar-primary-foreground: #F8F2E7; /* 13.69:1 on --sidebar-primary */
+  --sidebar-accent: #E2D7C1;
+  --sidebar-accent-foreground: #241A22;  /* 11.82:1 on --sidebar-accent */
+  --sidebar-border: #CFC2AC;             /* 1.34:1 on --sidebar */
+  --sidebar-ring: #584309;               /* 7.22:1 on --sidebar */
+
+  /* ── GRADIENTS ──────────────────────────────────────────────────────────────
+     One declaration serves BOTH modes: every ramp is built from var() tokens or
+     color-mix(in srgb, …) against --foreground / --background / --card, so the dark
+     block re-themes them without repeating one. sRGB interpolation only — never
+     "in oklch". Dark-text-over-light-stops cases were sampled at 201 points; the
+     worst sample is quoted with its position. */
+
+  /* --app-bg · DECORATIVE ONLY; carries --foreground. S1 THE CANDLELIT GROUND, and
+     the letterpress hairline that the spec says must be on every screen. Layer 1 is
+     the 4px engraved rule at 4% ink; layers 2-4 are the three fixed blooms — warm
+     (top-left), brass (top-right), ember (low-left) — expressed as token mixes so
+     they invert correctly into the bone room. Worst case, all three blooms at peak
+     simultaneously (geometrically impossible, the corners are opposite): #cbad92,
+     7.97:1 light / #5e442c, 7.84:1 dark. */
+  --app-bg:
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--foreground) 4%, transparent) 0 1px,
+      transparent 1px 4px),
+    radial-gradient(1100px 720px at 10% -8%,
+      color-mix(in srgb, var(--warning) 16%, transparent), transparent 62%),
+    radial-gradient(900px 620px at 94% 0%,
+      color-mix(in srgb, var(--brand) 14%, transparent), transparent 60%),
+    radial-gradient(950px 700px at 4% 98%,
+      color-mix(in srgb, var(--destructive) 14%, transparent), transparent 62%),
+    linear-gradient(var(--background) 0 0);
+
+  /* --grad-hero · DECORATIVE ONLY. The hero band (S2 brackets + S3 double rule go
+     over it). Dark text over light stops — sampled: worst 12.94:1 at 0% light
+     (13.20 -> 15.13); dark worst 12.69:1. */
+  --grad-hero: linear-gradient(135deg,
+                 color-mix(in srgb, var(--brand) 10%, var(--card)) 0%,
+                 var(--card) 55%,
+                 color-mix(in srgb, var(--warning) 8%, var(--card)) 100%);
+
+  /* --grad-primary · TEXT-BEARING — carries --primary-foreground. 135deg is the
+     mockup's brass axis (--grad-brass is 135deg).
+     LIGHT: #2E2130 -> #2d202e · 13.69:1 -> 13.88:1 (near-flat by design — .btn--ink
+            IS flat; only the hover deepens).
+     DARK : #C9A227 -> #d0ae43 ·  7.94:1 ->  8.97:1, worst sample 7.94:1 at 0%.
+     Hover deepens in light and BRIGHTENS in dark — on a dark ground a brighter brass
+     reads as more active, which is the correct direction for both. */
+  --grad-primary: linear-gradient(135deg,
+                    var(--primary) 0%,
+                    color-mix(in srgb, var(--primary) 85%, var(--foreground)) 100%);
+  --grad-primary-hover: linear-gradient(135deg,
+                    var(--primary) 0%,
+                    color-mix(in srgb, var(--primary) 75%, var(--foreground)) 100%);
+
+  /* --grad-brand · TEXT-BEARING — carries --brand-foreground ONLY.
+     LIGHT: #584309 -> #503d0d · 9.00:1 -> 9.93:1.
+     DARK : #C9A227 -> #d0ae43 · 7.94:1 -> 8.97:1.
+     Wordmark tile, sidebar identity square, the .av avatar, the AI rail. */
+  --grad-brand: linear-gradient(135deg,
+                  var(--brand) 0%,
+                  color-mix(in srgb, var(--brand) 85%, var(--foreground)) 100%);
+
+  /* --grad-destructive · TEXT-BEARING — carries --destructive-foreground.
+     LIGHT: #8A3144 -> #7B2E3F · worst 8.07:1 at 100%.
+     DARK : #C76390 -> #CE789D · worst 4.89:1 at 0%.
+     ONLY the confirming button inside an AlertDialog. The ordinary destructive
+     variant stays a tint. */
+  --grad-destructive: linear-gradient(180deg,
+                        var(--destructive) 0%,
+                        color-mix(in srgb, var(--destructive) 85%, var(--foreground)) 100%);
+
+  /* --grad-sidebar · DECORATIVE ONLY. Carries --sidebar-foreground: 10.07:1 ->
+     8.63:1 light, 15.09:1 -> 12.41:1 dark. */
+  --grad-sidebar: linear-gradient(180deg,
+                    var(--sidebar) 0%,
+                    color-mix(in srgb, var(--sidebar) 92%, var(--foreground)) 100%);
+
+  /* --grad-ai · DECORATIVE ONLY. The Ask AI card, and only that card. A brass wash,
+     not a primary wash — in this theme the AI rail is gold leaf. Carries
+     --foreground: 13.10:1 -> 15.13:1 light, 13.09:1 -> 15.05:1 dark. */
+  --grad-ai: linear-gradient(180deg,
+               color-mix(in srgb, var(--brand) 9%, var(--card)) 0%,
+               var(--card) 72%);
+
+  /* --grad-card-brand · DECORATIVE ONLY. .card--brass, the money card (S8). Carries
+     --foreground: 13.68:1 -> 15.13:1 light, 13.05:1 -> 15.05:1 dark. */
+  --grad-card-brand: linear-gradient(160deg, var(--brand-subtle), var(--card) 70%);
+
+  /* --grad-card-warn · DECORATIVE ONLY. .card--ember (S8) — below par, expiring,
+     failed payment. Its ink is --warning-subtle-foreground, NOT --foreground:
+     6.00:1 -> 6.71:1 light, 8.90:1 -> 9.83:1 dark. */
+  --grad-card-warn: linear-gradient(160deg, var(--warning-subtle), var(--card) 78%);
+
+  /* --grad-fade-x · DECORATIVE ONLY. Scroll affordance on a clipped table. */
+  --grad-fade-x: linear-gradient(90deg, transparent, var(--card));
+
+  /* ── RADII — 1.10, "RESTRAINT IS THE POINT" ─────────────────────────────────
+     The base step is 5px, not 10px: --radius: 0.3125rem. That drops --r-ctl and
+     --r-ctl-sm to min(3px, 10px|12px) = 3px, so every dense chrome control in
+     button.tsx / select.tsx becomes a near-rectangle — the theme's D4, delivered
+     through the clamps that already exist rather than by touching a component.
+
+     --r-2xl IS DELIBERATELY 2px AND BREAKS THE LADDER'S MONOTONICITY. Its only
+     consumer in the app is badge.tsx's "rounded-4xl" (verified: one call site).
+     Saffron House's chip is a 2px rectangle with a 5px dot (S6), and "if you are
+     reaching for a pill-shaped button, you are in the wrong theme". ─────────── */
+  --r-hair:   1px;   /* the meter bars, the sharp 1px rules                   */
+  --r-2xs:    1px;   /* tick marks, the FSSAI square outline                  */
+  --r-xs:     2px;   /* skeleton blocks, swatches                             */
+  --r-sm:     3px;   /* every dense control — this is what pins --r-ctl to 3px */
+  --r:        5px;   /* THE BASE STEP = --radius — the nav link               */
+  --r-md:     7px;   /* an inner panel                                        */
+  --r-lg:    10px;   /* THE CARD                                              */
+  --r-xl:    14px;   /* the hero band                                         */
+  --r-2xl:    2px;   /* .chip / Badge — THE SQUARED CHIP. Breaks the ladder on purpose */
+  --r-pill: 999px;   /* the avatar and the meter track, and nothing else      */
+  --r-ctl:    min(var(--r-sm), 10px);   /* = 3px */
+  --r-ctl-sm: min(var(--r-sm), 12px);   /* = 3px */
+
+  /* ── Shadows — CANDLELIT, AUBERGINE-TINTED. rgb(36 26 34) is --ink-on-bone. The
+     bone room casts the same soft, deep pools the dark room does, because Saffron's
+     elevation language is candlelight, not paper. --sh-rim is a lit gloss: in dark
+     it is the PRIMARY elevation signal, exactly as --sheen is in the mockup. --- */
+  --sh-xs:    0  1px  2px        rgb(36 26 34 / .06);
+  --sh-sm:    0  4px 14px  -6px  rgb(36 26 34 / .16);
+  --sh:       0 16px 36px -20px  rgb(36 26 34 / .26);   /* the resting card  */
+  --sh-lg:    0 30px 60px -30px  rgb(36 26 34 / .30);   /* popover, dropdown */
+  --sh-xl:    0 48px 90px -40px  rgb(36 26 34 / .34);   /* dialog, sheet     */
+  --sh-brand: 0 12px 28px -14px  rgb(88 67 9 / .30);    /* = --brand. The primary CTA, one per screen */
+  --sh-ready: 0 12px 28px -14px  rgb(88 67 9 / .34);    /* the pass bell, and nothing else */
+  --sh-up:    0 -14px 34px -22px rgb(36 26 34 / .26);
+  --sh-rim:   inset 0 1px 0 0    rgb(255 255 255 / .60);
+  --scrim:    rgb(36 26 34 / .42);
+
+  /* ── Type — A DISPLAY SERIF ON EVERY HEADING, INCLUDING THE CHROME STRIP. The
+     PageHeader is set in the display face here, which is the one place Saffron
+     deliberately overrules the "chrome is not a hero" rule shared by the other
+     three: a Saffron House header is an engraved brass plate. Label tracking is
+     .20em. --- */
+  --font-stack-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-stack-heading:
+    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia,
+    "Times New Roman", serif;
+  --font-stack-mono:
+    var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SFMono-Regular",
+    Menlo, monospace;
+  --font-stack-num:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans:    var(--font-stack-sans);
+  --font-heading: var(--font-stack-heading);
+  --font-mono:    var(--font-stack-mono);
+  --font-num:     var(--font-stack-num);
+
+  --t-display: 400 clamp(30px, 3.8vw, 48px)/1.08 var(--font-heading);
+  --t-h1:      400 clamp(24px, 2.9vw, 34px)/1.12 var(--font-heading);
+  --t-h2:      400 clamp(19px, 2vw, 23px)/1.22 var(--font-heading);
+  --t-body:    400 14px/1.60 var(--font-sans);
+  --t-small:   400 12.5px/1.50 var(--font-sans);
+  --t-label:   600 10.5px/1.40 var(--font-sans);
+  --label-tracking: 0.20em;
+  --t-chrome:  400 16px/1.25 var(--font-heading);  /* the engraved brass plate */
+  --t-metric:  700 clamp(26px, 3.2vw, 38px)/1.04 var(--font-num);
+  --t-chip:    600 10px/1 var(--font-sans);
+  --t-code:    500 12px/1.70 var(--font-mono);
+
+  /* ── Spacing / layout --- */
+  --gap-xs:       8px;
+  --gap-sm:      12px;
+  --gap:         16px;
+  --gap-lg:      24px;
+  --pad-card:    22px;
+  --pad-card-sm: 16px;
+  --pad-page:    20px;
+  --pad-head:    14px 20px;
+  --sidebar-w:        16.5rem;   /* 264px */
+  --sidebar-w-mobile: 18rem;
+  --rail:              3rem;     /* 48px */
+  --tap:              44px;
+  --tap-sm:           36px;
+  --measure:        1240px;
+
+  /* ── Motion --- */
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur:      0.22s;
+  --dur-lg:   0.30s;
+  --dur-rise: 0.46s;
+  --stagger:  50ms;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 5 · CREMA — DARK.  Also the `.dark` fallback for any unrecognised palette.
+ *
+ * The roastery after close: the espresso ground the light theme printed ON becomes
+ * the room, and the caramel identity lifts to crema gold so it can survive on it.
+ * The INVERSION IS DELIBERATE, not mechanical: --primary goes from espresso to OAT,
+ * because on a dark ground the darkest object is the ground and a button must be
+ * the lightest thing you can press.
+ *
+ * COLOUR + SHADOW + SCRIM ONLY. Radii, type, spacing and motion are mode-
+ * INDEPENDENT and live once, in the LIGHT block. The gradients are built from
+ * var() tokens and so re-theme themselves — repeating one here would freeze it.
+ *
+ * SHADOWS: the warm-tint rule is SUSPENDED. Below the ground there is nothing to
+ * tint with — rgb(42 29 22 / a) over #1A130E is invisible. A dark UI expresses
+ * elevation with (a) a heavier, blacker cast and (b) a LIT TOP RIM, and every
+ * raised dark surface pairs them: box-shadow: var(--sh-rim), var(--sh-lg).
+ * ════════════════════════════════════════════════════════════════════════════ */
+.dark,
+.dark[data-palette="crema"] {
+  color-scheme: dark;
+
+  /* --- surfaces: espresso, roast, ember-warm neutrals --- */
+  --background: #1A130E;  /* the room after close */
+  --foreground: #F4E9DA;  /* 15.02:1 on --background */
+  --card: #241A13;  /* 13.24:1 with its ink */
+  --card-foreground: #F4E9DA;
+  --popover: #2C2118;  /* the one genuinely raised surface — dark Crema DOES have a lighter step */
+  --popover-foreground: #F4E9DA;  /* 11.74:1 on --popover */
+  --muted: #2E2318;
+  --muted-foreground: #B7A48C;  /* 7.29:1 on --background, 5.98:1 on --muted, 6.43:1 on --card */
+  --accent: #38291D;  /* pressed/hover only */
+  --accent-foreground: #F4E9DA;  /* 10.05:1 on --accent */
+  --border: #3B2C1F;  /* the hairline still comes first, even at 1.45:1 on --background */
+  --input: #91775A;  /* 1.4.11 control boundary: 4.02:1 on --background */
+  --ring: #D9A566;  /* crema gold — the focus ring lifts with the palette */
+
+  /* --- interactive: OAT. The lightest pressable thing in the room. --- */
+  --primary: #EFE0C8;  /* --grad-primary DARK endpoint, 12.57:1 with its ink */
+  --primary-foreground: #241811;
+  --secondary: #33261B;
+  --secondary-foreground: #EFE0C8;  /* 9.86:1 on --secondary */
+
+  /* --- identity: caramel lifts to gold. --- */
+  --brand: #D9A566;  /* caramel-300 — the light theme's --ready hex, promoted to identity because caramel-700 cannot survive this ground */
+  --brand-foreground: #2A1D16;  /* 7.41:1 on --brand */
+  --brand-subtle: #33261A;
+  --brand-subtle-foreground: #E7C696;  /* 8.19:1 on --brand-subtle, 8.86:1 on --card */
+
+  /* --- the alarm: CREMA FOAM. Still the ONLY solid-filled chip, and now the single
+         brightest object in the room. It is pushed one step past --brand precisely
+         because brand took the gold: the pass must out-shout identity. --- */
+  --ready: #F2B872;
+  --ready-foreground: #2A1D16;  /* 9.03:1 on --ready */
+
+  /* --- semantic states --- */
+  --success: #ADBDB6; /* sage, lifted and rotated to hue 166 (was #A9C2A0 at h136: dE 7.13 from --destructive and 8.71 from the oat --primary). Now 12.40 and 12.30. 8.16:1 with its ink */
+  --success-foreground: #1C2418;  /* 9.70:1 ink */
+  --success-subtle: #232B20;
+  --success-subtle-foreground: #BBD3B2;  /* 8.72:1 on the wash, 9.34:1 on --card */
+  --warning: #B17E3D;/* DROPPED A RUNG to L* 56.7 (was #E5A96B at L* 73.6). Crema-dark had --brand, --chart-1, --chart-3, --warning and --ready piled into 7.4 L* of one gold band: warning/ready measured dE 3.67 and warning/brand 1.47. The alarm --ready must be the brightest thing in the room, so warning steps down. vs --ready dE 17.34, vs --brand 12.03. 4.73:1 with its ink */
+  --warning-foreground: #2A1A0C;  /* 8.68:1 ink */
+  --warning-subtle: #3A2716;
+  --warning-subtle-foreground: #F0C79A;  /* 7.77:1 on the wash, 9.86:1 on --card */
+  --warning-border: #6E4B2A;  /* opaque chip edge (decorative by declaration) */
+  --info: #8FBACC;  /* enamel blue, lifted */
+  --info-foreground: #0E2029;  /* 9.72:1 ink */
+  --info-subtle: #1C2B33;
+  --info-subtle-foreground: #ADD1E0;  /* 8.61:1 on the wash, 9.94:1 on --card */
+  --destructive: #E39383;  /* --grad-destructive DARK endpoint, 7.43:1 with its ink */
+  --destructive-foreground: #2C120C;
+  --destructive-subtle: #331813;
+  --destructive-subtle-foreground: #F0B3A5;  /* 8.34:1 on the wash, 8.79:1 on --card */
+  --destructive-border: #6B3428;  /* opaque chip edge (decorative by declaration) */
+
+  /* --- FSSAI statutory marks. RESERVED. Green / maroon, lifted only as far as
+         legibility on a dark ground requires — the HUE is the identity. --- */
+  --veg: #3EA95F;  /* 5.34:1 on --card, 5.71:1 on --background; Lab hue 148.1 */
+  --nonveg: #D2564A;  /* 4.53:1 on --card, 4.84:1 on --background; Lab hue 33.5 */
+
+  /* --- KPI deltas. Arrow glyph AND a signed number, always. --- */
+  --delta-up: #ADBDB6;/* tracks --success. 8.71:1 on --card; vs --delta-down dE 12.40 */
+  --delta-down: #E39383;
+
+  /* --- chart ramp. Slot -> hue map is IDENTICAL to the light block. --- */
+  --chart-1: #D9A566;  /* caramel */
+  --chart-2: #ADBDB6; /* sage. 8.71:1 on --card */
+  --chart-3: #C4B09B;  /* the NEUTRAL series — chroma-separated from slot 1, never hue-separated */
+  --chart-4: #8FBACC;  /* enamel blue = --info */
+  --chart-5: #D093B4;  /* fig */
+  --chart-6: #86BFAE;  /* eucalyptus */
+  --chart-grid: #3B2C1F;  /* = --border. Horizontal hairlines only */
+  --chart-axis: #B7A48C;  /* = --muted-foreground — PASSES as label TEXT */
+  --chart-foreground: #1A130E;  /* = --background. In-body label, worst of the six: 8.44:1 */
+
+  /* --- sidebar: the wood goes to stained oak, and the ACTIVE item is still a card
+         LIFTED OFF it — so --sidebar-accent stays lighter than --sidebar. --- */
+  --sidebar: #1F170F;
+  --sidebar-foreground: #EADCC8;  /* 13.10:1 on --sidebar */
+  --sidebar-primary: #EFE0C8;  /* tracks --primary */
+  --sidebar-primary-foreground: #241811;
+  --sidebar-accent: #2E2318;
+  --sidebar-accent-foreground: #F4E9DA;  /* 11.39:1 on --sidebar-accent */
+  --sidebar-border: #3B2C1F;
+  --sidebar-ring: #D9A566;
+
+  /* --- Shadows: black cast + lit rim. Any token here that is not rgb(0 0 0 / a) —
+         apart from the two deliberate colour blooms and the rim — is a bug. --- */
+  --sh-xs:    0  1px  2px        rgb(0 0 0 / .40);
+  --sh-sm:    0  2px  6px  -2px  rgb(0 0 0 / .50);
+  --sh:       0 10px 30px -18px  rgb(0 0 0 / .64);
+  --sh-lg:    0 26px 60px -34px  rgb(0 0 0 / .72);
+  --sh-xl:    0 18px 40px -22px  rgb(0 0 0 / .80);
+  --sh-brand: 0 12px 26px -14px  rgb(217 165 102 / .20);  /* gold bloom */
+  --sh-ready: 0 12px 26px -14px  rgb(242 184 114 / .28);  /* foam bloom */
+  --sh-up:    0 -12px 30px -20px rgb(0 0 0 / .70);
+  --sh-rim:   inset 0 1px 0 0    rgb(244 233 218 / .07);  /* = --foreground at 7% */
+  --scrim:    rgb(0 0 0 / .62);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 6 · FORNO — DARK.  .dark[data-palette="forno"]  (0,2,0) beats plain .dark.
+ *
+ * The room finally matches the oven. The bench goes out and the char comes
+ * forward: --background becomes char-900, which is EXACTLY the hex the light mode
+ * already used for its sidebar. THE EIGHT --sidebar-* TOKENS ARE BYTE-IDENTICAL TO
+ * THE LIGHT BLOCK — in Forno the oven does not change colour when the room does,
+ * and that invariance is signature move (a), stated in the light block and honoured
+ * here by repetition rather than by inheritance (which the cascade would not give
+ * us: the light block is (0,1,0) and plain `.dark` would outrank it).
+ *
+ * --primary inverts char -> semolina, because a charred slab on a charred wall is
+ * not a button. --brand and --ready both stay tomato and swap their lightness
+ * relationship, exactly as the light block promised they would.
+ *
+ * COLOUR + SHADOW + SCRIM ONLY: radii, type, spacing, motion and every gradient are
+ * declared once, in the light block.
+ * ════════════════════════════════════════════════════════════════════════════ */
+.dark[data-palette="forno"] {
+  color-scheme: dark;
+
+  /* --- surfaces: the oven, from the inside --- */
+  --background: #14100D;  /* char-900 — the light mode's sidebar becomes the room */
+  --foreground: #FFF9F0;  /* 18.08:1 on --background */
+  --card: #1C1512;  /* char-800 */
+  --card-foreground: #FFF9F0;  /* 16.31:1 on --card */
+  --popover: #1C1512;  /* SAME hex as --card, deliberately — in Forno a raised layer is raised by its drawn ring and its hard offset, never by a lighter tint. The rule holds in both modes */
+  --popover-foreground: #FFF9F0;
+  --muted: #2A1F19;  /* char-700 */
+  --muted-foreground: #C0A995;  /* 8.83:1 on --background, 6.36:1 on --muted, 7.97:1 on --card */
+  --accent: #33261E;  /* hover wash */
+  --accent-foreground: #FFF9F0;  /* 13.06:1 on --accent */
+  --border: #3A2B22;  /* char-600. 1.60:1 on --background — decorative */
+  --input: #C8B38C;  /* THE DRAWN BOX, inverted: light mode draws the field in char, dark mode draws it in the bench. 9.66:1 on --background */
+  --ring: #FF7B52;  /* tomato-300 — the mid tomato of light mode measures 2.19:1 here */
+
+  /* --- interactive: SEMOLINA. The bench becomes the button. --- */
+  --primary: #F0E2CA;  /* --grad-primary DARK endpoint, 12.68:1 with its ink */
+  --primary-foreground: #14100D;
+  --secondary: #2A1F19;
+  --secondary-foreground: #F0E2CA;  /* 11.31:1 on --secondary */
+
+  /* --- identity + alarm: BOTH tomato, lightness relationship INVERTED from light.
+         In light the identity was the deep settled sauce and the alarm the brighter
+         ember; on char the deep sauce disappears, so identity takes the pale blush
+         and the alarm takes the hot ember one step below it. --- */
+  --brand: #FFA184;  /* --grad-brand DARK endpoint, 9.63:1 with its ink */
+  --brand-foreground: #2A0B04;
+  --brand-subtle: #351611;
+  --brand-subtle-foreground: #FFB79F;  /* 8.35:1 on --brand-subtle, 9.55:1 on --card */
+
+  --ready: #FF6A3D;  /* THE ONLY SOLID CHIP. Still quarantined to Orders/KDS */
+  --ready-foreground: #2A0B04;  /* 6.99:1 on --ready */
+
+  /* --- semantic states --- */
+  --success: #DDFF9C; /* basil, lifted to L* 95.7 (was #A8D98A: dE 11.27 from the semolina --primary and 2.41 from --brand). Now 13.31 vs primary, 12.01 vs brand. 14.60:1 with its ink */
+  --success-foreground: #16240C;  /* 11.85:1 ink */
+  --success-subtle: #1E2C14;
+  --success-subtle-foreground: #BFE3A8;  /* 10.55:1 on the wash, 12.34:1 on --card */
+  --warning: #FDBE08; /* amber, pushed off --ready (was #F5B93F, dE 9.86 from the ember). vs --ready dE 12.10, vs --brand 13.81. 9.75:1 with its ink */
+  --warning-foreground: #2A1E06;  /* 10.34:1 ink */
+  --warning-subtle: #33260C;
+  --warning-subtle-foreground: #F7CE7C;  /* 9.12:1 on the wash, 11.62:1 on --card */
+  --warning-border: #7A5A18;
+  --info: #9CB4C1;  /* slate, "cold dough", lifted */
+  --info-foreground: #0F1B21;  /* 9.94:1 ink */
+  --info-subtle: #1B262C;
+  --info-subtle-foreground: #B7CCD7;  /* 9.51:1 on the wash, 11.35:1 on --card */
+  --destructive: #E58AA6;  /* chianti, lifted */
+  --destructive-foreground: #2C0D18;  /* 7.02:1 ink */
+  --destructive-subtle: #33131E;
+  --destructive-subtle-foreground: #F0AEC1;  /* 8.71:1 on the wash, 10.28:1 on --card */
+  --destructive-border: #6B3145;
+
+  /* --- FSSAI statutory marks. RESERVED. --- */
+  --veg: #3EA95F;  /* 4.98:1 on --card, 5.53:1 on --background */
+  --nonveg: #D2564A;  /* 4.22:1 on --card, 4.69:1 on --background */
+
+  /* --- KPI deltas. dE 15.9 between them under deuteranopia, plus the arrow glyph
+         and the signed number. --- */
+  --delta-up: #DDFF9C;/* tracks --success; vs --delta-down dE 26.06 */
+  --delta-down: #E58AA6;
+
+  /* --- chart ramp. Slot -> hue map IDENTICAL to light:
+         tomato / mushroom / basil / slate / red onion / chianti. --- */
+  --chart-1: #FF7B52;  /* tomato-300 */
+  --chart-2: #C9A87C;  /* mushroom */
+  --chart-3: #DDFF9C; /* basil = --success */
+  --chart-4: #9CB4C1;  /* slate = --info, the only cool slot */
+  --chart-5: #C596CE;  /* red onion */
+  /* CHIANTI, DEEPENED. This was #E58AA6 — the exact same hex as --destructive, so a
+     categorical series was painted in the void colour. That is the one chart rule the
+     system states outright (Crema §--chart-5: "kept off --destructive so a series can
+     never read as a void"); the rule was written in one palette and never carried to
+     the others. Deepened to L* 54.1 it is dE 12.0 from --destructive and ≥17 from
+     every other slot in this ramp. 4.65:1 on --card, --chart-foreground 4.88:1 on it. */
+  --chart-6: #C1657C;
+  --chart-grid: #3A2B22;  /* = --border */
+  --chart-axis: #C0A995;  /* = --muted-foreground — PASSES as label TEXT */
+  --chart-foreground: #14100D;  /* = --background. Worst of the six: 8.44:1 */
+
+  /* --- sidebar: BYTE-IDENTICAL TO THE LIGHT BLOCK. Do not "simplify" these eight
+         away — plain `.dark` above would otherwise repaint the rail in Crema's
+         stained oak, and Forno's whole thesis is a rail that never changes. --- */
+  --sidebar: #14100D;
+  --sidebar-foreground: #FFF9F0;
+  --sidebar-primary: #C4300D;  /* the ember, NOT --primary */
+  --sidebar-primary-foreground: #FFF9F0;
+  --sidebar-accent: #2A1F19;
+  --sidebar-accent-foreground: #FFF9F0;
+  --sidebar-border: #3A2B22;
+  --sidebar-ring: #FF7B52;
+
+  /* --- Shadows: STILL HARD OFFSETS, STILL ZERO BLUR. The cast goes to black,
+         because char-on-char is invisible; --sh-rim inverts from a 2px drawn char
+         ring to a 1px lit rim, which is the only way a popover raises off a card
+         that shares its hex. --- */
+  --sh-xs:    2px  2px  0 0 rgb(0 0 0 / .85);
+  --sh-sm:    3px  3px  0 0 rgb(0 0 0 / .85);
+  --sh:       5px  5px  0 0 rgb(0 0 0 / .90);
+  --sh-lg:    8px  8px  0 0 rgb(0 0 0 / .90);
+  --sh-xl:   10px 10px  0 0 rgb(0 0 0 / .95);
+  --sh-brand: 4px  4px  0 0 rgb(255 123 82 / .90);
+  --sh-ready: 0 0 44px -6px rgb(255 106 61 / .55);   /* THE EMBER GLOW */
+  --sh-up:    0 -10px 26px -18px rgb(0 0 0 / .80);
+  --sh-rim:   inset 0 0 0 1px rgb(255 249 240 / .10);
+  --scrim:    rgb(0 0 0 / .66);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 7 · LIEVITO — DARK.  .dark[data-palette="lievito"]
+ *
+ * The same ledger, printed white on slate. Every one of the theme's four signatures
+ * survives the inversion, and two of them survive ONLY because this block restates
+ * them: plain `.dark` (Crema) is (0,1,0) and would otherwise repaint the shadows,
+ * putting elevation back into a theme whose entire premise is that there is none.
+ *
+ *   · --sh-xs / --sh-sm / --sh are ZERO again. A card is still a hairline.
+ *   · --sh-rim is still a PRINTED RULE, not a lit gloss — it just changes ink.
+ *   · The SURFACE INVERSION HOLDS: --popover and --sidebar stay LIGHTER than
+ *     --background. A sheet of paper on stone, in the dark, is still on top.
+ *
+ * COLOUR + SHADOW + SCRIM ONLY. The 0/2/3 radius ladder, the Futura-at-200 type,
+ * the spacing and the flat two-stop gradients live once, in the light block.
+ * ════════════════════════════════════════════════════════════════════════════ */
+.dark[data-palette="lievito"] {
+  color-scheme: dark;
+
+  /* --- surfaces: slate and charcoal. Matte: no texture, no noise, no gradient. --- */
+  --background: #171613;  /* the stone, at night */
+  --foreground: #F2F0E8;  /* 17.19:1 on --background */
+  --card: #1E1D19;  /* the ledger-cell face */
+  --card-foreground: #F2F0E8;  /* 15.68:1 on --card */
+  --popover: #24231E;  /* THE INVERSION HELD: the paper sheet is still the lightest surface */
+  --popover-foreground: #F2F0E8;  /* 14.01:1 on --popover */
+  --muted: #232219;
+  --muted-foreground: #A8A294;  /* 8.15:1 on --background, 7.29:1 on --muted, 7.51:1 on --card */
+  --accent: #26251F;  /* hover DARKENS-toward-paper here, mirroring the light block's lighten */
+  --accent-foreground: #F2F0E8;  /* 13.68:1 on --accent */
+  --border: #322F28;  /* the hairline, and the BACKGROUND of every ledger grid. 1.44:1 on --background — structure, never text */
+  --input: #8C8576;  /* 1.4.11 control boundary: 4.86:1 on --background */
+  --ring: #D08C71;  /* terracotta focus, lifted */
+
+  /* --- interactive: THE SLAB INVERTS TO BONE. Lievito's action is still ink — it is
+         just that on slate the ink is pale. --- */
+  --primary: #E8E4D8;  /* 13.95:1 with its ink */
+  --primary-foreground: #1B1A17;
+  --secondary: #2A2922;
+  --secondary-foreground: #E8E4D8;  /* 11.90:1 on --secondary */
+
+  /* --- identity: San Marzano, dusty rather than hot. Still half of Forno's chroma. --- */
+  --brand: #D08C71;
+  --brand-foreground: #1B0F0A;  /* 6.32:1 ink */
+  --brand-subtle: #2C1F19;
+  --brand-subtle-foreground: #E0AC94;  /* 8.29:1 on --brand-subtle, 8.87:1 on --card */
+
+  /* --- READY: THE ONE SOLID, and it is still INK — which on this ground means the
+         bone slab. Deliberately the same value as --primary, exactly as in light:
+         Lievito has one solid, and the theme forbids a solid button in a row of
+         chips so the two never meet. --- */
+  --ready: #E8E4D8;
+  --ready-foreground: #1B1A17;  /* 13.95:1 ink */
+
+  /* --- semantic states --- */
+  --success: #C5D4A0; /* olive / basil ash, lifted (was #A8BCA8: dE 4.94 from --destructive — the worst undeclared number in the system — and 10.59 from --primary/--ready). Now 13.84 and 12.19. 10.59:1 with its ink */
+  --success-foreground: #16201A;  /* 9.66:1 ink */
+  --success-subtle: #1F2620;
+  --success-subtle-foreground: #BACFBA;  /* 9.02:1 on the wash, 9.61:1 on --card */
+  --warning: #D9BC7E;  /* crust */
+  --warning-foreground: #241C0C;  /* 9.68:1 ink */
+  --warning-subtle: #2C2517;
+  --warning-subtle-foreground: #E4CE9A;  /* 8.40:1 on the wash, 10.29:1 on --card */
+  --warning-border: #5E5232;
+  --info: #93B3BF;  /* the marble vein, the theme's only cool */
+  --info-foreground: #0F1E24;  /* 9.29:1 ink */
+  --info-subtle: #1C262A;
+  --info-subtle-foreground: #AECBD6;  /* 8.94:1 on the wash, 10.42:1 on --card */
+  --destructive: #D98A96;  /* natural wine — still moved off the terracotta so brand and danger cannot be confused */
+  --destructive-foreground: #2A0F16;  /* 6.59:1 ink */
+  --destructive-subtle: #2E1B20;
+  --destructive-subtle-foreground: #E9ADB6;  /* 8.20:1 on the wash, 9.53:1 on --card */
+  --destructive-border: #5E3A42;
+
+  /* --- FSSAI statutory marks. Identical in all four palettes. --- */
+  --veg: #3EA95F;  /* 5.09:1 on --card, 5.44:1 on --background */
+  --nonveg: #D2564A;  /* 4.31:1 on --card, 4.61:1 on --background */
+
+  /* --- KPI deltas. Arrow glyph + signed number + named basis. --- */
+  --delta-up: #C5D4A0;/* tracks --success; vs --delta-down dE 13.84 */
+  --delta-down: #D98A96;
+
+  /* --- chart ramp. The palette's own ramp, as in light. --- */
+  --chart-1: #D08C71;  /* terracotta */
+  --chart-2: #8FAE97;  /* basil */
+  --chart-3: #C9A968;  /* crust */
+  --chart-4: #93B3BF;  /* marble slate */
+  --chart-5: #C08FA2;  /* wine */
+  --chart-6: #9E96B8;  /* the shadow on marble */
+  --chart-grid: #302D26;  /* horizontal hairlines ONLY — no vertical grid, no spines */
+  --chart-axis: #A8A294;  /* = --muted-foreground — PASSES as text */
+  --chart-foreground: #171613;  /* = --background. Worst of the six: 7.29:1 */
+
+  /* --- sidebar: PAPER ON STONE, still. --sidebar is LIGHTER than --background,
+         which is the inversion Lievito runs against Crema, held in both modes. --- */
+  --sidebar: #24231E;
+  --sidebar-foreground: #A8A294;  /* 8.79:1 on --sidebar — the inactive nav weight; active steps to --foreground */
+  --sidebar-primary: #E8E4D8;  /* tracks --primary */
+  --sidebar-primary-foreground: #1B1A17;
+  --sidebar-accent: #2C2B24;  /* hover is a wash and NOTHING else — the active item has no fill, only a 2px terracotta left rule */
+  --sidebar-accent-foreground: #F2F0E8;  /* 12.90:1 on --sidebar-accent */
+  --sidebar-border: #322F28;
+  --sidebar-ring: #D08C71;
+
+  /* --- Shadows: STILL NONE IN THE CONTENT AREA. This restatement is load-bearing:
+         without it, plain `.dark` would hand Lievito a full elevation ladder and
+         quietly delete the theme. --- */
+  --sh-xs:    0 0 0 0 rgb(0 0 0 / 0);
+  --sh-sm:    0 0 0 0 rgb(0 0 0 / 0);
+  --sh:       0 0 0 0 rgb(0 0 0 / 0);             /* the resting card: NONE */
+  --sh-lg:    0 18px 44px -28px rgb(0 0 0 / .70); /* popover, dropdown */
+  --sh-xl:    0 20px 48px -30px rgb(0 0 0 / .80); /* dialog, sheet, slab */
+  --sh-brand: 0 0 0 0 rgb(0 0 0 / 0);             /* no coloured shadow exists in this theme */
+  --sh-ready: 0 20px 48px -30px rgb(0 0 0 / .80); /* the READY tile IS the slab, so it takes the slab's cast */
+  --sh-up:    0 -1px 0 0 rgb(50 47 40), 0 -10px 30px -26px rgb(0 0 0 / .60);
+                                                  /* a RULE first, a cast second */
+  --sh-rim:   inset 0 0 0 1px rgb(50 47 40);      /* = --border. The PRINTED rule, not a lit gloss */
+  --scrim:    rgb(0 0 0 / .60);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * 8 · SAFFRON HOUSE — DARK.  .dark[data-palette="saffron"]
+ *
+ * THE NATIVE MODE. Every other block in this file is an authored counterpart to a
+ * mockup; this one IS the mockup — the hexes below are lifted straight out of
+ * design-concepts/mockups/saffron-{dashboard,menu,orders}.html. Candlelit
+ * aubergine ground, bone ink, brass leaf, one ember.
+ *
+ * THE ONE BRASS RULE, in full force: --primary, --brand, --ready, --ring and
+ * --sidebar-primary all name the same #C9A227 / #DFBB53 family. dE 0.00 between
+ * identity, action and alarm — DECLARED, not accidental. They are separated by
+ * SHAPE (the wordmark tile, the 3px-radius CTA, the S9 squared pass-bell chip) and
+ * by the five-step meter, never by hue. This is the reason the meter is
+ * non-negotiable in this palette, and the reason the light block had to break the
+ * rule for --primary (on bone, .btn--ink is the only legal button).
+ *
+ * COLOUR + SHADOW + SCRIM ONLY: the 1/2/3/5/7/10/14 ladder, the squared 2px chip,
+ * the Palatino display face and the candlelit gradients live once, in the light
+ * block, and re-theme themselves from the tokens below.
+ * ════════════════════════════════════════════════════════════════════════════ */
+.dark[data-palette="saffron"] {
+  color-scheme: dark;
+
+  /* ── grounds: the room, lit by three fixed blooms (see --app-bg) ─────────── */
+  --background: #130D12;                 /* --ground */
+  --foreground: #F5EFE4;                 /* --bone. 17.55:1 on --background */
+  --card: #211823;                       /* --surface */
+  --card-foreground: #F5EFE4;            /* 15.05:1 on --card */
+  --popover: #2A1F2C;                    /* --surface-2, the raised layer */
+  --popover-foreground: #F5EFE4;         /* 13.09:1 on --popover */
+  --muted: #2A1F2C;
+  --muted-foreground: #C9BCC0;           /* --bone-soft. 11.06:1 on --background, 8.25:1 on --muted, 9.48:1 on --card */
+  --accent: #342736;                     /* --surface-3, hover only */
+  --accent-foreground: #F5EFE4;          /* 11.33:1 on --accent */
+  --border: #3A2E3C;                     /* opaque form of --rule rgba(235,208,138,.16). 1.62:1 on --background — decorative */
+  --input: #9A7B22;                      /* brass-600 control boundary: 4.36:1 on --background */
+  --ring: #DFBB53;                       /* brass-400 */
+
+  /* ── interactive: THE BRASS. On this ground the ink button of the bone room is
+        the ground itself, so the CTA becomes the leaf. ─────────────────────── */
+  --primary: #C9A227;                    /* brass-500. --grad-primary DARK endpoint */
+  --primary-foreground: #1A1119;         /* 7.94:1 ink */
+  --secondary: #2A1F2C;
+  --secondary-foreground: #F5EFE4;       /* 13.09:1 on --secondary */
+
+  /* ── identity: THE SAME BRASS, by declaration. ───────────────────────────── */
+  --brand: #C9A227;
+  --brand-foreground: #1A1119;           /* 7.94:1 ink */
+  --brand-subtle: #2E2618;
+  --brand-subtle-foreground: #EBD08A;    /* brass-300. 8.71:1 on --brand-subtle, 10.24:1 on --card */
+
+  /* ── S9 THE PASS BELL. Solid brass, ink label, separated by SHAPE alone. ─── */
+  --ready: #C9A227;
+  --ready-foreground: #1A1119;           /* 7.94:1 ink */
+
+  /* ── semantic states ────────────────────────────────────────────────────── */
+  --success: #80B195; /* verd-400, nudged to hue 158 (was #7FB08F: dE 11.86 from --destructive, 10.41 from the statutory --veg). Now 13.70 and 12.05. 7.29:1 with its ink */
+  --success-foreground: #0E1B13;         /* 8.53:1 ink */
+  --success-subtle: #1B2620;             /* --ok-ground */
+  --success-subtle-foreground: #9BC7A8;  /* 8.55:1 on the wash, 8.72:1 on --card */
+  --warning: #FEC57C; /* saffron-300, lifted off THE ONE BRASS RULE (was #F4B968, dE 9.02 from --brand/--ready, which are the same brass here). vs --brand dE 12.13. 11.39:1 with its ink */
+  --warning-foreground: #241505;         /* 10.10:1 ink */
+  --warning-subtle: #2E2118;             /* --warn-ground */
+  --warning-subtle-foreground: #FEC57C; /* 10.02:1 on the wash, 11.06:1 on --card */
+  --warning-border: #6B4F14;             /* brass-700 */
+  --info: #7FB3BF;                       /* patina, lifted */
+  --info-foreground: #0D1D21;            /* 9.11:1 ink */
+  --info-subtle: #17262A;
+  --info-subtle-foreground: #9CCBD6;     /* 9.13:1 on the wash, 10.62:1 on --card */
+  /* THE CLARET, moved off the ember (was #CF7460, terra-400 at hue 38.4).
+     The ember was the last undeclared collision in the system and the worst number
+     anywhere: dE2000 5.11 from the statutory --nonveg mark under deuteranopia and
+     — worse — 1.89 from --veg, meaning a Delete control and a vegetarian mark were
+     effectively the SAME COLOUR to a red-green dichromat. Both statutory hues are
+     fixed by law, so the danger family is the only side free to move.
+
+     Warm red is not recoverable here: deutan/protan collapse the red-green axis, so
+     every hue between 2 and 62 either lands on --nonveg (L* 52.8) or on --veg. The
+     claret axis is the one direction that survives, because it keeps blue — which is
+     also why Forno (#E58AA6) and Lievito (#D98A96) already put danger there. Saffron
+     was the outlier, and its aubergine ground (the neutral spine sits at hue 320-330)
+     makes a raspberry claret the most in-world danger colour of the four.
+
+     Measured, worst of {normal, deutan, protan}: vs --nonveg 20.10, vs --veg 20.95,
+     vs --brand/--primary/--ready 31.72, vs --warning 33.72, vs --success 13.02,
+     vs --info 13.27. All clear the floor of 12. */
+  --destructive: #C76390;                /* --grad-destructive DARK endpoint. 4.60:1 on --card, 5.13:1 on --background */
+  --destructive-foreground: #260C17;     /* 4.89:1 ink; 5.92:1 at the gradient's far endpoint #CE789D */
+  --destructive-subtle: #2B1620;         /* --danger-ground, re-tinted onto the claret axis */
+  /* THE VOID CHIP INK — an ORCHID at hue 330, not a lighter claret.
+     A tint of the solid above would be the obvious choice and it is the wrong one:
+     this palette's --muted-foreground (#C9BCC0) is itself a pink-leaning neutral at
+     hue 356 AND it is the ink of the Paid/Cancelled chip, so a light claret Void chip
+     lands on top of the Paid chip — measured dE 1.75, worse than the terracotta this
+     replaced (6.30). Rotating to 330 puts it on the same axis as the room's own
+     aubergine spine and clears the Paid chip at 18.82.
+
+     Worst pairs that remain: 11.60 vs the Placed/Confirmed ink and 11.53 vs the solid
+     --destructive. The second is not a defect — a Void chip and a Delete button SHOULD
+     look related. The first is 0.4 short of the floor and is the best available while
+     holding this system's 5.51:1 floor for a -subtle pair; the chip is in any case
+     redundantly encoded (meter + fill weight + the word), so colour is not the only
+     carrier. See order-status-badge.tsx. */
+  --destructive-subtle-foreground: #D07BC6;  /* 5.92:1 on the wash, 6.01:1 on --card */
+  --destructive-border: #6B3049;
+
+  /* ── FSSAI statutory marks. Identical in all four palettes. Not ours. ───── */
+  --veg: #3EA95F;                        /* 4.99:1 on --card, 5.82:1 on --background */
+  --nonveg: #D2564A;                     /* 4.23:1 on --card, 4.93:1 on --background */
+
+  /* ── KPI deltas. Always with the up/down/flat glyph. ────────────────────── */
+  --delta-up: #80B195; /* --verd-400; vs --delta-down dE 12.11 */
+  --delta-down: #D47D64; /* --terra-400, nudged to hue 42 (was #D4826A, dE 10.54 from --delta-up — the two KPI arrows share one tile). Now dE 12.11. 5.67:1 on --card */
+
+  /* ── chart ramp. Same slot -> hue map as light: brass / saffron / terracotta /
+        verdigris / aubergine / patina, spread by L*. ───────────────────────── */
+  --chart-1: #DFBB53;                    /* brass-400 */
+  --chart-2: #E8912B;                    /* saffron-500 */
+  --chart-3: #D4826A;                    /* terra-400 */
+  --chart-4: #80B195; /* verd-400. 7.08:1 on --card */
+  --chart-5: #C98FB4;                    /* aubergine */
+  --chart-6: #7FB3BF;                    /* patina */
+  --chart-grid: #3A2E3C;                 /* = --border. Structure, below the axis text */
+  --chart-axis: #C9BCC0;                 /* = --muted-foreground — PASSES as text */
+  --chart-foreground: #130D12;           /* = --background. Worst of the six: 7.51:1 */
+
+  /* ── sidebar ────────────────────────────────────────────────────────────── */
+  --sidebar: #1A121A;                    /* --ground-2 */
+  --sidebar-foreground: #F5EFE4;         /* 15.09:1 on --sidebar */
+  --sidebar-primary: #C9A227;            /* tracks --primary — the brass, per THE ONE BRASS RULE */
+  --sidebar-primary-foreground: #1A1119;
+  --sidebar-accent: #2A1F2C;
+  --sidebar-accent-foreground: #F5EFE4;  /* 13.09:1 on --sidebar-accent */
+  --sidebar-border: #342736;
+  --sidebar-ring: #DFBB53;
+
+  /* ── Shadows — straight from the mockup. Deep candlelit pools plus --sheen, which
+        here is the PRIMARY elevation signal: --card #211823 sits only 1.17:1 above
+        --background, so a raised surface reads by its rim before its cast. ───── */
+  --sh-xs:    0  1px  2px        rgb(0 0 0 / .40);
+  --sh-sm:    0  4px 14px  -6px  rgb(0 0 0 / .55);
+  --sh:       0 16px 36px -20px  rgb(0 0 0 / .70);
+  --sh-lg:    0 30px 60px -30px  rgb(0 0 0 / .75);
+  --sh-xl:    0 48px 90px -40px  rgb(0 0 0 / .80);
+  --sh-brand: 0 12px 28px -14px  rgb(201 162 39 / .42);  /* = --sh-brass */
+  --sh-ready: 0 12px 28px -14px  rgb(201 162 39 / .42);  /* the pass bell shares the brass bloom, by THE ONE BRASS RULE */
+  --sh-up:    0 -14px 34px -22px rgb(0 0 0 / .75);
+  --sh-rim:   inset 0 1px 0 0    rgb(245 231 190 / .06); /* = --sheen */
+  --scrim:    rgb(0 0 0 / .66);
+}
 /* ============================================================================
  * MOTION — the keyframes behind the --animate-* utilities.
  * Declared at the top level rather than inside @theme so they are emitted even
@@ -821,6 +2088,10 @@
      that is a background rather than a colour, a named measure, and an entrance
      whose delay is a custom property. */
   .bg-app { background: var(--app-bg); background-attachment: fixed; }
+  /* The two rhythm steps the `--spacing-*` namespace cannot hold: a key with no
+     suffix, and a two-value padding shorthand. */
+  .gap { gap: var(--gap); }
+  .p-head { padding: var(--pad-head); }
   .wrap { max-width: var(--measure); margin-inline: auto; }
   .rise {
     animation: rise var(--dur-rise) var(--ease) both;

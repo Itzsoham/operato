@@ -1,6 +1,14 @@
 "use client";
 
-import { ChevronDown, Database, Loader2, Send, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  Database,
+  Loader2,
+  RotateCcw,
+  Send,
+  Sparkles,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -78,15 +86,26 @@ export function AssistantClient({ restaurantId }: { restaurantId: string }) {
   const canAsk = aiQuestionSchema.safeParse(question).success && !ask.isPending && !atLimit;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-4">
-      {/* The ask card, the main event, so it leads the page. */}
-      <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
+    // `wrap` is the page column (--measure, centred); px-page / py-lg are the palette's own
+    // gutter and rhythm, so a palette switch actually moves these edges. It used to be
+    // max-w-3xl + p-4, four stock steps that never changed with the theme.
+    <div className="wrap flex w-full flex-1 flex-col gap-lg px-page py-lg">
+      {/* THE ASK CARD — the main event, so it leads the page, and the one surface in the
+          whole product allowed to wear --grad-ai (every palette declares that wash for
+          "the Ask AI card, and only that card"). Crema pours caramel over ceramic, Forno a
+          sauce wash, Lievito flattens it to flat paper, Saffron to candlelit card. */}
+      <Card
+        className="rise bg-[image:var(--grad-ai)]"
+        style={{ "--i": 0 } as React.CSSProperties}
+      >
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
-              <Sparkles className="size-5" />
+          <div className="flex items-center gap-sm">
+            {/* The mark is painted with --grad-brand, the same text-bearing ramp the
+                wordmark tile uses, so it re-cuts per palette instead of being a tint. */}
+            <div className="flex size-tap-sm shrink-0 items-center justify-center rounded-lg bg-[image:var(--grad-brand)] text-brand-foreground shadow-xs">
+              <Sparkles className="size-5" aria-hidden="true" />
             </div>
-            <div>
+            <div className="min-w-0">
               <CardTitle>Ask a question about your business</CardTitle>
               <CardDescription>
                 Plain English in, a real answer out, the assistant writes the SQL against
@@ -96,8 +115,8 @@ export function AssistantClient({ restaurantId }: { restaurantId: string }) {
           </div>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-3">
-          <form onSubmit={onSubmit} className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-sm">
+          <form onSubmit={onSubmit} className="flex flex-col gap-xs">
             <Textarea
               data-testid="ai-question-input"
               value={question}
@@ -114,17 +133,24 @@ export function AssistantClient({ restaurantId }: { restaurantId: string }) {
               }}
             />
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-sm">
               <UsageIndicator usage={usage} isPending={usagePending} />
-              <Button type="submit" data-testid="ai-ask-button" disabled={!canAsk}>
+              {/* The one primary CTA on this screen, so it is the one control allowed
+                  --sh-brand. Nothing else here may carry a coloured cast. */}
+              <Button
+                type="submit"
+                data-testid="ai-ask-button"
+                className="shadow-brand"
+                disabled={!canAsk}
+              >
                 {ask.isPending ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                     Thinking...
                   </>
                 ) : (
                   <>
-                    <Send className="size-4" />
+                    <Send className="size-4" aria-hidden="true" />
                     Ask
                   </>
                 )}
@@ -133,32 +159,56 @@ export function AssistantClient({ restaurantId }: { restaurantId: string }) {
           </form>
 
           {history.length === 0 ? (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {EXAMPLE_QUESTIONS.map((q) => (
-                <Button
-                  key={q}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-auto whitespace-normal text-left"
-                  disabled={ask.isPending || atLimit}
-                  onClick={() => {
-                    setQuestion(q);
-                    submit(q);
-                  }}
-                >
-                  {q}
-                </Button>
-              ))}
+            <div className="flex flex-col gap-xs pt-1">
+              <p className="text-label tracking-label text-muted-foreground uppercase">
+                Try one of these
+              </p>
+              <div className="flex flex-wrap gap-xs">
+                {EXAMPLE_QUESTIONS.map((q, i) => (
+                  <Button
+                    key={q}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    // `rise` staggered by --i: the suggestions arrive after the card, one
+                    // beat apart. Never rounded-full — rounded-lg is --r, which Lievito
+                    // sets to 3px on purpose.
+                    className="rise h-auto min-h-tap-sm rounded-lg py-2 text-left whitespace-normal"
+                    style={{ "--i": i + 1 } as React.CSSProperties}
+                    disabled={ask.isPending || atLimit}
+                    onClick={() => {
+                      setQuestion(q);
+                      submit(q);
+                    }}
+                  >
+                    {q}
+                  </Button>
+                ))}
+              </div>
             </div>
           ) : null}
         </CardContent>
       </Card>
 
+      {/* THE ERROR STATE. Additive — it sits above the answer area rather than replacing
+          it, so a failed follow-up never wipes the answer already on screen. Painted with
+          the destructive -subtle triple (opaque wash, text measured >=5.5:1 on it, opaque
+          edge), never an alpha guess over an unknown ground. Announced, and carrying an
+          icon plus a heading, so the failure is never signalled by colour alone. */}
+      {!ask.isPending && ask.isError ? (
+        <ErrorState
+          message={ask.error.message}
+          canRetry={Boolean(ask.variables) && !atLimit}
+          onRetry={() => {
+            if (ask.variables) submit(ask.variables);
+          }}
+        />
+      ) : null}
+
       {/* The current answer, prominent, per the spec: this is the thing the whole
           feature exists to show. */}
       {ask.isPending ? (
-        <AnswerSkeleton />
+        <ThinkingState />
       ) : current ? (
         // Keyed on the answer's own id, not its position: asking a new question must mount
         // a FRESH card (and a collapsed-by-default panel), not reuse the previous one's.
@@ -173,12 +223,25 @@ export function AssistantClient({ restaurantId }: { restaurantId: string }) {
           question is asked, which previously reattached one answer's expanded/collapsed
           SQL panel onto a completely different one. */}
       {history.length > 1 ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-muted-foreground text-xs font-medium">Earlier this session</p>
-          {history.slice(1).map((item) => (
-            <AnswerCard key={item.id} answer={item} compact />
+        <section className="flex flex-col gap-sm">
+          {/* The mockups' section head: an eyebrow label and a hairline running to the
+              far edge. The rule is --border, the only ink a divider is allowed. */}
+          <div className="flex items-center gap-sm">
+            <p className="text-label tracking-label text-muted-foreground uppercase">
+              Earlier this session
+            </p>
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+          </div>
+          {history.slice(1).map((item, i) => (
+            <AnswerCard
+              key={item.id}
+              answer={item}
+              compact
+              className="rise"
+              style={{ "--i": i } as React.CSSProperties}
+            />
           ))}
-        </div>
+        </section>
       ) : null}
     </div>
   );
@@ -191,6 +254,8 @@ function UsageIndicator({
   usage: AiUsage | undefined;
   isPending: boolean;
 }) {
+  // The loading rung of the quota line. h-4/w-36 are the skeleton's own geometry, not
+  // page rhythm — Skeleton itself carries --sh-less bg-muted and animate-shimmer.
   if (isPending) return <Skeleton className="h-4 w-36" />;
   if (!usage) return <span />;
 
@@ -198,7 +263,12 @@ function UsageIndicator({
   return (
     <span
       data-testid="ai-usage-indicator"
-      className={cn("text-xs", atLimit ? "text-destructive font-medium" : "text-muted-foreground")}
+      className={cn(
+        "font-num tabular-nums",
+        atLimit
+          ? "text-small font-semibold text-destructive"
+          : "text-small text-muted-foreground"
+      )}
     >
       {atLimit
         ? `Used all ${usage.limit} questions today, more tomorrow.`
@@ -207,14 +277,19 @@ function UsageIndicator({
   );
 }
 
+/**
+ * THE EMPTY STATE. A dashed hairline, deliberately un-elevated (shadow-none): an empty
+ * slot is not a card that has arrived, so it must not sit on the resting-card cast.
+ */
 function EmptyState() {
   return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
-        <div className="bg-muted text-muted-foreground flex size-11 items-center justify-center rounded-lg">
-          <Sparkles className="size-5" />
+    <Card className="animate-rise border-dashed shadow-none">
+      <CardContent className="flex flex-col items-center gap-xs py-lg text-center">
+        <div className="flex size-tap items-center justify-center rounded-lg bg-brand-subtle text-brand-subtle-foreground">
+          <Sparkles className="size-5" aria-hidden="true" />
         </div>
-        <p className="text-muted-foreground text-sm">
+        <p className="font-heading text-h2">Nothing asked yet</p>
+        <p className="max-w-measure text-body text-muted-foreground">
           Ask anything about sales, stock, or customers, or tap one of the examples above.
         </p>
       </CardContent>
@@ -222,10 +297,22 @@ function EmptyState() {
   );
 }
 
-function AnswerSkeleton() {
+/**
+ * THE THINKING STATE. A status line the assistive layer can read (aria-live) over three
+ * shimmering rules — not a bare grey box. The status is spelled out in words, because a
+ * moving skeleton on its own is not a message.
+ */
+function ThinkingState() {
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 p-5">
+    <Card className="animate-rise" aria-busy="true">
+      <CardContent className="flex flex-col gap-sm">
+        <p
+          className="flex items-center gap-xs text-label tracking-label text-muted-foreground uppercase"
+          aria-live="polite"
+        >
+          <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+          Writing the query and reading your data
+        </p>
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-6 w-full" />
         <Skeleton className="h-6 w-4/5" />
@@ -234,21 +321,85 @@ function AnswerSkeleton() {
   );
 }
 
-function AnswerCard({ answer, compact = false }: { answer: AiAnswer; compact?: boolean }) {
+function ErrorState({
+  message,
+  canRetry,
+  onRetry,
+}: {
+  message: string;
+  canRetry: boolean;
+  onRetry: () => void;
+}) {
   return (
-    <Card data-testid={compact ? "ai-history-answer" : "ai-answer-card"}>
-      <CardContent className="flex flex-col gap-3 p-5">
-        <p className="text-muted-foreground text-sm">{answer.question}</p>
+    <Card
+      role="alert"
+      data-testid="ai-error-card"
+      className="animate-rise border-destructive-border bg-destructive-subtle text-destructive-subtle-foreground"
+    >
+      <CardContent className="flex flex-wrap items-start gap-sm">
+        <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+        <div className="flex min-w-0 flex-1 flex-col gap-xs">
+          <p className="font-heading text-h2">That question did not go through</p>
+          <p className="text-body">{message}</p>
+          <p className="text-small">
+            Every attempt spends from today&apos;s quota, so it is worth rephrasing before
+            asking again.
+          </p>
+        </div>
+        {canRetry ? (
+          <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+            <RotateCcw className="size-3.5" aria-hidden="true" />
+            Try again
+          </Button>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
 
+function AnswerCard({
+  answer,
+  compact = false,
+  className,
+  style,
+}: {
+  answer: AiAnswer;
+  compact?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <Card
+      data-testid={compact ? "ai-history-answer" : "ai-answer-card"}
+      // The fresh answer arrives on its own; the history rows are staggered by the caller.
+      className={cn(!compact && "animate-rise", className)}
+      style={style}
+    >
+      <CardContent className="flex flex-col gap-sm">
+        {/* The question read back as an eyebrow — uppercase --t-label at
+            --label-tracking, the one place Lievito's .24em caps show up on this page. */}
+        <p className="text-label tracking-label text-muted-foreground uppercase">
+          {answer.question}
+        </p>
+
+        {/* The answer is the whole point of the screen, so it is set in the palette's
+            DISPLAY face: Crema's Iowan serif, Forno's Arial Black 900, Lievito's Futura
+            200, Saffron's Palatino. This is the line that proves a palette switch changes
+            form and not just hue. */}
         <p
           data-testid="ai-answer-text"
-          className={compact ? "text-base leading-relaxed" : "text-lg leading-relaxed font-medium"}
+          className={
+            compact
+              ? "text-body text-card-foreground"
+              : "font-heading text-h2 text-balance text-card-foreground"
+          }
         >
           {answer.answer}
         </p>
 
         {answer.truncated ? (
           <Badge data-testid="ai-truncated-badge" variant="secondary" className="w-fit">
+            <span data-slot="badge-dot" aria-hidden="true" />
             Based on a sample of the data
           </Badge>
         ) : null}
@@ -263,22 +414,27 @@ function AnswerCard({ answer, compact = false }: { answer: AiAnswer; compact?: b
                 data-testid="ai-explanation-toggle"
                 variant="ghost"
                 size="sm"
-                className="group text-muted-foreground hover:text-foreground w-fit gap-1.5 px-0 hover:bg-transparent"
+                className="group w-fit gap-xs px-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
               >
-                <Database className="size-3.5" />
+                <Database className="size-3.5" aria-hidden="true" />
                 How this was calculated
-                <ChevronDown className="size-3.5 transition-transform group-data-[panel-open]:rotate-180" />
+                <ChevronDown
+                  className="size-3.5 transition-transform duration-(--dur) ease-quint group-data-[panel-open]:rotate-180"
+                  aria-hidden="true"
+                />
               </Button>
             }
           />
-          <CollapsibleContent className="flex flex-col gap-3 pt-3">
-            <p data-testid="ai-explanation-text" className="text-muted-foreground text-sm">
+          <CollapsibleContent className="flex flex-col gap-sm pt-sm">
+            <p data-testid="ai-explanation-text" className="text-small text-muted-foreground">
               {answer.explanation}
             </p>
 
             {/* Monospace, read-only: a pre element never accepts input, so there is
-                nothing to guard against editing. */}
-            <pre className="bg-muted overflow-x-auto rounded-md border p-3 font-mono text-xs">
+                nothing to guard against editing. --t-code is the one type step reserved
+                for exactly this block and the inventory ledger IDs — in Forno it is the
+                kitchen-ticket voice at weight 600. */}
+            <pre className="overflow-x-auto rounded-md border border-border bg-muted p-card-sm font-mono text-code text-foreground">
               <code data-testid="ai-sql-text">{answer.sql}</code>
             </pre>
 
@@ -298,7 +454,12 @@ function RowsTable({ rows }: { rows: Record<string, unknown>[] }) {
   const visible = rows.slice(0, 20);
 
   return (
-    <div data-testid="ai-rows-table" className="max-h-64 overflow-auto rounded-md border">
+    // max-h-64 is a scroll viewport cap, not page rhythm — the padding, the radius and
+    // the rule around it are all tokens.
+    <div
+      data-testid="ai-rows-table"
+      className="max-h-64 overflow-auto rounded-md border border-border"
+    >
       <Table>
         <TableHeader>
           <TableRow>
@@ -311,7 +472,7 @@ function RowsTable({ rows }: { rows: Record<string, unknown>[] }) {
           {visible.map((row, i) => (
             <TableRow key={i}>
               {columns.map((col) => (
-                <TableCell key={col} className="font-mono text-xs">
+                <TableCell key={col} className="font-mono text-code tabular-nums">
                   {formatCell(row[col])}
                 </TableCell>
               ))}
@@ -320,7 +481,7 @@ function RowsTable({ rows }: { rows: Record<string, unknown>[] }) {
         </TableBody>
       </Table>
       {rows.length > visible.length ? (
-        <p className="text-muted-foreground border-t px-2 py-1.5 text-xs">
+        <p className="border-t border-border px-3 py-2 text-small text-muted-foreground tabular-nums">
           Showing {visible.length} of {rows.length} rows.
         </p>
       ) : null}

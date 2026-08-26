@@ -5,7 +5,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsRailViewport } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +27,17 @@ import { PanelLeftIcon } from "lucide-react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "16rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
-const SIDEBAR_WIDTH_ICON = "3rem";
+/* THE THREE WIDTHS ARE PALETTE TOKENS, NOT CONSTANTS.
+   shadcn ships these as literal rem strings, which froze the rail at 16rem in every
+   theme and left globals.css's per-palette --sidebar-w / --sidebar-w-mobile / --rail
+   as dead declarations (Lievito asks for a narrower 15.25rem rail; Crema and Saffron
+   for wider ones). They are still assigned to --sidebar-width / --sidebar-width-icon
+   below, so every `w-(--sidebar-width)` call site is untouched — the indirection just
+   gained a link, and both `calc(var(--sidebar-width) * -1)` (the offcanvas offset) and
+   `calc(var(--sidebar-width-icon) + …)` resolve through a chained var() unchanged. */
+const SIDEBAR_WIDTH = "var(--sidebar-w)";
+const SIDEBAR_WIDTH_MOBILE = "var(--sidebar-w-mobile)";
+const SIDEBAR_WIDTH_ICON = "var(--rail)";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContextProps = {
@@ -67,12 +75,18 @@ function SidebarProvider({
   onOpenChange?: (open: boolean) => void;
 }) {
   const isMobile = useIsMobile();
+  // 1024-1279: the rail is not a preference, it is the layout (see use-mobile.ts).
+  const isRailViewport = useIsRailViewport();
   const [openMobile, setOpenMobile] = React.useState(false);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen);
-  const open = openProp ?? _open;
+  // DERIVED, not an effect: forcing the rail from a media query in useEffect would
+  // paint the full sidebar first and snap it shut after hydration — the exact flash the
+  // server-read `sidebar_state` cookie exists to avoid. The stored preference is
+  // untouched underneath, so it returns intact at >= 1280.
+  const open = isRailViewport ? false : (openProp ?? _open);
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value;
@@ -189,7 +203,10 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          // THE DRAWER. Same wood/char/paper panel as the docked rail — the gradient is
+          // --grad-sidebar in every palette, which is how Forno's near-black shell
+          // survives inside its LIGHT block.
+          className="w-(--sidebar-width) bg-sidebar bg-[image:var(--grad-sidebar)] p-0 text-sidebar-foreground shadow-xl [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -209,7 +226,7 @@ function Sidebar({
 
   return (
     <div
-      className="group peer hidden text-sidebar-foreground md:block"
+      className="group peer hidden text-sidebar-foreground lg:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
@@ -220,7 +237,7 @@ function Sidebar({
       <div
         data-slot="sidebar-gap"
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-(--dur-lg) ease-drawer",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
@@ -232,7 +249,7 @@ function Sidebar({
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:-left-(--sidebar-width) data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:-right-(--sidebar-width) md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-(--dur-lg) ease-drawer data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:-left-(--sidebar-width) data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:-right-(--sidebar-width) lg:flex",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
@@ -244,7 +261,10 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+          // THE PANEL. Crema's pale wood, Forno's oven mouth, Lievito's flat paper (its
+          // --grad-sidebar is a no-op gradient by design), Saffron's aged card — all one
+          // token. bg-sidebar stays underneath as the opaque floor.
+          className="flex size-full flex-col bg-sidebar bg-[image:var(--grad-sidebar)] group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow-lg"
         >
           {children}
         </div>
@@ -265,8 +285,10 @@ function SidebarTrigger({
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
-      size="icon-sm"
-      className={cn(className)}
+      // size-tap, not the 36px desktop-chrome rung: below 1024 this is the ONLY way
+      // into the navigation, and it is pressed with a wet thumb.
+      size="icon"
+      className={cn("shrink-0", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -291,7 +313,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
       onClick={toggleSidebar}
       title="Toggle Sidebar"
       className={cn(
-        "absolute inset-y-0 z-20 hidden w-4 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:inset-s-1/2 after:w-0.5 hover:after:bg-sidebar-border sm:flex ltr:-translate-x-1/2 rtl:-translate-x-1/2",
+        "absolute inset-y-0 z-20 hidden w-4 transition-all duration-(--dur) ease-quint group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:inset-s-1/2 after:w-0.5 hover:after:bg-sidebar-border sm:flex ltr:-translate-x-1/2 rtl:-translate-x-1/2",
         "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
         "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
         "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full hover:group-data-[collapsible=offcanvas]:bg-sidebar",
@@ -309,7 +331,12 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        "relative flex w-full flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+        // bg-app, not bg-background: THE PAGE GROUND. Every palette declares its own
+        // --app-bg (chalk settling to warm paper in Crema, semolina in Forno) and until
+        // now nothing consumed it, so three quarters of each palette's ground was dead
+        // CSS. The utility lives in globals.css because a gradient is a background, not
+        // a colour, and Tailwind has no name for that.
+        "bg-app relative flex w-full flex-1 flex-col md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-2xl md:peer-data-[variant=inset]:shadow md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
         className,
       )}
       {...props}
@@ -325,7 +352,7 @@ function SidebarInput({
     <Input
       data-slot="sidebar-input"
       data-sidebar="input"
-      className={cn("h-8 w-full bg-background shadow-none", className)}
+      className={cn("h-tap-sm w-full bg-background shadow-none", className)}
       {...props}
     />
   );
@@ -336,7 +363,13 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      // p-card-sm is the mockups' rail gutter (16px Crema / 14 Forno / 18 Lievito).
+      // In the rail it drops to a hairline gutter so a 44px target still fits inside
+      // --rail (48px) without the tap area being clipped.
+      className={cn(
+        "flex flex-col gap-sm p-card-sm group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0.5",
+        className,
+      )}
       {...props}
     />
   );
@@ -347,7 +380,11 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-footer"
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      // The foot is ruled off from the nav — the mockups' `.side-foot::before`.
+      className={cn(
+        "mt-auto flex flex-col gap-sm border-t border-sidebar-border p-card-sm group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0.5",
+        className,
+      )}
       {...props}
     />
   );
@@ -373,7 +410,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "no-scrollbar flex min-h-0 flex-1 flex-col gap-lg overflow-auto px-card-sm pb-card-sm group-data-[collapsible=icon]:gap-sm group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:px-0.5",
         className,
       )}
       {...props}
@@ -386,7 +423,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+      className={cn("relative flex w-full min-w-0 flex-col gap-xs p-0", className)}
       {...props}
     />
   );
@@ -402,7 +439,12 @@ function SidebarGroupLabel({
     props: mergeProps<"div">(
       {
         className: cn(
-          "flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+          // The mockups' `.nav-group > .label`. FULL --sidebar-foreground, never a
+          // tint: at 11px/0.12em this is small text and needs 4.5:1, and the sidebar
+          // has no muted token of its own — on Forno's charred rail --muted-foreground
+          // is dark ink on near-black. Hierarchy comes from size, weight and tracking
+          // instead, which is the same rule the mockups' mastheads use.
+          "flex h-tap-sm shrink-0 items-center rounded-md px-3 text-label tracking-label text-sidebar-foreground uppercase ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-(--dur) ease-quint group-data-[collapsible=icon]:-mt-tap-sm group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
           className,
         ),
       },
@@ -426,7 +468,7 @@ function SidebarGroupAction({
     props: mergeProps<"button">(
       {
         className: cn(
-          "absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform group-data-[collapsible=icon]:hidden after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 md:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
+          "absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-xs p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform group-data-[collapsible=icon]:hidden after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 md:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
           className,
         ),
       },
@@ -448,7 +490,7 @@ function SidebarGroupContent({
     <div
       data-slot="sidebar-group-content"
       data-sidebar="group-content"
-      className={cn("w-full text-sm", className)}
+      className={cn("w-full text-body", className)}
       {...props}
     />
   );
@@ -459,7 +501,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("flex w-full min-w-0 flex-col gap-0", className)}
+      className={cn("flex w-full min-w-0 flex-col gap-0.5", className)}
       {...props}
     />
   );
@@ -476,19 +518,35 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   );
 }
 
+/**
+ * THE NAV ITEM — "a ceramic card lifted off the wood" (crema-dashboard.html §4).
+ *
+ * The active item is not a tint. It is a surface change: --sidebar-accent fill, a
+ * --sidebar-border hairline, --sh-sm of lift, and a 4px --sidebar-primary rule flush
+ * against its left inside edge. Every one of those four is a token, so the same markup
+ * reads as Crema's raised ceramic card, Forno's ember-barred char slab, Lievito's
+ * fill-less left rule (its --sidebar-accent is a hair off --sidebar and its --sh-sm is
+ * transparent) and Saffron's aged panel.
+ *
+ * Height is --tap. The old ladder was h-8/h-7/h-12 — 32px nav rows on a device operated
+ * with wet hands.
+ */
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  "peer/menu-button group/menu-button relative flex w-full items-center gap-sm overflow-hidden rounded-md border border-transparent px-3 text-left text-body text-sidebar-foreground ring-sidebar-ring outline-hidden transition-[width,height,padding,background-color,color,box-shadow] duration-(--dur) ease-quint group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-tap! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:border-sidebar-border data-active:bg-sidebar-accent data-active:pl-4 data-active:font-semibold data-active:text-sidebar-accent-foreground data-active:shadow-sm before:pointer-events-none before:absolute before:inset-y-1.5 before:left-0 before:w-1 before:rounded-r-xs before:bg-sidebar-primary before:opacity-0 data-active:before:opacity-100 [&_svg]:size-4.5 [&_svg]:shrink-0 [&>span:last-child]:truncate",
   {
     variants: {
       variant: {
         default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         outline:
-          "bg-background shadow-[0_0_0_1px_var(--sidebar-border)] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_var(--sidebar-accent)]",
+          "border-sidebar-border bg-background shadow-xs hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       },
       size: {
-        default: "h-8 text-sm",
-        sm: "h-7 text-xs",
-        lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+        default: "h-tap text-body",
+        sm: "h-tap-sm text-small",
+        // The business switcher: two lines of text, so it is taller than a nav row.
+        // min-h-tap! in the rail, or the two-line switcher would keep its 56px height
+        // inside a 48px rail — min-height outranks the height the collapsed square sets.
+        lg: "h-auto min-h-14 py-2 text-body group-data-[collapsible=icon]:min-h-tap! group-data-[collapsible=icon]:p-0!",
       },
     },
     defaultVariants: {
@@ -566,7 +624,7 @@ function SidebarMenuAction({
     props: mergeProps<"button">(
       {
         className: cn(
-          "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform group-data-[collapsible=icon]:hidden peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 md:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
+          "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-xs p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform group-data-[collapsible=icon]:hidden peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 md:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
           showOnHover &&
             "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 peer-data-active/menu-button:text-sidebar-accent-foreground aria-expanded:opacity-100 md:opacity-0",
           className,
@@ -591,7 +649,9 @@ function SidebarMenuBadge({
       data-slot="sidebar-menu-badge"
       data-sidebar="menu-badge"
       className={cn(
-        "pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium text-sidebar-foreground tabular-nums select-none group-data-[collapsible=icon]:hidden peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 peer-data-active/menu-button:text-sidebar-accent-foreground",
+        // The mockups' `.nav-badge` — a count, so --font-num + tabular-nums, on the
+        // brand's own subtle wash rather than an alpha guess over the rail.
+        "pointer-events-none absolute right-2 flex min-h-5 min-w-5 items-center justify-center rounded-xs bg-brand-subtle px-1.5 font-num text-chip tracking-label text-brand-subtle-foreground tabular-nums select-none group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-2.5 peer-data-[size=lg]/menu-button:top-4 peer-data-[size=sm]/menu-button:top-1.5",
         className,
       )}
       {...props}
@@ -615,12 +675,12 @@ function SidebarMenuSkeleton({
     <div
       data-slot="sidebar-menu-skeleton"
       data-sidebar="menu-skeleton"
-      className={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
+      className={cn("flex h-tap items-center gap-sm rounded-md px-3", className)}
       {...props}
     >
       {showIcon && (
         <Skeleton
-          className="size-4 rounded-md"
+          className="size-4.5 rounded-xs"
           data-sidebar="menu-skeleton-icon"
         />
       )}
@@ -643,7 +703,7 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
-        "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5 group-data-[collapsible=icon]:hidden",
+        "mx-3.5 flex min-w-0 translate-x-px flex-col gap-0.5 border-l border-sidebar-border px-2.5 py-0.5 group-data-[collapsible=icon]:hidden",
         className,
       )}
       {...props}
@@ -681,7 +741,7 @@ function SidebarMenuSubButton({
     props: mergeProps<"a">(
       {
         className: cn(
-          "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground ring-sidebar-ring outline-hidden group-data-[collapsible=icon]:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[size=md]:text-sm data-[size=sm]:text-xs data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
+          "flex min-h-tap-sm min-w-0 -translate-x-px items-center gap-xs overflow-hidden rounded-md px-2 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-colors duration-(--dur) ease-quint group-data-[collapsible=icon]:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[size=md]:text-body data-[size=sm]:text-small data-active:bg-sidebar-accent data-active:font-semibold data-active:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
           className,
         ),
       },

@@ -30,6 +30,8 @@ const inr = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
+const since = new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric" });
+
 type FieldErrors = Partial<Record<string, string>>;
 
 export function CustomerDialog({
@@ -51,10 +53,35 @@ export function CustomerDialog({
           <DialogTitle>{customer ? customer.name : "Add customer"}</DialogTitle>
           <DialogDescription>
             {customer
-              ? `${inr.format(customer.totalSpend)} across ${customer.visitCount} visit${customer.visitCount === 1 ? "" : "s"}`
+              ? `Customer since ${since.format(new Date(customer.createdAt))}`
               : "A phone number is required — see below."}
           </DialogDescription>
         </DialogHeader>
+
+        {/* THE TWO FIGURES THIS SCREEN EXISTS FOR. --text-metric is the KPI step, and
+            it is the one place in a CRM record that earns it — always paired with
+            font-num + tabular-nums, because "₹4,86,300" is lakh-grouped and must not
+            jitter as it re-renders. */}
+        {customer ? (
+          <dl className="grid grid-cols-2 gap-xs">
+            <div className="rounded-xl border border-border bg-muted/40 p-card-sm">
+              <dt className="text-label tracking-label text-muted-foreground uppercase">
+                Lifetime spend
+              </dt>
+              <dd className="mt-1 truncate font-num text-metric tabular-nums text-foreground">
+                {inr.format(customer.totalSpend)}
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border bg-muted/40 p-card-sm">
+              <dt className="text-label tracking-label text-muted-foreground uppercase">
+                Visits
+              </dt>
+              <dd className="mt-1 truncate font-num text-metric tabular-nums text-foreground">
+                {customer.visitCount}
+              </dd>
+            </div>
+          </dl>
+        ) : null}
 
         {open ? (
           <CustomerBody
@@ -90,10 +117,15 @@ function CustomerBody({
   const detail = useCustomer(restaurantId, customer?.id);
 
   if (customer && detail.isPending) {
+    // Shaped like the form it stands in for: a label rule over a --tap-tall control,
+    // three times, so nothing jumps when the detail lands.
     return (
-      <div className="grid gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-9" />
+      <div className="grid gap-sm" aria-busy>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="grid gap-xs">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-tap rounded-lg" />
+          </div>
         ))}
       </div>
     );
@@ -153,92 +185,101 @@ function CustomerForm({
   }
 
   return (
-    <div className="grid gap-4">
-      <form onSubmit={onSubmit} className="grid gap-4" noValidate>
-        <div className="grid gap-2">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            name="name"
-            defaultValue={customer?.name}
-            placeholder="Meera Gupta"
-            aria-invalid={Boolean(errors.name)}
-          />
-          {errors.name ? <p className="text-destructive text-sm">{errors.name}</p> : null}
-        </div>
+    <form onSubmit={onSubmit} className="grid gap-sm" noValidate>
+      <div className="grid gap-xs">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          name="name"
+          defaultValue={customer?.name}
+          placeholder="Meera Gupta"
+          aria-invalid={Boolean(errors.name)}
+        />
+        {errors.name ? <p className="text-small text-destructive">{errors.name}</p> : null}
+      </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            name="phone"
-            defaultValue={customer?.phone ?? ""}
-            placeholder="+91 98765 43210"
-            aria-invalid={Boolean(errors.phone)}
-          />
-          {errors.phone ? (
-            <p className="text-destructive text-sm">{errors.phone}</p>
-          ) : (
-            <p className="text-muted-foreground text-xs">
-              Required — it&apos;s how a returning customer is recognised. An order without
-              one simply isn&apos;t attributed to anybody.
-            </p>
-          )}
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            defaultValue={detail?.email ?? ""}
-            placeholder="Optional"
-            aria-invalid={Boolean(errors.email)}
-          />
-          {errors.email ? <p className="text-destructive text-sm">{errors.email}</p> : null}
-        </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onDone} disabled={pending}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={pending}>
-            {pending ? "Saving…" : customer ? "Save changes" : "Add customer"}
-          </Button>
-        </DialogFooter>
-      </form>
-
-      {customer ? (
-        <div>
-          <p className="text-muted-foreground mb-2 text-xs font-medium">
-            Recent orders — what the lifetime spend is made of
+      <div className="grid gap-xs">
+        <Label htmlFor="phone">Phone</Label>
+        <Input
+          id="phone"
+          name="phone"
+          defaultValue={customer?.phone ?? ""}
+          placeholder="+91 98765 43210"
+          aria-invalid={Boolean(errors.phone)}
+        />
+        {errors.phone ? (
+          <p className="text-small text-destructive">{errors.phone}</p>
+        ) : (
+          <p className="max-w-measure text-small text-muted-foreground">
+            Required — it&apos;s how a returning customer is recognised. An order without
+            one simply isn&apos;t attributed to anybody.
           </p>
-          <div className="max-h-48 space-y-2 overflow-y-auto">
+        )}
+      </div>
+
+      <div className="grid gap-xs">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          defaultValue={detail?.email ?? ""}
+          placeholder="Optional"
+          aria-invalid={Boolean(errors.email)}
+        />
+        {errors.email ? <p className="text-small text-destructive">{errors.email}</p> : null}
+      </div>
+
+      {/* The history sits INSIDE the form and above the footer on purpose: DialogFooter
+          bleeds itself back out of the dialog's own p-card with -mx-card/-mb-card, so it
+          has to be the last thing in the popup or the bleed lands mid-panel. */}
+      {customer ? (
+        <section className="grid gap-xs">
+          <h3 className="text-label tracking-label text-muted-foreground uppercase">
+            Recent orders
+          </h3>
+          <p className="text-small text-muted-foreground">
+            What the lifetime spend is made of.
+          </p>
+          <div className="max-h-48 space-y-xs overflow-y-auto">
             {/* CustomerBody already waited for this fetch — see the note there. */}
             {detail?.orders.length ? (
-              detail.orders.map((order) => (
+              detail.orders.map((order, i) => (
                 <div
                   key={order.id}
-                  className="flex items-center gap-3 rounded-md border px-3 py-2 text-sm"
+                  className="rise flex items-center gap-sm rounded-md border border-border bg-card px-3 py-2 text-small shadow-xs"
+                  style={{ "--i": Math.min(i, 8) } as React.CSSProperties}
                 >
-                  <Badge variant="secondary">{order.orderNumber}</Badge>
-                  <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
+                  <Badge variant="secondary" className="font-num">
+                    {order.orderNumber}
+                  </Badge>
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground">
                     {order.orderItems
                       .map((line) => `${line.quantity}× ${line.menuItem.name}`)
                       .join(", ")}
                   </span>
-                  <span className="tabular-nums">{inr.format(order.totalAmount)}</span>
+                  <span className="font-num font-semibold tabular-nums">
+                    {inr.format(order.totalAmount)}
+                  </span>
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground py-4 text-center text-sm">
+              <p className="py-4 text-center text-small text-muted-foreground">
                 No paid orders yet.
               </p>
             )}
           </div>
-        </div>
+        </section>
       ) : null}
-    </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onDone} disabled={pending}>
+          Cancel
+        </Button>
+        <Button type="submit" className="shadow-brand" disabled={pending}>
+          {pending ? "Saving…" : customer ? "Save changes" : "Add customer"}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }

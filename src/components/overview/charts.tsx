@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarRange, Inbox } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -43,13 +44,77 @@ const dayLabel = (iso: string) =>
     timeZone: "UTC",
   });
 
-/** The three validated categorical slots, in FIXED ORDER. Never cycled, never by rank. */
-const SERIES = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)"];
+/**
+ * The SIX validated categorical slots, in FIXED ORDER. Assigned by position, never by
+ * rank, so a category keeps its colour when the ordering changes underneath it.
+ *
+ * This held only three for as long as OrderType held exactly three members, and
+ * `OrderTypeMix` indexes it with `i % SERIES.length` — so the moment a fourth category
+ * existed, slot 4 silently reused slot 1 and two different slices rendered identically.
+ * The palette contract already defines and contrast-validates all six slots in every one
+ * of the eight theme/mode blocks (each ≥3:1 on --card and on --background, with
+ * --chart-foreground ≥4.5:1 on each), so carrying three of them was leaving a validated
+ * ramp on the floor and keeping a latent collision.
+ *
+ * Six is the ceiling on purpose: past six, categorical colour stops separating for
+ * anyone, and the answer is to group the tail into "Other" rather than to add a slot.
+ */
+const SERIES = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
+];
+
+/**
+ * EVERY CHART IN HERE IS DRAWN ON --card, NEVER ON --background.
+ *
+ * That is a contrast constraint, not a preference: chart-2 measures 4.53:1 on --card but
+ * only 4.23:1 on the page ground, i.e. it passes AA on one surface and fails on the
+ * other. So all three components below are mounted only inside a <Card>, and everything
+ * they paint themselves — tooltip, axis type, empty state — wears --popover / --card /
+ * --muted tokens rather than the page's.
+ *
+ * The axis tick face is a CLASS, not a fontSize literal, so the type steps with
+ * --text-small when the palette does instead of being pinned at 12px in all four.
+ */
+const AXIS_TICK = { fill: "var(--chart-axis)", className: "text-small" } as const;
 
 function TooltipCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-popover text-popover-foreground rounded-md border px-3 py-2 text-sm shadow-md">
+    <div className="rounded-lg border border-border bg-popover px-3 py-2 text-small text-popover-foreground shadow-lg">
       {children}
+    </div>
+  );
+}
+
+/**
+ * THE EMPTY STATE, in the system rather than a centred grey sentence.
+ *
+ * It stands the same height the plot would, so a card with no data yet does not collapse
+ * and shunt the rest of the grid upward on first load.
+ */
+function ChartEmpty({
+  icon: Icon,
+  title,
+  hint,
+}: {
+  icon: typeof Inbox;
+  title: string;
+  hint: string;
+}) {
+  return (
+    <div className="flex h-55 flex-col items-center justify-center gap-sm rounded-xl border border-dashed border-border bg-muted/40 p-card text-center">
+      <span
+        aria-hidden
+        className="grid size-11 place-items-center rounded-lg bg-brand-subtle text-brand-subtle-foreground shadow-xs"
+      >
+        <Icon className="size-5" />
+      </span>
+      <p className="text-body font-semibold text-foreground">{title}</p>
+      <p className="max-w-measure text-small text-balance text-muted-foreground">{hint}</p>
     </div>
   );
 }
@@ -64,6 +129,16 @@ function TooltipCard({ children }: { children: React.ReactNode }) {
  * "this is a quantity above a baseline".
  */
 export function RevenueTrend({ data }: { data: TrendPoint[] }) {
+  if (data.length === 0) {
+    return (
+      <ChartEmpty
+        icon={CalendarRange}
+        title="No takings in the window yet"
+        hint="The trend draws itself once the first day of paid orders closes. It plots 30 complete days, so today never appears here half-finished."
+      />
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height={220}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -81,14 +156,14 @@ export function RevenueTrend({ data }: { data: TrendPoint[] }) {
         <XAxis
           dataKey="date"
           tickFormatter={dayLabel}
-          tick={{ fill: "var(--chart-axis)", fontSize: 12 }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           minTickGap={28}
         />
         <YAxis
           tickFormatter={(v: number) => inrCompact.format(v)}
-          tick={{ fill: "var(--chart-axis)", fontSize: 12 }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           width={56}
@@ -102,10 +177,10 @@ export function RevenueTrend({ data }: { data: TrendPoint[] }) {
           content={({ active, payload, label }) =>
             active && payload?.length ? (
               <TooltipCard>
-                <div className="text-muted-foreground text-xs">
+                <div className="text-label tracking-label text-muted-foreground uppercase">
                   {dayLabel(String(label))}
                 </div>
-                <div className="font-medium tabular-nums">
+                <div className="mt-0.5 font-num tabular-nums text-foreground">
                   {inr.format(Number(payload[0].value))}
                 </div>
               </TooltipCard>
@@ -142,6 +217,16 @@ export function RevenueTrend({ data }: { data: TrendPoint[] }) {
  * nobody has to pay.
  */
 export function TopItems({ data }: { data: TopItem[] }) {
+  if (data.length === 0) {
+    return (
+      <ChartEmpty
+        icon={Inbox}
+        title="Nothing has sold yet"
+        hint="Once bills start being settled, the dishes carrying the month line up here by units sold."
+      />
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart
@@ -155,7 +240,7 @@ export function TopItems({ data }: { data: TopItem[] }) {
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fill: "var(--chart-axis)", fontSize: 12 }}
+          tick={AXIS_TICK}
           tickLine={false}
           axisLine={false}
           width={132}
@@ -166,8 +251,8 @@ export function TopItems({ data }: { data: TopItem[] }) {
           content={({ active, payload }) =>
             active && payload?.length ? (
               <TooltipCard>
-                <div className="font-medium">{payload[0].payload.name}</div>
-                <div className="text-muted-foreground text-xs tabular-nums">
+                <div className="font-semibold text-foreground">{payload[0].payload.name}</div>
+                <div className="mt-0.5 text-small tabular-nums text-muted-foreground">
                   {payload[0].payload.units} sold ·{" "}
                   {inr.format(payload[0].payload.revenue)}
                 </div>
@@ -189,7 +274,7 @@ export function TopItems({ data }: { data: TopItem[] }) {
             dataKey="units"
             position="right"
             offset={8}
-            className="fill-foreground text-xs tabular-nums"
+            className="fill-foreground text-small tabular-nums"
           />
         </Bar>
       </BarChart>
@@ -213,11 +298,17 @@ export function TopItems({ data }: { data: TopItem[] }) {
 export function OrderTypeMix({ data }: { data: TypeSlice[] }) {
   const total = data.reduce((sum, slice) => sum + slice.orders, 0);
   if (total === 0) {
-    return <p className="text-muted-foreground py-8 text-center text-sm">No paid orders yet.</p>;
+    return (
+      <ChartEmpty
+        icon={Inbox}
+        title="No paid orders yet"
+        hint="Dine-in, takeaway and delivery split themselves out here the moment the first bill is settled."
+      />
+    );
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-sm">
       {/* The stack. A row of divs, not an SVG — it is one bar; Recharts would be ceremony. */}
       <div className="flex h-10 w-full gap-0.5 overflow-hidden">
         {data.map((slice, i) => {
@@ -226,7 +317,7 @@ export function OrderTypeMix({ data }: { data: TypeSlice[] }) {
           return (
             <div
               key={slice.type}
-              className="flex items-center justify-center first:rounded-l-md last:rounded-r-md"
+              className="flex items-center justify-center first:rounded-l-sm last:rounded-r-sm"
               style={{ width: `${share * 100}%`, backgroundColor: SERIES[i % SERIES.length] }}
               title={`${slice.label}: ${slice.orders} orders`}
             >
@@ -236,7 +327,7 @@ export function OrderTypeMix({ data }: { data: TypeSlice[] }) {
                   deliberately light, so a fixed white label measures 2.3:1 there. This
                   token flips with the theme and clears 4.5:1 on all six slots in both. */}
               {percent >= 12 ? (
-                <span className="text-chart-foreground text-xs font-medium tabular-nums">{percent}%</span>
+                <span className="text-chip tabular-nums text-chart-foreground">{percent}%</span>
               ) : null}
             </div>
           );
@@ -245,18 +336,18 @@ export function OrderTypeMix({ data }: { data: TypeSlice[] }) {
 
       {/* The legend is always present for >= 2 series. Text wears TEXT tokens — never the
           series colour; the swatch beside it carries identity. */}
-      <div className="flex flex-wrap gap-x-5 gap-y-1">
+      <div className="flex flex-wrap gap-x-6 gap-y-xs">
         {data.map((slice, i) => {
           const percent = Math.round((slice.orders / total) * 100);
           return (
-            <div key={slice.type} className="flex items-center gap-2 text-sm">
+            <div key={slice.type} className="flex items-center gap-xs text-small">
               <span
                 aria-hidden
-                className="size-2.5 shrink-0 rounded-sm"
+                className="size-2.5 shrink-0 rounded-xs"
                 style={{ backgroundColor: SERIES[i % SERIES.length] }}
               />
-              <span>{slice.label}</span>
-              <span className="text-muted-foreground tabular-nums">
+              <span className="text-foreground">{slice.label}</span>
+              <span className="tabular-nums text-muted-foreground">
                 {percent}% · {inr.format(slice.revenue)}
               </span>
             </div>

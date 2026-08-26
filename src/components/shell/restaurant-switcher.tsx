@@ -46,26 +46,34 @@ export function RestaurantSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
+              // THE BUSINESS SWITCHER (mockups §4): a hairline card sitting ON the rail,
+              // two lines — name over role — with a chevron. It is a raised surface, not
+              // a nav row, so it carries --sidebar-accent + a border + --sh-xs even at
+              // rest, and collapses to just its tile in the rail.
               <SidebarMenuButton
                 size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                aria-label={`Switch business — currently ${current.name}, you are the ${current.role.toLowerCase()}`}
+                className="rounded-lg border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground shadow-xs data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-md bg-brand-subtle text-brand-subtle-foreground">
                   <Store className="size-4" />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{current.name}</span>
-                  <span className="text-muted-foreground truncate text-xs capitalize">
+                <div className="grid min-w-0 flex-1 text-left">
+                  <span className="truncate text-body font-semibold">{current.name}</span>
+                  {/* 11px uppercase is small text: it takes the full sidebar foreground,
+                      never a tint — Forno's rail is charred in LIGHT mode, where a muted
+                      ink would vanish. */}
+                  <span className="truncate text-label tracking-label text-sidebar-foreground uppercase">
                     {current.role.toLowerCase()}
                   </span>
                 </div>
-                <ChevronsUpDown className="ml-auto size-4" />
+                <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
               </SidebarMenuButton>
             }
           />
 
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="min-w-64"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
@@ -73,22 +81,22 @@ export function RestaurantSwitcher({
             {/* Base UI requires a Label to live inside a Group — outside one it throws
                 "MenuGroupContext is missing" at runtime, not at build time. */}
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-muted-foreground text-xs">
-                Restaurants
-              </DropdownMenuLabel>
+              <DropdownMenuLabel>Restaurants</DropdownMenuLabel>
 
               {memberships.map((m) => (
                 <DropdownMenuItem
                   key={m.restaurantId}
                   onClick={() => switchTo(m.restaurantId)}
-                  className="gap-2 p-2"
+                  className="gap-sm"
                 >
-                  <div className="flex size-6 items-center justify-center rounded-md border">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-xs border border-border bg-muted">
                     <Store className="size-3.5 shrink-0" />
                   </div>
                   <span className="truncate">{m.name}</span>
                   {m.restaurantId === current.restaurantId ? (
-                    <span className="text-muted-foreground ml-auto text-xs">current</span>
+                    <span className="ml-auto text-label tracking-label text-muted-foreground uppercase">
+                      current
+                    </span>
                   ) : null}
                 </DropdownMenuItem>
               ))}
@@ -100,11 +108,11 @@ export function RestaurantSwitcher({
             <DropdownMenuItem
               nativeButton={false}
               render={
-                <Link href="/onboarding" className="gap-2 p-2">
-                  <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                <Link href="/onboarding" className="gap-sm">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-xs border border-border bg-transparent">
                     <Plus className="size-4" />
                   </div>
-                  <span className="text-muted-foreground font-medium">Add restaurant</span>
+                  <span className="font-semibold">Add restaurant</span>
                 </Link>
               }
             />

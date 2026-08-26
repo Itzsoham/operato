@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 
 import { Providers } from "@/components/providers";
 import { AppSidebar } from "@/components/shell/app-sidebar";
+import { AppTopBar } from "@/components/shell/app-topbar";
+import { BottomTabBar } from "@/components/shell/bottom-tab-bar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requirePageMember, requireSession } from "@/lib/session";
 
@@ -60,7 +62,31 @@ export default async function TenantLayout({
           src/hooks/use-menu.ts), so the caches cannot collide in the first place. The
           remount is the backstop, not the excuse. */}
       <SidebarInset key={restaurantId}>
-        <Providers>{children}</Providers>
+        {/* The shell's chrome is mounted ONCE, here, instead of by every page: the
+            sidebar trigger is the only way into the navigation below 1024px, and a page
+            that forgets to render it is a page you cannot leave. */}
+        <AppTopBar restaurantId={restaurantId} restaurantName={membership.name} />
+
+        {/* THE ENTRANCE. `.rise` is translateY + opacity staggered by --i at --stagger:
+            the top bar arrives first, the page body a beat later. globals.css zeroes the
+            duration AND the delay under prefers-reduced-motion — without the delay reset
+            a reduced-motion visitor sits looking at opacity:0 for the whole stagger.
+
+            The column is deliberately NOT centred on --measure yet: PageHeader's band
+            is full-bleed and its copy sits on the page gutter, so centring only this
+            wrapper would leave every title indented away from the cards beneath it.
+            The measure moves in when the page bodies themselves adopt it.
+
+            max-lg:pb-24 reserves the bottom tab bar's strip. The bar is fixed, so
+            without it the last row of every page hides underneath the tabs. */}
+        <div
+          className="rise flex w-full min-w-0 flex-1 flex-col max-lg:pb-24"
+          style={{ "--i": 1 } as React.CSSProperties}
+        >
+          <Providers>{children}</Providers>
+        </div>
+
+        <BottomTabBar restaurantId={restaurantId} />
       </SidebarInset>
     </SidebarProvider>
   );

@@ -1,9 +1,19 @@
 "use client";
 
-import { ChevronDown, MoreHorizontal, Pencil, Plus, UserCheck, UserX, UsersRound } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  UserCheck,
+  UserX,
+  UsersRound,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ROLE_LABEL, StaffDialog } from "@/components/staff/staff-dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +59,16 @@ const FILTER_LABEL: Record<RosterFilter, string> = {
 
 const COLUMN_COUNT = 6;
 
+/** Initials for the roster avatar. A plain helper, not a hook — same split as
+ *  elapsedLabel() below. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  const first = parts[0].charAt(0);
+  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
+  return (first + last).toUpperCase();
+}
+
 export function StaffClient({
   restaurantId,
   canManage,
@@ -72,17 +92,17 @@ export function StaffClient({
     setOpen(true);
   }
 
-  if (isError) {
-    return (
-      <p className="text-destructive p-6 text-sm">Couldn&apos;t load the roster: {error.message}</p>
-    );
-  }
-
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center gap-2">
+    // data-density="touch" is law L15: the roster is tapped mid-service, on a floor
+    // tablet, so every control in this subtree is lifted to --tap (44px, 46 in Forno)
+    // by the scope in globals.css rather than by a per-button guess.
+    <div data-density="touch" className="flex flex-1 flex-col gap-lg p-page">
+      <div
+        className="rise flex flex-wrap items-center gap-sm"
+        style={{ "--i": 0 } as React.CSSProperties}
+      >
         <Select value={filter} onValueChange={(v) => setFilter((v ?? "active") as RosterFilter)}>
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-44" aria-label="Filter the roster">
             {/* Base UI's SelectValue renders the RAW VALUE unless you give it a render
                 function — it would show "active", not "Active roster". */}
             <SelectValue>{(value) => FILTER_LABEL[value as RosterFilter]}</SelectValue>
@@ -97,67 +117,83 @@ export function StaffClient({
         </Select>
 
         {canManage ? (
-          <Button className="ml-auto" onClick={() => openStaff()}>
-            <Plus className="size-4" />
+          // shadow-brand is spent exactly once per screen, and this is that once.
+          <Button className="ml-auto shadow-brand" onClick={() => openStaff()}>
+            <Plus />
             Add staff
           </Button>
         ) : null}
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Shift</TableHead>
-              <TableHead className="w-20" />
-            </TableRow>
-          </TableHeader>
+      {isError ? (
+        <ErrorPanel message={error.message} />
+      ) : (
+        /* THE ROSTER — a card first, a table second. rounded-2xl is --r-lg, the step
+           every palette annotates "THE CARD"; `shadow` is --sh, which resolves to
+           nothing at all in Lievito, where a card is a rule. */
+        <div
+          className="rise overflow-hidden rounded-2xl border border-border bg-card shadow"
+          style={{ "--i": 1 } as React.CSSProperties}
+        >
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Name</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Shift</TableHead>
+                <TableHead className="w-20">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-          <TableBody>
-            {isPending ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell colSpan={COLUMN_COUNT}>
-                    <Skeleton className="h-6 w-full" />
+            <TableBody>
+              {isPending ? (
+                Array.from({ length: 6 }).map((_, i) => <StaffRowSkeleton key={i} index={i} />)
+              ) : staff?.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={COLUMN_COUNT} className="whitespace-normal">
+                    <div className="flex flex-col items-center gap-sm px-card py-card text-center">
+                      <div className="flex size-tap items-center justify-center rounded-2xl bg-brand-subtle text-brand-subtle-foreground">
+                        <UsersRound className="size-5" aria-hidden />
+                      </div>
+                      <p className="font-heading text-h2 text-foreground">
+                        {filter === "inactive"
+                          ? "Nobody's been deactivated."
+                          : "No staff on the roster yet."}
+                      </p>
+                      <p className="max-w-measure text-small text-muted-foreground">
+                        {filter === "inactive"
+                          ? "Everyone you've hired is still on the active roster."
+                          : "Add the team and they can clock in and out from this table."}
+                      </p>
+                      {canManage && filter !== "inactive" ? (
+                        <Button size="sm" variant="outline" onClick={() => openStaff()}>
+                          <Plus />
+                          Add the first one
+                        </Button>
+                      ) : null}
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : staff?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={COLUMN_COUNT}>
-                  <div className="flex flex-col items-center gap-3 py-12 text-center">
-                    <div className="bg-muted text-muted-foreground flex size-11 items-center justify-center rounded-lg">
-                      <UsersRound className="size-5" />
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      {filter === "inactive" ? "Nobody's been deactivated." : "No staff on the roster yet."}
-                    </p>
-                    {canManage && filter !== "inactive" ? (
-                      <Button size="sm" variant="outline" onClick={() => openStaff()}>
-                        Add the first one
-                      </Button>
-                    ) : null}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              staff?.map((member) => (
-                <StaffRow
-                  key={member.id}
-                  restaurantId={restaurantId}
-                  staff={member}
-                  canManage={canManage}
-                  onEdit={openStaff}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                staff?.map((member, i) => (
+                  <StaffRow
+                    key={member.id}
+                    restaurantId={restaurantId}
+                    staff={member}
+                    canManage={canManage}
+                    onEdit={openStaff}
+                    index={Math.min(i, 12)}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <StaffDialog restaurantId={restaurantId} staff={active} open={open} onOpenChange={setOpen} />
     </div>
@@ -176,11 +212,13 @@ function StaffRow({
   staff,
   canManage,
   onEdit,
+  index,
 }: {
   restaurantId: string;
   staff: Staff;
   canManage: boolean;
   onEdit: (staff: Staff) => void;
+  index: number;
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -210,45 +248,65 @@ function StaffRow({
 
   return (
     <>
-      <TableRow>
+      <TableRow className="rise" style={{ "--i": index } as React.CSSProperties}>
         <TableCell>
-          <span className="font-medium">{staff.name}</span>
+          <div className="flex items-center gap-sm">
+            <Avatar>
+              <AvatarFallback className="bg-brand-subtle text-small font-semibold text-brand-subtle-foreground">
+                {initials(staff.name)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="min-w-0 truncate font-medium">{staff.name}</span>
+          </div>
         </TableCell>
 
         <TableCell>
           <Badge variant="secondary">{ROLE_LABEL[staff.role]}</Badge>
         </TableCell>
 
-        <TableCell className="text-muted-foreground text-sm">
-          <div className="flex flex-col">
-            <span>{staff.phone ?? "—"}</span>
-            {staff.email ? <span className="text-xs">{staff.email}</span> : null}
+        <TableCell className="text-small text-muted-foreground">
+          <div className="flex flex-col gap-0.5">
+            <span className="font-num tabular-nums">{staff.phone ?? "—"}</span>
+            {staff.email ? <span className="truncate">{staff.email}</span> : null}
           </div>
         </TableCell>
 
         <TableCell>
+          {/* The status is carried by the WORD first. The square dot and the wash are
+              redundant with it, never a substitute — status is never colour alone. */}
           {staff.isActive ? (
             <Badge
               variant="secondary"
               className="bg-success-subtle text-success-subtle-foreground"
             >
+              <span data-slot="badge-dot" aria-hidden />
               Active
             </Badge>
           ) : (
-            <Badge variant="secondary">Inactive</Badge>
+            <Badge variant="outline">
+              <span data-slot="badge-dot" aria-hidden />
+              Inactive
+            </Badge>
           )}
         </TableCell>
 
         <TableCell className="text-right">
           {openShift ? (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={clockOut.isPending}
-              onClick={() => clockOut.mutate({ staffId: staff.id, shiftId: openShift.id })}
-            >
-              Clock out · {elapsedLabel(openShift.startTime)}
-            </Button>
+            <div className="flex items-center justify-end gap-sm">
+              <span className="hidden items-center gap-1.5 text-label tracking-label text-muted-foreground uppercase sm:inline-flex">
+                <span aria-hidden className="size-1.5 rounded-hair bg-success" />
+                On shift
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={clockOut.isPending}
+                onClick={() => clockOut.mutate({ staffId: staff.id, shiftId: openShift.id })}
+              >
+                Clock out ·{" "}
+                <span className="font-num tabular-nums">{elapsedLabel(openShift.startTime)}</span>
+              </Button>
+            </div>
           ) : (
             <Button
               size="sm"
@@ -263,16 +321,17 @@ function StaffRow({
         </TableCell>
 
         <TableCell className="text-right">
-          <div className="flex items-center justify-end gap-1">
+          <div className="flex items-center justify-end gap-xs">
             <Button
               size="icon"
               variant="ghost"
-              className="size-8"
               aria-label={historyOpen ? "Hide shift history" : "Show shift history"}
               aria-expanded={historyOpen}
               onClick={() => setHistoryOpen((o) => !o)}
             >
-              <ChevronDown className={`size-4 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`transition-transform duration-(--dur) ease-quint ${historyOpen ? "rotate-180" : ""}`}
+              />
             </Button>
 
             {canManage ? (
@@ -282,16 +341,15 @@ function StaffRow({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8"
                       aria-label={`Actions for ${staff.name}`}
                     >
-                      <MoreHorizontal className="size-4" />
+                      <MoreHorizontal />
                     </Button>
                   }
                 />
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(staff)}>
-                    <Pencil className="size-4" />
+                    <Pencil />
                     Edit
                   </DropdownMenuItem>
                   {staff.isActive ? (
@@ -299,14 +357,14 @@ function StaffRow({
                       variant="destructive"
                       onClick={() => deactivate.mutate(staff.id)}
                     >
-                      <UserX className="size-4" />
+                      <UserX />
                       Deactivate
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem
                       onClick={() => reactivate.mutate({ id: staff.id, isActive: true })}
                     >
-                      <UserCheck className="size-4" />
+                      <UserCheck />
                       Reactivate
                     </DropdownMenuItem>
                   )}
@@ -319,21 +377,25 @@ function StaffRow({
 
       {historyOpen ? (
         <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={COLUMN_COUNT} className="bg-muted/30 whitespace-normal p-0">
-            <div className="p-4">
-              <p className="text-muted-foreground mb-2 text-xs font-medium">
+          <TableCell colSpan={COLUMN_COUNT} className="bg-muted/40 p-0 whitespace-normal">
+            <div className="grid gap-xs p-card-sm">
+              <h3 className="text-label tracking-label text-muted-foreground uppercase">
                 Recent shifts
-              </p>
+              </h3>
               {shiftsPending ? (
-                <Skeleton className="h-6 w-full" />
+                <div className="grid gap-xs" aria-busy>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-tap-sm rounded-md" />
+                  ))}
+                </div>
               ) : shifts?.length ? (
-                <ul className="space-y-1.5">
-                  {shifts.map((shift) => (
-                    <ShiftRow key={shift.id} shift={shift} />
+                <ul className="grid gap-xs">
+                  {shifts.map((shift, i) => (
+                    <ShiftRow key={shift.id} shift={shift} index={i} />
                   ))}
                 </ul>
               ) : (
-                <p className="text-muted-foreground text-sm">No shifts recorded yet.</p>
+                <p className="text-small text-muted-foreground">No shifts recorded yet.</p>
               )}
             </div>
           </TableCell>
@@ -343,21 +405,75 @@ function StaffRow({
   );
 }
 
-function ShiftRow({ shift }: { shift: Shift }) {
+function ShiftRow({ shift, index }: { shift: Shift; index: number }) {
   const start = new Date(shift.startTime);
   const end = shift.endTime ? new Date(shift.endTime) : null;
 
   return (
-    <li className="flex items-center justify-between gap-3 text-sm">
-      <span className="text-muted-foreground">
+    <li
+      className="rise flex flex-wrap items-center justify-between gap-sm rounded-md border border-border bg-card px-3 py-2 text-small shadow-xs"
+      style={{ "--i": index } as React.CSSProperties}
+    >
+      <span className="min-w-0 font-num tabular-nums text-muted-foreground">
         {start.toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
         {" → "}
         {end ? end.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "still clocked in"}
       </span>
-      <span className="tabular-nums">
+      <span className="font-num font-semibold tabular-nums">
         {shift.hoursWorked != null ? `${shift.hoursWorked}h` : "—"}
       </span>
     </li>
+  );
+}
+
+/** A skeleton shaped like the row it replaces — avatar disc, chip, two contact lines, a
+ *  control — so nothing reflows when the roster lands. */
+function StaffRowSkeleton({ index }: { index: number }) {
+  return (
+    <TableRow className="rise hover:bg-transparent" style={{ "--i": index } as React.CSSProperties}>
+      <TableCell>
+        <div className="flex items-center gap-sm">
+          <Skeleton className="size-8 rounded-pill" />
+          <Skeleton className="h-4 w-36" />
+        </div>
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-6 w-20 rounded-4xl" />
+      </TableCell>
+      <TableCell>
+        <div className="grid gap-1">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-3 w-36" />
+        </div>
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-6 w-16 rounded-4xl" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="ml-auto h-tap-sm w-28 rounded-ctl-sm" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="ml-auto h-tap-sm w-20 rounded-md" />
+      </TableCell>
+    </TableRow>
+  );
+}
+
+/** The failure surface. The -subtle triple (opaque wash, measured ink, opaque edge) is
+ *  what the system designed for exactly this. The icon is redundant with the words. */
+function ErrorPanel({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className="rise flex items-start gap-sm rounded-2xl border border-destructive-border bg-destructive-subtle p-card text-destructive-subtle-foreground shadow-xs"
+      style={{ "--i": 1 } as React.CSSProperties}
+    >
+      <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
+      <div className="min-w-0">
+        <p className="font-heading text-h2">Couldn&apos;t load the roster.</p>
+        <p className="mt-1 max-w-measure text-small wrap-break-word">{message}</p>
+      </div>
+    </div>
   );
 }
 
@@ -376,4 +492,3 @@ function elapsedLabel(startTimeIso: string): string {
   const minutes = totalMinutes % 60;
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
-

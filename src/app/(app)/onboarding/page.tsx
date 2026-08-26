@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PaletteSwitcher } from "@/components/shell/palette-switcher";
 import {
   Card,
   CardContent,
@@ -21,7 +22,15 @@ export default async function OnboardingPage() {
   const isFirst = memberships.length === 0;
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted/40 p-6">
+    /* Onboarding sits outside [restaurantId], so it never gets PageHeader — and so it
+       had no appearance control at all until this landed. Same corner placement as the
+       (auth) shell, and `.bg-app` for the palette's own ground instead of a flat
+       `bg-muted/40` wash that does not re-theme. */
+    <div className="bg-app relative flex min-h-svh flex-col items-center justify-center gap-lg p-page">
+      <div className="absolute top-page right-page">
+        <PaletteSwitcher />
+      </div>
+
       <div className="w-full max-w-sm">
         <Card>
           <CardHeader>

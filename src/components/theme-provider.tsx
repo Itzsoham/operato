@@ -13,14 +13,25 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
  * It went unnoticed because it fails silently: no error, no warning, just a light UI. Only
  * screenshotting the dashboard in dark mode showed it — the render was byte-identical.
  *
- * `attribute="class"` is what shadcn's variant expects; `defaultTheme="system"` follows the
- * OS until someone chooses otherwise.
+ * `attribute="class"` is what shadcn's variant expects.
+ *
+ * DEFAULT IS `light`, NOT `system`. Operato's default look is Crema in light — a warm
+ * paper ground — and that is the palette the whole design system was authored against.
+ * Following the OS instead meant a visitor whose laptop happens to be in dark mode saw
+ * Crema-dark on first load and never saw the intended default at all.
+ *
+ * `enableSystem` STAYS ON, so "System" is still offered in the switcher alongside Light
+ * and Dark — the default is an opinion about the first load, not a restriction. Once
+ * someone picks, next-themes persists it and this value is never consulted again.
+ *
+ * Mode pairs with the palette dimension in palette-provider.tsx, whose default is
+ * likewise `crema`; the two together are what a first-time visitor sees.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="system"
+      defaultTheme="light"
       enableSystem
       // The theme is resolved before paint by next-themes' inline script; without this,
       // switching themes animates every colour transition on the page at once.

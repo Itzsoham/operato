@@ -65,8 +65,8 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate data-testid="sign-up-form">
-      <div className="grid gap-2">
+    <form onSubmit={onSubmit} className="flex flex-col gap" noValidate data-testid="sign-up-form">
+      <div className="grid gap-xs">
         <Label htmlFor="name">Your name</Label>
         <Input
           id="name"
@@ -77,10 +77,10 @@ export function SignUpForm() {
           data-testid="sign-up-name"
           required
         />
-        {errors.name ? <p className="text-destructive text-sm">{errors.name}</p> : null}
+        {errors.name ? <p className="text-destructive text-small">{errors.name}</p> : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
@@ -92,10 +92,10 @@ export function SignUpForm() {
           data-testid="sign-up-email"
           required
         />
-        {errors.email ? <p className="text-destructive text-sm">{errors.email}</p> : null}
+        {errors.email ? <p className="text-destructive text-small">{errors.email}</p> : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="password">Password</Label>
         <Input
           id="password"
@@ -106,12 +106,12 @@ export function SignUpForm() {
           data-testid="sign-up-password"
           required
         />
-        <p className="text-muted-foreground text-xs">At least 8 characters.</p>
-        {errors.password ? <p className="text-destructive text-sm">{errors.password}</p> : null}
+        <p className="text-muted-foreground text-bodyall">At least 8 characters.</p>
+        {errors.password ? <p className="text-destructive text-small">{errors.password}</p> : null}
       </div>
 
       {errors.form ? (
-        <p role="alert" className="text-destructive text-sm" data-testid="sign-up-error">
+        <p role="alert" className="text-destructive text-small" data-testid="sign-up-error">
           {errors.form}
         </p>
       ) : null}

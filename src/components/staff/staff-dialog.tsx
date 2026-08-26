@@ -137,8 +137,8 @@ function StaffForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
-      <div className="grid gap-2">
+    <form onSubmit={onSubmit} className="grid gap-sm" noValidate>
+      <div className="grid gap-xs">
         <Label htmlFor="name">Name</Label>
         <Input
           id="name"
@@ -147,10 +147,10 @@ function StaffForm({
           placeholder="Priya Sharma"
           aria-invalid={Boolean(errors.name)}
         />
-        {errors.name ? <p className="text-destructive text-sm">{errors.name}</p> : null}
+        {errors.name ? <p className="text-small text-destructive">{errors.name}</p> : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="role">Role</Label>
         <Select value={role} onValueChange={(value) => setRole((value ?? "WAITER") as StaffRole)}>
           <SelectTrigger id="role" className="w-full">
@@ -164,11 +164,11 @@ function StaffForm({
             ))}
           </SelectContent>
         </Select>
-        {errors.role ? <p className="text-destructive text-sm">{errors.role}</p> : null}
+        {errors.role ? <p className="text-small text-destructive">{errors.role}</p> : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+      <div className="grid gap-sm sm:grid-cols-2">
+        <div className="grid gap-xs">
           <Label htmlFor="phone">Phone</Label>
           <Input
             id="phone"
@@ -177,10 +177,10 @@ function StaffForm({
             placeholder="Optional"
             aria-invalid={Boolean(errors.phone)}
           />
-          {errors.phone ? <p className="text-destructive text-sm">{errors.phone}</p> : null}
+          {errors.phone ? <p className="text-small text-destructive">{errors.phone}</p> : null}
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-xs">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -190,12 +190,12 @@ function StaffForm({
             placeholder="Optional"
             aria-invalid={Boolean(errors.email)}
           />
-          {errors.email ? <p className="text-destructive text-sm">{errors.email}</p> : null}
+          {errors.email ? <p className="text-small text-destructive">{errors.email}</p> : null}
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+      <div className="grid gap-sm sm:grid-cols-2">
+        <div className="grid gap-xs">
           <Label htmlFor="salary">Salary (per month)</Label>
           <Input
             id="salary"
@@ -205,12 +205,16 @@ function StaffForm({
             min="0"
             defaultValue={staff?.salary ?? ""}
             placeholder="Optional"
+            className="font-num tabular-nums"
             aria-invalid={Boolean(errors.salary)}
           />
-          {errors.salary ? <p className="text-destructive text-sm">{errors.salary}</p> : null}
+          {errors.salary ? <p className="text-small text-destructive">{errors.salary}</p> : null}
         </div>
 
-        <div className="flex items-center gap-2 pb-2 pt-6">
+        {/* The switch sits in its own bordered cell rather than floating beside the
+            salary box: it is a decision, not a field, and the panel is what makes the
+            44px hit area obvious at a glance. */}
+        <div className="flex min-h-tap items-center gap-sm self-end rounded-lg border border-border bg-muted/40 px-3.5 py-2">
           <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
           <Label htmlFor="isActive" className="font-normal">
             Active
@@ -222,11 +226,10 @@ function StaffForm({
         <Button type="button" variant="outline" onClick={onDone} disabled={pending}>
           Cancel
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="shadow-brand" disabled={pending}>
           {pending ? "Saving…" : staff ? "Save changes" : "Add staff"}
         </Button>
       </DialogFooter>
     </form>
   );
 }
-

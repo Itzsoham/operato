@@ -1,5 +1,6 @@
 "use client";
 
+import { UtensilsCrossed } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -131,8 +132,8 @@ function MenuItemForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
-      <div className="grid gap-2">
+    <form onSubmit={onSubmit} className="grid gap-lg" noValidate>
+      <div className="grid gap-xs">
         <Label htmlFor="name">Name</Label>
         <Input
           id="name"
@@ -141,10 +142,10 @@ function MenuItemForm({
           placeholder="Butter Chicken"
           aria-invalid={Boolean(errors.name)}
         />
-        {errors.name ? <p className="text-destructive text-sm">{errors.name}</p> : null}
+        {errors.name ? <p className="text-small text-destructive">{errors.name}</p> : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
@@ -155,20 +156,28 @@ function MenuItemForm({
         />
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="image">Photo</Label>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-sm">
           {image ? (
             // Uploadthing's CDN, not next/image — no remotePatterns are configured for
             // it yet, and a plain <img> is fine for a dialog-sized thumbnail.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt="" className="bg-muted size-16 rounded-md border object-cover" />
+            <img
+              src={image}
+              alt=""
+              className="size-20 shrink-0 rounded-lg border border-border object-cover shadow-xs"
+            />
           ) : (
-            <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-md border text-[10px]">
-              No photo
+            // The same DRAWN GROUND the board's cards use: --grad-card-brand plus the
+            // utensils glyph, so an item with no photo still looks designed rather than
+            // broken, and re-cuts with the palette instead of being a grey square.
+            <div className="grid size-20 shrink-0 place-items-center gap-1 rounded-lg border border-border bg-[image:var(--grad-card-brand)] text-brand-subtle-foreground shadow-xs">
+              <UtensilsCrossed aria-hidden className="size-6 opacity-60" />
+              <span className="text-chip tracking-label uppercase">No photo</span>
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-xs">
             <input
               ref={fileInputRef}
               type="file"
@@ -207,11 +216,11 @@ function MenuItemForm({
           placeholder="Or paste an existing photo URL"
           aria-invalid={Boolean(errors.image)}
         />
-        {errors.image ? <p className="text-destructive text-sm">{errors.image}</p> : null}
+        {errors.image ? <p className="text-small text-destructive">{errors.image}</p> : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+      <div className="grid gap-sm sm:grid-cols-2">
+        <div className="grid gap-xs">
           <Label htmlFor="price">Price (₹)</Label>
           <Input
             id="price"
@@ -223,10 +232,10 @@ function MenuItemForm({
             placeholder="480"
             aria-invalid={Boolean(errors.price)}
           />
-          {errors.price ? <p className="text-destructive text-sm">{errors.price}</p> : null}
+          {errors.price ? <p className="text-small text-destructive">{errors.price}</p> : null}
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-xs">
           <Label htmlFor="preparationTime">Prep time (min)</Label>
           <Input
             id="preparationTime"
@@ -238,12 +247,12 @@ function MenuItemForm({
             aria-invalid={Boolean(errors.preparationTime)}
           />
           {errors.preparationTime ? (
-            <p className="text-destructive text-sm">{errors.preparationTime}</p>
+            <p className="text-small text-destructive">{errors.preparationTime}</p>
           ) : null}
         </div>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="category">Category</Label>
         {/* Base UI's Select hands back `string | null` (null = cleared), and its
             SelectValue renders the RAW VALUE unless given a render function — which here
@@ -277,26 +286,59 @@ function MenuItemForm({
           </SelectContent>
         </Select>
         {errors.categoryId ? (
-          <p className="text-destructive text-sm">{errors.categoryId}</p>
+          <p className="text-small text-destructive">{errors.categoryId}</p>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <Switch id="isVeg" checked={isVeg} onCheckedChange={setIsVeg} />
-          <Label htmlFor="isVeg" className="font-normal">
+      {/* The two flags become RULED ROWS rather than a loose pair of switches: each is a
+          --tap-high control on its own hairline panel, with the consequence spelled out
+          underneath. The veg row also carries the statutory mark, so the setting and the
+          thing it prints on the board look the same. */}
+      <div className="grid gap-xs sm:grid-cols-2">
+        <div className="flex min-h-tap items-center gap-sm rounded-lg border border-border bg-muted/40 px-card-sm py-2">
+          {/* The FSSAI form: a square OUTLINE carrying a filled CIRCLE for veg and a
+              filled TRIANGLE for non-veg. The GLYPH is what separates the two states —
+              the hues are only 5.90–10.47 dE apart under deuteranopia, so a dot in both
+              states (what this drew) was status by colour alone. Still aria-hidden: the
+              Switch beside it is the labelled control and already announces the state,
+              so this is a live preview of the mark, not a second announcement. The two
+              hues are fixed by law and are the one pair that must not re-theme. */}
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden
+            className={`size-3.5 shrink-0 ${isVeg ? "text-veg" : "text-nonveg"}`}
+          >
+            <rect
+              x="2.3"
+              y="2.3"
+              width="19.4"
+              height="19.4"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+            />
+            {isVeg ? (
+              <circle cx="12" cy="12" r="5.1" fill="currentColor" />
+            ) : (
+              <path d="M12 6.4 17.4 16.4 6.6 16.4Z" fill="currentColor" />
+            )}
+          </svg>
+          <Label htmlFor="isVeg" className="flex-1 font-normal">
             Vegetarian
           </Label>
+          <Switch id="isVeg" checked={isVeg} onCheckedChange={setIsVeg} />
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex min-h-tap items-center gap-sm rounded-lg border border-border bg-muted/40 px-card-sm py-2">
+          <Label htmlFor="isAvailable" className="flex-1 font-normal">
+            Available
+          </Label>
           <Switch
             id="isAvailable"
             checked={isAvailable}
             onCheckedChange={setIsAvailable}
           />
-          <Label htmlFor="isAvailable" className="font-normal">
-            Available
-          </Label>
         </div>
       </div>
 

@@ -1,6 +1,18 @@
 import * as React from "react";
 
-const MOBILE_BREAKPOINT = 768;
+/**
+ * THE SHELL'S RESPONSIVE LADDER, TABLET-FIRST (mockups §4, all four directions):
+ *
+ *   >= 1280   the full sidebar          (--sidebar-w)
+ *   1024-1279 the collapsed icon rail   (--rail)
+ *   <  1024   an off-canvas drawer + the bottom tab bar
+ *
+ * The old breakpoint was 768, which put a 10" kitchen tablet in landscape on the
+ * DESKTOP rung: a 268px sidebar eating a third of the screen, and no drawer. 1024 is
+ * the line the mockups draw and the line this app is actually used at.
+ */
+const MOBILE_BREAKPOINT = 1024;
+const RAIL_BREAKPOINT = 1280;
 
 /**
  * Deliberately NOT shadcn's generated version, which sets state inside an effect. That
@@ -27,4 +39,27 @@ const getServerSnapshot = () => false;
 
 export function useIsMobile(): boolean {
   return React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+/**
+ * The middle rung: tablet landscape, where the sidebar is ALWAYS the icon rail.
+ *
+ * It is not a preference on this rung — the mockups hide the toggle entirely between
+ * 1024 and 1279 (`.hamburger{display:none}`), because 268px of nav on a 1024px
+ * viewport leaves no room for a floor plan. The user's expanded/collapsed choice is
+ * still recorded in the cookie and comes back at >= 1280.
+ */
+function subscribeRail(onChange: () => void): () => void {
+  const mql = window.matchMedia(
+    `(min-width: ${MOBILE_BREAKPOINT}px) and (max-width: ${RAIL_BREAKPOINT - 1}px)`,
+  );
+  mql.addEventListener("change", onChange);
+  return () => mql.removeEventListener("change", onChange);
+}
+
+const getRailSnapshot = () =>
+  window.innerWidth >= MOBILE_BREAKPOINT && window.innerWidth < RAIL_BREAKPOINT;
+
+export function useIsRailViewport(): boolean {
+  return React.useSyncExternalStore(subscribeRail, getRailSnapshot, getServerSnapshot);
 }

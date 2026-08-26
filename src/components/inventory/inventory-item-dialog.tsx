@@ -97,10 +97,10 @@ function InventoryItemForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4" noValidate>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="name">Name</Label>
+    <form onSubmit={onSubmit} className="grid gap-lg" noValidate>
+      <div className="grid gap-sm sm:grid-cols-2">
+        <div className="grid gap-xs">
+          <Label htmlFor="name" className="text-label tracking-label uppercase">Name</Label>
           <Input
             id="name"
             name="name"
@@ -108,11 +108,11 @@ function InventoryItemForm({
             placeholder="Chicken"
             aria-invalid={Boolean(errors.name)}
           />
-          {errors.name ? <p className="text-destructive text-sm">{errors.name}</p> : null}
+          {errors.name ? <p className="text-small text-destructive">{errors.name}</p> : null}
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="unit">Unit</Label>
+        <div className="grid gap-xs">
+          <Label htmlFor="unit" className="text-label tracking-label uppercase">Unit</Label>
           <Input
             id="unit"
             name="unit"
@@ -120,13 +120,13 @@ function InventoryItemForm({
             placeholder="kg, litres, pieces…"
             aria-invalid={Boolean(errors.unit)}
           />
-          {errors.unit ? <p className="text-destructive text-sm">{errors.unit}</p> : null}
+          {errors.unit ? <p className="text-small text-destructive">{errors.unit}</p> : null}
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="lowStockThreshold">Reorder below</Label>
+      <div className="grid gap-sm sm:grid-cols-2">
+        <div className="grid gap-xs">
+          <Label htmlFor="lowStockThreshold" className="text-label tracking-label uppercase">Reorder below</Label>
           <Input
             id="lowStockThreshold"
             name="lowStockThreshold"
@@ -134,15 +134,16 @@ function InventoryItemForm({
             step="0.001"
             min="0"
             defaultValue={item?.lowStockThreshold ?? 10}
+            className="font-num tabular-nums"
             aria-invalid={Boolean(errors.lowStockThreshold)}
           />
           {errors.lowStockThreshold ? (
-            <p className="text-destructive text-sm">{errors.lowStockThreshold}</p>
+            <p className="text-small text-destructive">{errors.lowStockThreshold}</p>
           ) : null}
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="costPerUnit">Cost / unit (₹)</Label>
+        <div className="grid gap-xs">
+          <Label htmlFor="costPerUnit" className="text-label tracking-label uppercase">Cost / unit (₹)</Label>
           <Input
             id="costPerUnit"
             name="costPerUnit"
@@ -151,17 +152,18 @@ function InventoryItemForm({
             min="0"
             defaultValue={item?.costPerUnit ?? ""}
             placeholder="Optional"
+            className="font-num tabular-nums"
             aria-invalid={Boolean(errors.costPerUnit)}
           />
           {errors.costPerUnit ? (
-            <p className="text-destructive text-sm">{errors.costPerUnit}</p>
+            <p className="text-small text-destructive">{errors.costPerUnit}</p>
           ) : null}
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="supplier">Supplier</Label>
+      <div className="grid gap-sm sm:grid-cols-2">
+        <div className="grid gap-xs">
+          <Label htmlFor="supplier" className="text-label tracking-label uppercase">Supplier</Label>
           <Input
             id="supplier"
             name="supplier"
@@ -170,13 +172,13 @@ function InventoryItemForm({
             aria-invalid={Boolean(errors.supplier)}
           />
           {errors.supplier ? (
-            <p className="text-destructive text-sm">{errors.supplier}</p>
+            <p className="text-small text-destructive">{errors.supplier}</p>
           ) : null}
         </div>
 
         {!item ? (
-          <div className="grid gap-2">
-            <Label htmlFor="openingStock">Opening stock</Label>
+          <div className="grid gap-xs">
+            <Label htmlFor="openingStock" className="text-label tracking-label uppercase">Opening stock</Label>
             <Input
               id="openingStock"
               name="openingStock"
@@ -184,12 +186,13 @@ function InventoryItemForm({
               step="0.001"
               min="0"
               defaultValue={0}
+              className="font-num tabular-nums"
               aria-invalid={Boolean(errors.openingStock)}
             />
             {errors.openingStock ? (
-              <p className="text-destructive text-sm">{errors.openingStock}</p>
+              <p className="text-small text-destructive">{errors.openingStock}</p>
             ) : (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-small text-muted-foreground">
                 Booked as an opening delivery — the ledger accounts for every unit from zero.
               </p>
             )}

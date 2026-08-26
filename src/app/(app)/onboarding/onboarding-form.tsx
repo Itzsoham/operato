@@ -20,8 +20,8 @@ export function OnboardingForm() {
   const [slugTouched, setSlugTouched] = useState(false);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4" data-testid="onboarding-form">
-      <div className="grid gap-2">
+    <form action={formAction} className="flex flex-col gap" data-testid="onboarding-form">
+      <div className="grid gap-xs">
         <Label htmlFor="name">Restaurant name</Label>
         <Input
           id="name"
@@ -36,14 +36,14 @@ export function OnboardingForm() {
           required
         />
         {state.errors?.name ? (
-          <p className="text-destructive text-sm">{state.errors.name}</p>
+          <p className="text-destructive text-small">{state.errors.name}</p>
         ) : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="slug">Address</Label>
-        <div className="flex items-center gap-1">
-          <span className="text-muted-foreground text-sm">operato.app/</span>
+        <div className="flex items-center gap-xs">
+          <span className="text-muted-foreground text-body">operato.app/</span>
           <Input
             id="slug"
             name="slug"
@@ -59,16 +59,16 @@ export function OnboardingForm() {
           />
         </div>
         {state.errors?.slug ? (
-          <p className="text-destructive text-sm">{state.errors.slug}</p>
+          <p className="text-destructive text-small">{state.errors.slug}</p>
         ) : (
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-bodyall">
             Lowercase letters, numbers and hyphens.
           </p>
         )}
       </div>
 
       {state.errors?.form ? (
-        <p role="alert" className="text-destructive text-sm" data-testid="onboarding-error">
+        <p role="alert" className="text-destructive text-small" data-testid="onboarding-error">
           {state.errors.form}
         </p>
       ) : null}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { FolderPlus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -24,10 +24,21 @@ import {
 import { createCategorySchema } from "@/lib/validations/menu";
 
 /**
+ * THE STAGGERED ENTRANCE. `animate-rise` carries the keyframe from the --animate-rise
+ * token; --i and --stagger carry the delay a Tailwind animation shorthand cannot hold.
+ */
+const rise = (i: number) =>
+  ({ "--i": i, animationDelay: "calc(var(--i) * var(--stagger))" }) as React.CSSProperties;
+
+/**
  * One row per category — a rename field plus a delete button. Kept UNCONTROLLED-ish:
  * `name` resets to `category.name` whenever the row remounts (keyed by id below), so a
  * category renamed elsewhere (or reverted after a failed optimistic update) doesn't leave
  * this input showing a stale draft.
+ *
+ * The row is a RULED PANEL rather than three loose controls in a line: a hairline edge,
+ * the card surface, --pad-card-sm of air. Every control on it sits at --tap-sm, the
+ * desktop chrome floor, so the row height is a token rather than an h-8 guess.
  */
 function CategoryRow({ restaurantId, category }: { restaurantId: string; category: Category }) {
   const update = useUpdateCategory(restaurantId);
@@ -44,14 +55,17 @@ function CategoryRow({ restaurantId, category }: { restaurantId: string; categor
   }
 
   return (
-    <form onSubmit={onRename} className="flex items-center gap-2">
+    <form
+      onSubmit={onRename}
+      className="flex flex-wrap items-center gap-xs rounded-lg border border-border bg-card px-2 py-1.5 shadow-xs transition-colors duration-(--dur) ease-quint hover:border-input"
+    >
       <Input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="h-8"
+        className="h-tap-sm min-w-0 flex-1 text-small"
         aria-label={`Rename ${category.name}`}
       />
-      <Badge variant="secondary" className="shrink-0">
+      <Badge variant="secondary" className="shrink-0 tabular-nums">
         {category._count.menuItems} item{category._count.menuItems === 1 ? "" : "s"}
       </Badge>
       <Button type="submit" size="sm" variant="outline" disabled={!dirty || update.isPending}>
@@ -59,9 +73,9 @@ function CategoryRow({ restaurantId, category }: { restaurantId: string; categor
       </Button>
       <Button
         type="button"
-        size="icon"
+        size="icon-sm"
         variant="ghost"
-        className="text-destructive size-8 shrink-0"
+        className="shrink-0 text-destructive"
         aria-label={`Delete ${category.name}`}
         onClick={() => remove.mutate(category.id)}
         disabled={remove.isPending}
@@ -104,29 +118,55 @@ export function ManageCategoriesDialog({
         </DialogHeader>
 
         {open ? (
-          <div className="grid gap-4">
-            <form onSubmit={onCreate} className="flex items-center gap-2">
+          <div className="grid gap-sm">
+            <form onSubmit={onCreate} className="flex items-center gap-xs">
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="New category"
-                className="h-8"
+                aria-label="New category name"
+                className="h-tap-sm text-small"
               />
               <Button type="submit" size="sm" disabled={!name.trim() || create.isPending}>
                 {create.isPending ? "Adding…" : "Add"}
               </Button>
             </form>
 
-            <div className="grid max-h-72 gap-2 overflow-y-auto">
+            <div className="grid max-h-80 gap-xs overflow-y-auto">
               {isPending ? (
-                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className="animate-rise h-13 w-full rounded-lg"
+                    style={rise(i)}
+                    aria-hidden
+                  />
+                ))
               ) : categories?.length === 0 ? (
-                <p className="text-muted-foreground py-4 text-center text-sm">
-                  No categories yet.
-                </p>
+                // THE EMPTY STATE, in the system: a dashed well, a brand-subtle tile, and
+                // a sentence that says what a category is FOR rather than that there are
+                // none.
+                <div
+                  className="animate-rise flex flex-col items-center gap-xs rounded-xl border border-dashed border-border bg-muted/40 px-card-sm py-8 text-center"
+                  style={rise(0)}
+                >
+                  <span
+                    aria-hidden
+                    className="grid size-11 place-items-center rounded-lg bg-brand-subtle text-brand-subtle-foreground shadow-xs"
+                  >
+                    <FolderPlus className="size-5" />
+                  </span>
+                  <p className="text-body font-semibold text-foreground">No categories yet</p>
+                  <p className="max-w-measure text-small text-balance text-muted-foreground">
+                    Starters, Breads, Mains — the sections dishes get grouped under on the
+                    board and on every order screen.
+                  </p>
+                </div>
               ) : (
-                categories?.map((c) => (
-                  <CategoryRow key={c.id} restaurantId={restaurantId} category={c} />
+                categories?.map((c, i) => (
+                  <div key={c.id} className="animate-rise" style={rise(i)}>
+                    <CategoryRow restaurantId={restaurantId} category={c} />
+                  </div>
                 ))
               )}
             </div>

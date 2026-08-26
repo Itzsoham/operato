@@ -73,17 +73,17 @@ const PLANS: Plan[] = [
 
 export default function PricingPage() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-20 sm:px-6">
+    <section className="wrap px-page py-16">
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+        <h1 className="font-heading text-display text-balance">
           Simple pricing
         </h1>
-        <p className="text-muted-foreground mt-4 text-base sm:text-lg">
+        <p className="text-muted-foreground text-body mt-sm">
           Start free, no card required. Upgrade when the daily AI limit starts to feel small.
         </p>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-3xl gap-6 sm:grid-cols-2">
+      <div className="mx-auto mt-lg grid max-w-3xl gap-lg sm:grid-cols-2">
         {PLANS.map((plan) => (
           <Card
             key={plan.id}
@@ -93,18 +93,18 @@ export default function PricingPage() {
               {plan.highlighted ? (
                 <Badge className="mb-2 w-fit">Most popular</Badge>
               ) : null}
-              <CardTitle className="text-lg">{plan.name}</CardTitle>
+              <CardTitle className="text-h2">{plan.name}</CardTitle>
               <CardDescription>{plan.description}</CardDescription>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tracking-tight">{plan.price}</span>
-                <span className="text-muted-foreground text-sm">{plan.cadence}</span>
+              <div className="mt-xs flex items-baseline gap-xs">
+                <span className="font-num text-metric tabular-nums">{plan.price}</span>
+                <span className="text-muted-foreground text-small">{plan.cadence}</span>
               </div>
             </CardHeader>
 
             <CardContent className="flex-1">
-              <ul className="flex flex-col gap-3 text-sm">
+              <ul className="text-body flex flex-col gap-sm">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
+                  <li key={feature} className="flex items-start gap-xs">
                     <Check className="text-foreground mt-0.5 size-4 shrink-0" />
                     <span>{feature}</span>
                   </li>
@@ -123,7 +123,7 @@ export default function PricingPage() {
         ))}
       </div>
 
-      <p className="text-muted-foreground mx-auto mt-8 max-w-md text-center text-xs text-balance">
+      <p className="text-muted-foreground text-small mx-auto mt-lg max-w-md text-center text-balance">
         Both plans start from the same sign-up flow. You can move to Pro from inside your
         dashboard whenever you&apos;re ready.
       </p>

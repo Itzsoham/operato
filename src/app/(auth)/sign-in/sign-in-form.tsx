@@ -58,8 +58,8 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate data-testid="sign-in-form">
-      <div className="grid gap-2">
+    <form onSubmit={onSubmit} className="flex flex-col gap" noValidate data-testid="sign-in-form">
+      <div className="grid gap-xs">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
@@ -71,10 +71,10 @@ export function SignInForm() {
           data-testid="sign-in-email"
           required
         />
-        {errors.email ? <p className="text-destructive text-sm">{errors.email}</p> : null}
+        {errors.email ? <p className="text-destructive text-small">{errors.email}</p> : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-xs">
         <Label htmlFor="password">Password</Label>
         <Input
           id="password"
@@ -85,11 +85,11 @@ export function SignInForm() {
           data-testid="sign-in-password"
           required
         />
-        {errors.password ? <p className="text-destructive text-sm">{errors.password}</p> : null}
+        {errors.password ? <p className="text-destructive text-small">{errors.password}</p> : null}
       </div>
 
       {errors.form ? (
-        <p role="alert" className="text-destructive text-sm" data-testid="sign-in-error">
+        <p role="alert" className="text-destructive text-small" data-testid="sign-in-error">
           {errors.form}
         </p>
       ) : null}
@@ -98,7 +98,7 @@ export function SignInForm() {
         {pending ? "Signing in…" : "Sign in"}
       </Button>
 
-      <div className="relative my-2 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+      <div className="relative my-2 text-center text-body after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
         <span className="relative z-10 bg-background px-2 text-muted-foreground">Or</span>
       </div>
 
