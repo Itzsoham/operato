@@ -302,6 +302,43 @@
   --spacing-sm: var(--gap-sm);
   --spacing-lg: var(--gap-lg);
 
+  /* ── PUTTING BACK THE THREE T-SHIRT WIDTHS THE ALIASES ABOVE ATE ──────────────
+     The width utilities do NOT read `--container-*` first. Tailwind resolves them
+     against `--max-width-*` → `--spacing-*` → `--container-*` IN THAT ORDER (`w`,
+     `min-w`, `max-w` and `basis` in tailwindcss/dist/lib.js), so SPACING WINS OVER
+     CONTAINER and the three rhythm steps named for t-shirt sizes silently
+     redefined the whole scale:
+
+         max-w-xs   20rem → var(--gap-xs)   8px
+         max-w-sm   24rem → var(--gap-sm)  12px
+         max-w-lg   32rem → var(--gap-lg)  22px
+
+     Which is not a nit: `sm:max-w-sm` is on every Dialog and Sheet, `max-w-xs` on
+     every Tooltip and AlertDialog, `sm:max-w-lg` on the four record dialogs, and
+     `max-w-sm` on the (auth) card — all of them collapsed to a 8-22px sliver on
+     any viewport ≥sm, which is exactly how the sign-in page rendered.
+
+     Restating the three in the HIGHER-PRIORITY namespaces gives the scale back
+     without renaming ~320 gap-xs / gap-sm / gap-lg call sites. The values are
+     Tailwind's own --container-xs/sm/lg, written as literals rather than
+     var(--container-*) so they do not depend on the container variable surviving
+     the theme's used-variable pruning.
+
+     ANY new --spacing-<t-shirt-name> (md, xl, 2xl…) re-opens this hole and needs
+     the same four lines. */
+  --max-width-xs: 20rem;
+  --width-xs: 20rem;
+  --min-width-xs: 20rem;
+  --flex-basis-xs: 20rem;
+  --max-width-sm: 24rem;
+  --width-sm: 24rem;
+  --min-width-sm: 24rem;
+  --flex-basis-sm: 24rem;
+  --max-width-lg: 32rem;
+  --width-lg: 32rem;
+  --min-width-lg: 32rem;
+  --flex-basis-lg: 32rem;
+
   /* ── MOTION ───────────────────────────────────────────────────────────────────
      Tailwind's --ease-* namespace cannot hold a key called plain `--ease`, and
      `--ease-io: var(--ease-io)` would be the self-referential bug documented at the
