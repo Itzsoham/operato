@@ -36,7 +36,6 @@ import {
 } from "../src/generated/prisma/enums";
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
   adapter: new PrismaPg({
     connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL!,
   }),

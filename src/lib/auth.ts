@@ -11,10 +11,35 @@ import { prisma } from "@/lib/db";
 // Clerk design). Membership lives in our own `RestaurantMember` table, keyed by
 // `user.id`; see requireMember() for how a request is bound to a tenant.
 
-function required(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required environment variable: ${name}`);
-  return value;
+function getBaseUrl(): string {
+  if (process.env.BETTER_AUTH_URL?.trim()) return process.env.BETTER_AUTH_URL.trim();
+  if (process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim()) {
+    return process.env.NEXT_PUBLIC_BETTER_AUTH_URL.trim();
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
+function getTrustedOrigins(): string[] {
+  const origins = new Set<string>();
+  const base = getBaseUrl();
+  if (base) origins.add(base);
+  if (process.env.BETTER_AUTH_URL?.trim()) origins.add(process.env.BETTER_AUTH_URL.trim());
+  if (process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.trim()) {
+    origins.add(process.env.NEXT_PUBLIC_BETTER_AUTH_URL.trim());
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    origins.add(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+  if (process.env.VERCEL_URL) {
+    origins.add(`https://${process.env.VERCEL_URL}`);
+  }
+  return Array.from(origins);
 }
 
 // Google sign-in is opt-in, but a HALF-configured pair is always a mistake — fail
@@ -27,15 +52,14 @@ if (Boolean(googleId) !== Boolean(googleSecret)) {
   );
 }
 
+const baseURL = getBaseUrl();
+const trustedOrigins = getTrustedOrigins();
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
 
-  // Explicit, and required. Left unset, Better Auth falls back to deriving the origin
-  // from the INCOMING REQUEST — so the CSRF origin check would validate a request
-  // against an origin taken from that same request, degrading quietly instead of
-  // failing. Pin it, and refuse to boot without it.
-  baseURL: required("BETTER_AUTH_URL"),
-  trustedOrigins: [required("BETTER_AUTH_URL")],
+  baseURL,
+  trustedOrigins,
 
   emailAndPassword: {
     enabled: true,
