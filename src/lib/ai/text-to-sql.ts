@@ -1,12 +1,15 @@
-import "server-only";
-
-import { google } from "@ai-sdk/google";
-import { generateObject, generateText } from "ai";
 import { z } from "zod";
 
 import { AiError } from "@/lib/ai/errors";
-import { MODEL_INTERACTIVE } from "@/lib/ai/models";
-import { checkAiRateLimit, recordAiQuery, type RateLimitStatus } from "@/lib/ai/rate-limit";
+import {
+  generateObjectWithFallback,
+  generateTextWithFallback,
+} from "@/lib/ai/models";
+import {
+  checkAiRateLimit,
+  recordAiQuery,
+  type RateLimitStatus,
+} from "@/lib/ai/rate-limit";
 import { runReadonlySql, type SqlRow } from "@/lib/ai/run-readonly-sql";
 import { buildSqlSystemPrompt } from "@/lib/ai/schema-context";
 import { serialize } from "@/lib/serialize";
@@ -49,12 +52,15 @@ import { aiQuestionSchema } from "@/lib/validations/ai";
 const sqlPlanSchema = z.object({
   sql: z
     .string()
-    .describe("One PostgreSQL SELECT. No semicolon, no comments, no restaurantId filter."),
+    .describe(
+      "One PostgreSQL SELECT. No semicolon, no comments, no restaurantId filter.",
+    ),
   explanation: z
     .string()
-    .describe("One plain sentence describing what the query counts, for a non-technical reader."),
+    .describe(
+      "One plain sentence describing what the query counts, for a non-technical reader.",
+    ),
 });
-
 
 /**
  * How many result rows are quoted back to the model when it writes the answer.
@@ -88,27 +94,19 @@ async function generateSql(
   question: string,
   timezone: string,
 ): Promise<{ sql: string; explanation: string }> {
-  try {
-    const { object } = await generateObject({
-      model: google(MODEL_INTERACTIVE),
-      schema: sqlPlanSchema,
-      system: buildSqlSystemPrompt(timezone),
-      // The untrusted string stays HERE, in the user turn — never concatenated into the
-      // system message, where it would sit alongside the rules it might try to rewrite.
-      prompt: question,
-      // Deterministic. There is exactly one correct query for "revenue last week", and
-      // sampling variety in generated SQL buys nothing but flakiness.
-      temperature: 0,
-      maxOutputTokens: 1_000,
-    });
-    return object;
-  } catch (error) {
-    // Covers a missing/invalid GOOGLE_GENERATIVE_AI_API_KEY, a 429 from the shared free
-    // tier, and NoObjectGeneratedError when the model could not fit the schema.
-    throw new AiError(503, "The assistant is unavailable right now. Try again shortly.", {
-      cause: error,
-    });
-  }
+  const { object } = await generateObjectWithFallback({
+    tier: "interactive",
+    schema: sqlPlanSchema,
+    system: buildSqlSystemPrompt(timezone),
+    // The untrusted string stays HERE, in the user turn — never concatenated into the
+    // system message, where it would sit alongside the rules it might try to rewrite.
+    prompt: question,
+    // Deterministic. There is exactly one correct query for "revenue last week", and
+    // sampling variety in generated SQL buys nothing but flakiness.
+    temperature: 0,
+    maxOutputTokens: 1_000,
+  });
+  return object;
 }
 
 /** The rows, trimmed to something a prompt can afford. */
@@ -196,7 +194,10 @@ async function planAndRun(input: {
   // is a 400 the user can act on.
   const parsed = aiQuestionSchema.safeParse(input.question);
   if (!parsed.success) {
-    throw new AiError(400, parsed.error.issues[0]?.message ?? "That question can't be answered.");
+    throw new AiError(
+      400,
+      parsed.error.issues[0]?.message ?? "That question can't be answered.",
+    );
   }
   const question = parsed.data;
 
@@ -209,7 +210,10 @@ async function planAndRun(input: {
     const plan = await generateSql(question, input.timezone);
     sql = plan.sql;
 
-    const { rows, truncated } = await runReadonlySql(input.restaurantId, plan.sql);
+    const { rows, truncated } = await runReadonlySql(
+      input.restaurantId,
+      plan.sql,
+    );
 
     // Finding 5. COUNT(*) comes back as BigInt and JSON.stringify throws on it outright;
     // numeric money columns come back as Prisma.Decimal, whose toJSON() emits a STRING, so
@@ -218,7 +222,14 @@ async function planAndRun(input: {
     // reimplemented, because it already handles the toJSON()-runs-before-the-replacer trap.
     const serialized = serialize(rows);
 
-    return { question, usage, sql: plan.sql, explanation: plan.explanation, rows: serialized, truncated };
+    return {
+      question,
+      usage,
+      sql: plan.sql,
+      explanation: plan.explanation,
+      rows: serialized,
+      truncated,
+    };
   } catch (error) {
     // Record the attempt even though it failed: the rate limit meters attempts (see
     // recordAiQuery), and a failed generation still cost a Gemini call.
@@ -248,8 +259,8 @@ export async function answerQuestion(input: {
 
   let answer: string;
   try {
-    const result = await generateText({
-      model: google(MODEL_INTERACTIVE),
+    const result = await generateTextWithFallback({
+      tier: "interactive",
       system: ANSWER_SYSTEM,
       prompt: buildAnswerPrompt(plan),
       // A little warmth in the wording; the NUMBERS come from Postgres, not from sampling.
@@ -265,9 +276,16 @@ export async function answerQuestion(input: {
       sql: plan.sql,
       response: "[error] answer generation failed",
     });
-    throw new AiError(503, "The assistant is unavailable right now. Try again shortly.", {
-      cause: error,
-    });
+    if (error instanceof AiError) {
+      throw error;
+    }
+    throw new AiError(
+      503,
+      "The assistant is unavailable right now. Try again shortly.",
+      {
+        cause: error,
+      },
+    );
   }
 
   await recordAiQuery({

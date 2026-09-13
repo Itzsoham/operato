@@ -1,10 +1,9 @@
-import "server-only";
-
-import { google } from "@ai-sdk/google";
-import { generateText } from "ai";
-
-import { byUrgency, fallbackMessage, needsAttention } from "@/lib/ai/inventory-alert-rules";
-import { MODEL_CRON } from "@/lib/ai/models";
+import {
+  byUrgency,
+  fallbackMessage,
+  needsAttention,
+} from "@/lib/ai/inventory-alert-rules";
+import { generateTextWithFallback } from "@/lib/ai/models";
 import { checkAiRateLimit, recordAiQuery } from "@/lib/ai/rate-limit";
 import { getStockLines, type StockLine } from "@/lib/inventory/service";
 
@@ -101,8 +100,8 @@ export async function getInventoryAlert(
   const factsJson = JSON.stringify(facts);
 
   try {
-    const { text } = await generateText({
-      model: google(MODEL_CRON),
+    const { text } = await generateTextWithFallback({
+      tier: "cron",
       system: ALERT_SYSTEM,
       prompt: factsJson,
       temperature: 0.3,
@@ -125,7 +124,10 @@ export async function getInventoryAlert(
     // The numbers are the product; the sentence is decoration. A Gemini outage, a missing
     // key or an exhausted quota must degrade to a plain list, never to an error page that
     // hides the stock levels an owner actually needs.
-    console.error("[ai] inventory alert prose failed; falling back to a plain list", error);
+    console.error(
+      "[ai] inventory alert prose failed; falling back to a plain list",
+      error,
+    );
     return { items, message: fallbackMessage(items), generated: false };
   }
 }

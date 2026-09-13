@@ -1,11 +1,6 @@
-import "server-only";
-
-import { google } from "@ai-sdk/google";
-import { generateText } from "ai";
-
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { MODEL_CRON } from "@/lib/ai/models";
+import { generateTextWithFallback } from "@/lib/ai/models";
 import { assertValidTimezone } from "@/lib/ai/schema-context";
 import { findCustomerRollupDrift, type RollupDrift } from "@/lib/ai/reconcile";
 import { serialize } from "@/lib/serialize";
@@ -70,7 +65,9 @@ export type WeeklySummaryResult = {
  * summarises Monday-to-Sunday, which is how a restaurant thinks about a week.
  */
 async function completedWeekBounds(timezone: string) {
-  const [row] = await prisma.$queryRaw<{ startText: string; endText: string }[]>`
+  const [row] = await prisma.$queryRaw<
+    { startText: string; endText: string }[]
+  >`
     WITH bounds AS (
       SELECT date_trunc('week', NOW() AT TIME ZONE ${timezone}) AS local_this_week
     ),
@@ -110,8 +107,9 @@ async function collectMetrics(restaurantId: string, timezone: string) {
   const bounds = await completedWeekBounds(timezone);
   const { startText, endText } = bounds;
 
-  const [totals, previous, itemRows, typeRows, newCustomers, dayRows] = await Promise.all([
-    prisma.$queryRaw<{ revenue: Numeric; orders: bigint }[]>`
+  const [totals, previous, itemRows, typeRows, newCustomers, dayRows] =
+    await Promise.all([
+      prisma.$queryRaw<{ revenue: Numeric; orders: bigint }[]>`
       SELECT SUM(o."totalAmount") AS revenue, COUNT(*) AS orders
         FROM "Order" o
        WHERE o."restaurantId" = ${restaurantId}
@@ -119,8 +117,8 @@ async function collectMetrics(restaurantId: string, timezone: string) {
          AND o."paidAt" >= ${startText}::timestamp
          AND o."paidAt" <  ${endText}::timestamp`,
 
-    // The week before, for "up 12% on last week" — a number with no comparison is trivia.
-    prisma.$queryRaw<{ revenue: Numeric; orders: bigint }[]>`
+      // The week before, for "up 12% on last week" — a number with no comparison is trivia.
+      prisma.$queryRaw<{ revenue: Numeric; orders: bigint }[]>`
       SELECT SUM(o."totalAmount") AS revenue, COUNT(*) AS orders
         FROM "Order" o
        WHERE o."restaurantId" = ${restaurantId}
@@ -128,7 +126,7 @@ async function collectMetrics(restaurantId: string, timezone: string) {
          AND o."paidAt" >= ${startText}::timestamp - interval '7 days'
          AND o."paidAt" <  ${startText}::timestamp`,
 
-    prisma.$queryRaw<{ name: string; units: bigint; revenue: Numeric }[]>`
+      prisma.$queryRaw<{ name: string; units: bigint; revenue: Numeric }[]>`
       SELECT mi.name, SUM(oi.quantity) AS units, SUM(oi."totalPrice") AS revenue
         FROM "OrderItem" oi
         JOIN "MenuItem" mi ON mi.id = oi."menuItemId"
@@ -145,7 +143,7 @@ async function collectMetrics(restaurantId: string, timezone: string) {
        ORDER BY units DESC, mi.name ASC
        LIMIT 5`,
 
-    prisma.$queryRaw<{ type: string; orders: bigint; revenue: Numeric }[]>`
+      prisma.$queryRaw<{ type: string; orders: bigint; revenue: Numeric }[]>`
       SELECT o.type::text AS type, COUNT(*) AS orders, SUM(o."totalAmount") AS revenue
         FROM "Order" o
        WHERE o."restaurantId" = ${restaurantId}
@@ -155,16 +153,16 @@ async function collectMetrics(restaurantId: string, timezone: string) {
        GROUP BY o.type
        ORDER BY orders DESC`,
 
-    prisma.$queryRaw<{ count: bigint }[]>`
+      prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) AS count
         FROM "Customer" c
        WHERE c."restaurantId" = ${restaurantId}
          AND c."createdAt" >= ${startText}::timestamp
          AND c."createdAt" <  ${endText}::timestamp`,
 
-    // Best day of the week, grouped on the LOCAL date — grouping on the raw UTC column
-    // would attribute Sunday's late trade to Monday.
-    prisma.$queryRaw<{ date: string; revenue: Numeric }[]>`
+      // Best day of the week, grouped on the LOCAL date — grouping on the raw UTC column
+      // would attribute Sunday's late trade to Monday.
+      prisma.$queryRaw<{ date: string; revenue: Numeric }[]>`
       SELECT to_char(date_trunc('day', o."paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone}),
                      'YYYY-MM-DD') AS date,
              SUM(o."totalAmount")  AS revenue
@@ -176,7 +174,7 @@ async function collectMetrics(restaurantId: string, timezone: string) {
        GROUP BY 1
        ORDER BY revenue DESC
        LIMIT 1`,
-  ]);
+    ]);
 
   const revenue = num(totals[0]?.revenue);
   const orders = Number(totals[0]?.orders ?? 0);
@@ -203,7 +201,9 @@ async function collectMetrics(restaurantId: string, timezone: string) {
       orders: Number(r.orders),
       revenue: num(r.revenue),
     })),
-    busiestDay: dayRows[0] ? { date: dayRows[0].date, revenue: num(dayRows[0].revenue) } : null,
+    busiestDay: dayRows[0]
+      ? { date: dayRows[0].date, revenue: num(dayRows[0].revenue) }
+      : null,
   };
 
   // Every BigInt and Decimal is already collapsed to a number above; serialize() is the
@@ -251,7 +251,9 @@ export async function generateWeeklySummary(
 
   if (!options.force) {
     const existing = await prisma.weeklySummary.findUnique({
-      where: { restaurantId_weekStart: { restaurantId, weekStart: bounds.start } },
+      where: {
+        restaurantId_weekStart: { restaurantId, weekStart: bounds.start },
+      },
     });
     if (existing) {
       return {
@@ -272,8 +274,8 @@ export async function generateWeeklySummary(
   if (metrics.orders === 0) {
     summary = "No sales were recorded last week.";
   } else {
-    const result = await generateText({
-      model: google(MODEL_CRON),
+    const result = await generateTextWithFallback({
+      tier: "cron",
       system: SUMMARY_SYSTEM,
       prompt: `Week of ${metrics.weekStart} to ${metrics.weekEnd} (${timezone}).\n${JSON.stringify(metrics)}`,
       temperature: 0.4,
@@ -283,7 +285,9 @@ export async function generateWeeklySummary(
   }
 
   await prisma.weeklySummary.upsert({
-    where: { restaurantId_weekStart: { restaurantId, weekStart: bounds.start } },
+    where: {
+      restaurantId_weekStart: { restaurantId, weekStart: bounds.start },
+    },
     create: {
       restaurantId,
       weekStart: bounds.start,
@@ -356,7 +360,9 @@ export async function runWeeklySummaries(
   // avoids spending the time budget on six queries per already-finished tenant. Eight days
   // is deliberately loose — it only has to be tighter than "every summary ever".
   const recent = await prisma.weeklySummary.findMany({
-    where: { weekStart: { gte: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) } },
+    where: {
+      weekStart: { gte: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) },
+    },
     select: { restaurantId: true },
   });
   const alreadyDone = new Set(recent.map((r) => r.restaurantId));
@@ -383,9 +389,13 @@ export async function runWeeklySummaries(
     }
 
     try {
-      const result = await generateWeeklySummary(restaurant.id, restaurant.timezone, {
-        force: options.force,
-      });
+      const result = await generateWeeklySummary(
+        restaurant.id,
+        restaurant.timezone,
+        {
+          force: options.force,
+        },
+      );
       (result.skipped ? report.skipped : report.generated).push(restaurant.id);
 
       // Only pause when a model call actually happened — a skipped tenant cost no quota,

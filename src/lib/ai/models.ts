@@ -1,88 +1,257 @@
-/**
- * The ONLY place a Gemini model name appears.
- *
- * Model ids are the thing most likely to change under us: Google retires them on a
- * published schedule (the plan originally pinned `gemini-2.0-flash`, which was already on
- * the deprecation path by the time it was written). Scattering the string across the SQL
- * step, the answer step, the weekly cron and the inventory alerts turns a one-line swap
- * into a grep-and-pray. Everything imports from here.
- *
- * There is deliberately no `google(...)` call in this file: the provider reads
- * GOOGLE_GENERATIVE_AI_API_KEY at call time, and constructing a model eagerly at module
- * scope would make importing ANY of these modules fail in an environment without the key
- * (tests, the schema-context unit test, a build step). Callers do `google(MODEL_...)`.
- */
+import "server-only";
+
+import { google } from "@ai-sdk/google";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { generateObject, generateText, type LanguageModel } from "ai";
+import type { z } from "zod";
+
+import { AiError } from "@/lib/ai/errors";
 
 /**
- * WHY NOT gemini-2.5-flash, WHICH THIS FILE PINNED UNTIL NOW.
+ * The primary and fallback model definitions for Operato.
  *
- * `models.list` still returns `gemini-2.5-flash` and `gemini-2.5-flash-lite`, so they look
- * alive — but CALLING either with a newly-issued key returns:
+ * Model ids are configured here to avoid scattering model strings across the SQL step,
+ * answer step, weekly cron, and inventory alerts. Everything imports from here.
  *
- *   404  "This model models/gemini-2.5-flash is no longer available to new users."
+ * Primary Provider: Google Gemini via `@ai-sdk/google` (GOOGLE_GENERATIVE_AI_API_KEY).
+ * Fallback Provider: OpenRouter via `@openrouter/ai-sdk-provider` (OPEN_ROUTER_AI_API_KEY).
  *
- * That is the exact failure this file's opening comment warned about, and it is nastier
- * than a plain deprecation: listing the models is not a test that you can USE them, and an
- * existing key on an older project keeps working while a fresh one does not. The retirement
- * is per-account, not global. If you ever need to re-pick, probe with a real
- * `:generateContent` call rather than trusting `models.list`.
+ * Models are lazily resolved at call time to prevent module import failures in environments
+ * lacking API keys (tests, build steps, CI).
  */
 
-/**
- * Treats an EMPTY env var as unset, which `??` alone does not — and .env.example ships
- * `GEMINI_MODEL=""`, so anyone who copies it and doesn't fill it in would otherwise send
- * an empty model id to Google and get an opaque 404.
- */
 function modelFromEnv(name: string, fallback: string): string {
   return process.env[name]?.trim() || fallback;
 }
 
 /**
- * Interactive text-to-SQL (`/ai/query`). A human is waiting, so latency and instruction
- * following matter more than cost.
- *
- * Defaults to the FLOATING `gemini-flash-latest` alias, which tracks whatever Google
- * currently considers the flagship Flash. That is the point: the retirement above landed
- * without warning, and an alias absorbs the next one without a code change. The tradeoff is
- * real and worth stating — this model's output feeds sql-guard.ts, so Google moving the
- * alias means the text-to-SQL prompt is suddenly running against a model it was never
- * exercised on, with no diff to blame. `GEMINI_MODEL` is the escape hatch: pin a concrete
- * id there (e.g. `gemini-3.6-flash`) to freeze it per environment without a deploy.
+ * Primary Google Gemini models:
  */
-export const MODEL_INTERACTIVE = modelFromEnv("GEMINI_MODEL", "gemini-flash-latest");
+export const MODEL_INTERACTIVE = modelFromEnv(
+  "GEMINI_MODEL",
+  "gemini-flash-latest",
+);
+export const MODEL_CRON = modelFromEnv(
+  "GEMINI_MODEL_CRON",
+  "gemini-flash-lite-latest",
+);
 
 /**
- * Everything that runs unattended and in bulk: the weekly-summary cron (one call per
- * tenant) and the inventory reorder prose. Cheaper and lighter, because nobody is
- * watching and the volume scales with the tenant count, not with user patience.
- *
- * Same alias treatment, one tier down, overridable separately — the cron's quality bar is
- * lower than the SQL step's, so there is no reason to force them to move together.
+ * Fallback OpenRouter models:
  */
-export const MODEL_CRON = modelFromEnv("GEMINI_MODEL_CRON", "gemini-flash-lite-latest");
+export const MODEL_INTERACTIVE_FALLBACK = modelFromEnv(
+  "OPENROUTER_MODEL",
+  "google/gemini-2.5-flash",
+);
+export const MODEL_CRON_FALLBACK = modelFromEnv(
+  "OPENROUTER_MODEL_CRON",
+  "google/gemini-2.5-flash-lite",
+);
 
-/**
- * QUOTA, AND WHY THE NUMBER BELOW IS SMALL.
- *
- * The free tier is metered per GOOGLE CLOUD PROJECT, not per key — so every tenant, plus
- * the weekly cron, plus local development, all draw on ONE bucket. Published free-tier
- * limits for the Flash family have been in the region of ~10 RPM / ~250 RPD, and Google
- * has cut them more than once.
- *
- * !! RE-VERIFY BEFORE TRUSTING THIS: https://ai.google.dev/gemini-api/docs/rate-limits
- *    The number here is a budget derived from a moving external limit. It was NOT
- *    confirmed against the live quota page while this file was written (no network at
- *    build time), so treat it as a conservative default, not a measurement.
- *
- * The arithmetic that produced DEFAULT_DAILY_QUERIES_PER_TENANT:
- *   - one interactive question costs TWO calls (generateObject for SQL, then generateText
- *     for the prose answer),
- *   - the weekly cron costs one call per tenant per week,
- *   - so N tenants each asking Q questions/day costs 2*N*Q requests/day.
- *   At 25/day/tenant, five active tenants spend 250 requests — the whole assumed daily
- *   budget. That is intentionally tight: the failure mode of guessing high is that ONE
- *   chatty tenant silently denies the AI to every other tenant, including the cron.
- *
- * Override per environment once a paid key is in place.
- */
 export const DEFAULT_DAILY_QUERIES_PER_TENANT = 25;
+
+export type AiTier = "interactive" | "cron";
+
+/**
+ * Lazily resolve the Google Gemini language model.
+ */
+export function getGoogleModel(modelName: string): LanguageModel {
+  return google(modelName);
+}
+
+/**
+ * Lazily resolve the OpenRouter language model.
+ */
+export function getOpenRouterModel(modelName: string): LanguageModel {
+  const apiKey =
+    process.env.OPEN_ROUTER_AI_API_KEY?.trim() ||
+    process.env.OPENROUTER_API_KEY?.trim();
+  const openrouter = createOpenRouter({
+    apiKey,
+    appName: "Operato",
+  });
+  return openrouter(modelName);
+}
+
+export type FallbackObjectOptions<T> = {
+  tier: AiTier;
+  schema: z.ZodType<T>;
+  system?: string;
+  prompt: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+};
+
+export type FallbackTextOptions = {
+  tier: AiTier;
+  system?: string;
+  prompt: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+};
+
+/**
+ * Execute `generateObject` with Google Gemini first, automatically falling back to
+ * OpenRouter if Google Gemini fails or is unconfigured.
+ */
+export async function generateObjectWithFallback<T>(
+  options: FallbackObjectOptions<T>,
+): Promise<{ object: T; provider: "google" | "openrouter" }> {
+  const primaryModelName =
+    options.tier === "interactive" ? MODEL_INTERACTIVE : MODEL_CRON;
+  const fallbackModelName =
+    options.tier === "interactive"
+      ? MODEL_INTERACTIVE_FALLBACK
+      : MODEL_CRON_FALLBACK;
+
+  const hasGoogleKey = Boolean(
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim(),
+  );
+  const hasOpenRouterKey = Boolean(
+    process.env.OPEN_ROUTER_AI_API_KEY?.trim() ||
+    process.env.OPENROUTER_API_KEY?.trim(),
+  );
+
+  let primaryError: unknown = null;
+
+  if (hasGoogleKey) {
+    try {
+      const result = await generateObject({
+        model: getGoogleModel(primaryModelName),
+        schema: options.schema,
+        system: options.system,
+        prompt: options.prompt,
+        temperature: options.temperature,
+        maxOutputTokens: options.maxOutputTokens,
+      });
+      return { object: result.object, provider: "google" };
+    } catch (error) {
+      primaryError = error;
+      console.warn(
+        `[ai] Primary Google model (${primaryModelName}) failed: ${
+          error instanceof Error ? error.message : String(error)
+        }. Attempting fallback to OpenRouter (${fallbackModelName})...`,
+      );
+    }
+  }
+
+  if (hasOpenRouterKey) {
+    try {
+      const result = await generateObject({
+        model: getOpenRouterModel(fallbackModelName),
+        schema: options.schema,
+        system: options.system,
+        prompt: options.prompt,
+        temperature: options.temperature,
+        maxOutputTokens: options.maxOutputTokens,
+      });
+      return { object: result.object, provider: "openrouter" };
+    } catch (fallbackError) {
+      console.error(
+        `[ai] Fallback OpenRouter model (${fallbackModelName}) also failed:`,
+        fallbackError,
+      );
+      throw new AiError(
+        503,
+        "The assistant is unavailable right now. Try again shortly.",
+        {
+          cause: fallbackError,
+        },
+      );
+    }
+  }
+
+  throw new AiError(
+    503,
+    "The assistant is unavailable right now. Try again shortly.",
+    {
+      cause:
+        primaryError ??
+        new Error(
+          "No AI API keys configured (checked GOOGLE_GENERATIVE_AI_API_KEY and OPEN_ROUTER_AI_API_KEY)",
+        ),
+    },
+  );
+}
+
+/**
+ * Execute `generateText` with Google Gemini first, automatically falling back to
+ * OpenRouter if Google Gemini fails or is unconfigured.
+ */
+export async function generateTextWithFallback(
+  options: FallbackTextOptions,
+): Promise<{ text: string; provider: "google" | "openrouter" }> {
+  const primaryModelName =
+    options.tier === "interactive" ? MODEL_INTERACTIVE : MODEL_CRON;
+  const fallbackModelName =
+    options.tier === "interactive"
+      ? MODEL_INTERACTIVE_FALLBACK
+      : MODEL_CRON_FALLBACK;
+
+  const hasGoogleKey = Boolean(
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim(),
+  );
+  const hasOpenRouterKey = Boolean(
+    process.env.OPEN_ROUTER_AI_API_KEY?.trim() ||
+    process.env.OPENROUTER_API_KEY?.trim(),
+  );
+
+  let primaryError: unknown = null;
+
+  if (hasGoogleKey) {
+    try {
+      const result = await generateText({
+        model: getGoogleModel(primaryModelName),
+        system: options.system,
+        prompt: options.prompt,
+        temperature: options.temperature,
+        maxOutputTokens: options.maxOutputTokens,
+      });
+      return { text: result.text, provider: "google" };
+    } catch (error) {
+      primaryError = error;
+      console.warn(
+        `[ai] Primary Google model (${primaryModelName}) failed: ${
+          error instanceof Error ? error.message : String(error)
+        }. Attempting fallback to OpenRouter (${fallbackModelName})...`,
+      );
+    }
+  }
+
+  if (hasOpenRouterKey) {
+    try {
+      const result = await generateText({
+        model: getOpenRouterModel(fallbackModelName),
+        system: options.system,
+        prompt: options.prompt,
+        temperature: options.temperature,
+        maxOutputTokens: options.maxOutputTokens,
+      });
+      return { text: result.text, provider: "openrouter" };
+    } catch (fallbackError) {
+      console.error(
+        `[ai] Fallback OpenRouter model (${fallbackModelName}) also failed:`,
+        fallbackError,
+      );
+      throw new AiError(
+        503,
+        "The assistant is unavailable right now. Try again shortly.",
+        {
+          cause: fallbackError,
+        },
+      );
+    }
+  }
+
+  throw new AiError(
+    503,
+    "The assistant is unavailable right now. Try again shortly.",
+    {
+      cause:
+        primaryError ??
+        new Error(
+          "No AI API keys configured (checked GOOGLE_GENERATIVE_AI_API_KEY and OPEN_ROUTER_AI_API_KEY)",
+        ),
+    },
+  );
+}
