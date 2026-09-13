@@ -37,6 +37,9 @@ import {
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+  adapter: new PrismaPg({
+    connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL!,
+  }),
 });
 
 // ── deterministic RNG ────────────────────────────────────────────────────────
@@ -60,8 +63,10 @@ function makeRng(seed: string): Rng {
   };
 }
 
-const int = (r: Rng, min: number, max: number) => Math.floor(r() * (max - min + 1)) + min;
-const pick = <T,>(r: Rng, xs: readonly T[]): T => xs[Math.floor(r() * xs.length)];
+const int = (r: Rng, min: number, max: number) =>
+  Math.floor(r() * (max - min + 1)) + min;
+const pick = <T>(r: Rng, xs: readonly T[]): T =>
+  xs[Math.floor(r() * xs.length)];
 const chance = (r: Rng, p: number) => r() < p;
 
 /** Weighted pick — the engine behind "a few dishes carry the menu". */
@@ -89,7 +94,13 @@ const PEAK_DOW = Math.max(...DOW_MULTIPLIER);
 
 // ── menus ────────────────────────────────────────────────────────────────────
 
-type ItemSpec = { name: string; price: number; veg: boolean; weight: number; prep: number };
+type ItemSpec = {
+  name: string;
+  price: number;
+  veg: boolean;
+  weight: number;
+  prep: number;
+};
 type CatSpec = { name: string; items: ItemSpec[] };
 
 const SPICE_GARDEN: CatSpec[] = [
@@ -107,7 +118,13 @@ const SPICE_GARDEN: CatSpec[] = [
     items: [
       // The house dish. Every real restaurant has one, and it should dominate the mix.
       { name: "Butter Chicken", price: 480, veg: false, weight: 26, prep: 25 },
-      { name: "Paneer Butter Masala", price: 420, veg: true, weight: 16, prep: 22 },
+      {
+        name: "Paneer Butter Masala",
+        price: 420,
+        veg: true,
+        weight: 16,
+        prep: 22,
+      },
       { name: "Dal Makhani", price: 300, veg: true, weight: 11, prep: 20 },
       { name: "Rogan Josh", price: 520, veg: false, weight: 6, prep: 30 },
       { name: "Chana Masala", price: 280, veg: true, weight: 5, prep: 18 },
@@ -195,27 +212,159 @@ type InvSpec = {
 };
 
 const SPICE_INVENTORY: InvSpec[] = [
-  { name: "Chicken (boneless)", unit: "kg", coverDays: 3, cost: 280, supplier: "Al-Noor Meats", burn: 0.22, runsLow: true },
-  { name: "Paneer", unit: "kg", coverDays: 3, cost: 340, supplier: "Gokul Dairy", burn: 0.14 },
-  { name: "Basmati Rice", unit: "kg", coverDays: 10, cost: 110, supplier: "Sharma Wholesale", burn: 0.18 },
-  { name: "Atta (flour)", unit: "kg", coverDays: 10, cost: 45, supplier: "Sharma Wholesale", burn: 0.25 },
-  { name: "Butter", unit: "kg", coverDays: 4, cost: 520, supplier: "Gokul Dairy", burn: 0.09, runsLow: true },
-  { name: "Tomatoes", unit: "kg", coverDays: 2, cost: 40, supplier: "Azadpur Mandi", burn: 0.3 },
-  { name: "Cream", unit: "litres", coverDays: 4, cost: 220, supplier: "Gokul Dairy", burn: 0.07 },
-  { name: "Cooking Oil", unit: "litres", coverDays: 12, cost: 140, supplier: "Sharma Wholesale", burn: 0.11 },
+  {
+    name: "Chicken (boneless)",
+    unit: "kg",
+    coverDays: 3,
+    cost: 280,
+    supplier: "Al-Noor Meats",
+    burn: 0.22,
+    runsLow: true,
+  },
+  {
+    name: "Paneer",
+    unit: "kg",
+    coverDays: 3,
+    cost: 340,
+    supplier: "Gokul Dairy",
+    burn: 0.14,
+  },
+  {
+    name: "Basmati Rice",
+    unit: "kg",
+    coverDays: 10,
+    cost: 110,
+    supplier: "Sharma Wholesale",
+    burn: 0.18,
+  },
+  {
+    name: "Atta (flour)",
+    unit: "kg",
+    coverDays: 10,
+    cost: 45,
+    supplier: "Sharma Wholesale",
+    burn: 0.25,
+  },
+  {
+    name: "Butter",
+    unit: "kg",
+    coverDays: 4,
+    cost: 520,
+    supplier: "Gokul Dairy",
+    burn: 0.09,
+    runsLow: true,
+  },
+  {
+    name: "Tomatoes",
+    unit: "kg",
+    coverDays: 2,
+    cost: 40,
+    supplier: "Azadpur Mandi",
+    burn: 0.3,
+  },
+  {
+    name: "Cream",
+    unit: "litres",
+    coverDays: 4,
+    cost: 220,
+    supplier: "Gokul Dairy",
+    burn: 0.07,
+  },
+  {
+    name: "Cooking Oil",
+    unit: "litres",
+    coverDays: 12,
+    cost: 140,
+    supplier: "Sharma Wholesale",
+    burn: 0.11,
+  },
 ];
 
 const GRIND_INVENTORY: InvSpec[] = [
-  { name: "Coffee Beans (Arabica)", unit: "kg", coverDays: 12, cost: 900, supplier: "Blue Tokai", burn: 0.02, runsLow: true },
-  { name: "Whole Milk", unit: "litres", coverDays: 3, cost: 60, supplier: "Amul Distributor", burn: 0.18 },
-  { name: "Sourdough Loaf", unit: "pieces", coverDays: 2, cost: 120, supplier: "Baker's Dozen", burn: 0.15 },
-  { name: "Avocado", unit: "pieces", coverDays: 3, cost: 90, supplier: "Fresh Farms", burn: 0.12, runsLow: true },
-  { name: "Eggs", unit: "pieces", coverDays: 5, cost: 7, supplier: "Fresh Farms", burn: 0.4 },
-  { name: "Butter", unit: "kg", coverDays: 6, cost: 520, supplier: "Amul Distributor", burn: 0.05 },
+  {
+    name: "Coffee Beans (Arabica)",
+    unit: "kg",
+    coverDays: 12,
+    cost: 900,
+    supplier: "Blue Tokai",
+    burn: 0.02,
+    runsLow: true,
+  },
+  {
+    name: "Whole Milk",
+    unit: "litres",
+    coverDays: 3,
+    cost: 60,
+    supplier: "Amul Distributor",
+    burn: 0.18,
+  },
+  {
+    name: "Sourdough Loaf",
+    unit: "pieces",
+    coverDays: 2,
+    cost: 120,
+    supplier: "Baker's Dozen",
+    burn: 0.15,
+  },
+  {
+    name: "Avocado",
+    unit: "pieces",
+    coverDays: 3,
+    cost: 90,
+    supplier: "Fresh Farms",
+    burn: 0.12,
+    runsLow: true,
+  },
+  {
+    name: "Eggs",
+    unit: "pieces",
+    coverDays: 5,
+    cost: 7,
+    supplier: "Fresh Farms",
+    burn: 0.4,
+  },
+  {
+    name: "Butter",
+    unit: "kg",
+    coverDays: 6,
+    cost: 520,
+    supplier: "Amul Distributor",
+    burn: 0.05,
+  },
 ];
 
-const FIRST = ["Aarav", "Diya", "Rohan", "Ananya", "Kabir", "Meera", "Arjun", "Isha", "Vikram", "Nisha", "Karan", "Priya", "Rahul", "Sneha", "Aditya", "Riya"];
-const LAST = ["Sharma", "Iyer", "Nair", "Patel", "Reddy", "Khan", "Bose", "Menon", "Gupta", "Singh", "Rao", "Desai"];
+const FIRST = [
+  "Aarav",
+  "Diya",
+  "Rohan",
+  "Ananya",
+  "Kabir",
+  "Meera",
+  "Arjun",
+  "Isha",
+  "Vikram",
+  "Nisha",
+  "Karan",
+  "Priya",
+  "Rahul",
+  "Sneha",
+  "Aditya",
+  "Riya",
+];
+const LAST = [
+  "Sharma",
+  "Iyer",
+  "Nair",
+  "Patel",
+  "Reddy",
+  "Khan",
+  "Bose",
+  "Menon",
+  "Gupta",
+  "Singh",
+  "Rao",
+  "Desai",
+];
 
 const TENANTS = [
   {
@@ -292,7 +441,10 @@ async function main() {
 
   // ── clean: only what this seed owns ────────────────────────────────────────
   const slugs = TENANTS.map((t) => t.slug);
-  const emails = TENANTS.flatMap((t) => [t.owner.email, ...(t.manager ? [t.manager.email] : [])]);
+  const emails = TENANTS.flatMap((t) => [
+    t.owner.email,
+    ...(t.manager ? [t.manager.email] : []),
+  ]);
   await prisma.restaurant.deleteMany({ where: { slug: { in: [...slugs] } } }); // cascades
   await prisma.user.deleteMany({ where: { email: { in: emails } } }); // cascades session/account
 
@@ -316,7 +468,9 @@ async function main() {
       await auth.api.signUpEmail({
         body: { email: p.email, password: DEMO_PASSWORD, name: p.name },
       });
-      const u = await prisma.user.findUniqueOrThrow({ where: { email: p.email } });
+      const u = await prisma.user.findUniqueOrThrow({
+        where: { email: p.email },
+      });
       userIds.push(u.id);
       bump("user");
     }
@@ -420,7 +574,9 @@ async function main() {
         restaurantId: rid,
         name,
         phone,
-        email: chance(rCust, 0.45) ? `${name.toLowerCase().replace(/\s+/g, ".")}${i}@example.com` : null,
+        email: chance(rCust, 0.45)
+          ? `${name.toLowerCase().replace(/\s+/g, ".")}${i}@example.com`
+          : null,
         // the tag must mean something — derive it from the cohort, not a coin flip
         tags: isRegular ? ["regular"] : [],
         createdAt: joinedAt,
@@ -447,15 +603,33 @@ async function main() {
 
     // ── orders ──────────────────────────────────────────────────────────────
     type OrderRow = {
-      id: string; restaurantId: string; orderNumber: string; tableId: string | null;
-      customerId: string | null; status: OrderStatus; type: OrderType;
-      subtotal: number; tax: number; discount: number; totalAmount: number;
-      servedAt: Date | null; paidAt: Date | null; createdAt: Date; updatedAt: Date;
+      id: string;
+      restaurantId: string;
+      orderNumber: string;
+      tableId: string | null;
+      customerId: string | null;
+      status: OrderStatus;
+      type: OrderType;
+      subtotal: number;
+      tax: number;
+      discount: number;
+      totalAmount: number;
+      servedAt: Date | null;
+      paidAt: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
     };
     const orders: OrderRow[] = [];
     const orderItems: {
-      id: string; orderId: string; restaurantId: string; menuItemId: string;
-      quantity: number; unitPrice: number; totalPrice: number; status: ItemStatus; createdAt: Date;
+      id: string;
+      orderId: string;
+      restaurantId: string;
+      menuItemId: string;
+      quantity: number;
+      unitPrice: number;
+      totalPrice: number;
+      status: ItemStatus;
+      createdAt: Date;
     }[] = [];
 
     let seq = 0;
@@ -476,12 +650,19 @@ async function main() {
       const growth = 1 + ((DAYS - d) / DAYS) * 0.22;
       const volume = Math.max(
         3,
-        Math.round(t.baseVolume * DOW_MULTIPLIER[dow] * growth * (0.85 + rOrder() * 0.3)),
+        Math.round(
+          t.baseVolume * DOW_MULTIPLIER[dow] * growth * (0.85 + rOrder() * 0.3),
+        ),
       );
 
       for (let o = 0; o < volume; o++) {
         const createdAt = new Date(day);
-        createdAt.setHours(hourFor(rOrder, t.slug), int(rOrder, 0, 59), int(rOrder, 0, 59), 0);
+        createdAt.setHours(
+          hourFor(rOrder, t.slug),
+          int(rOrder, 0, 59),
+          int(rOrder, 0, 59),
+          0,
+        );
         if (createdAt > NOW) continue; // no orders from the future
 
         const isToday = d === 0;
@@ -503,8 +684,13 @@ async function main() {
         // it. Today's orders are mid-flight; history is settled.
         const status: OrderStatus = isToday
           ? pick(rOrder, [
-              OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PREPARING,
-              OrderStatus.READY, OrderStatus.SERVED, OrderStatus.PAID, OrderStatus.PAID,
+              OrderStatus.PENDING,
+              OrderStatus.CONFIRMED,
+              OrderStatus.PREPARING,
+              OrderStatus.READY,
+              OrderStatus.SERVED,
+              OrderStatus.PAID,
+              OrderStatus.PAID,
             ])
           : chance(rOrder, 0.955)
             ? OrderStatus.PAID
@@ -513,8 +699,11 @@ async function main() {
 
         // 1–5 lines, the popular items appearing far more often
         const lineCount = weighted(rOrder, [
-          { n: 1, weight: 14 }, { n: 2, weight: 30 }, { n: 3, weight: 28 },
-          { n: 4, weight: 18 }, { n: 5, weight: 10 },
+          { n: 1, weight: 14 },
+          { n: 2, weight: 30 },
+          { n: 3, weight: 28 },
+          { n: 4, weight: 18 },
+          { n: 5, weight: 10 },
         ] as const).n;
 
         const chosen = new Map<string, { item: LiveItem; qty: number }>();
@@ -546,7 +735,9 @@ async function main() {
         }
         subtotal = money(subtotal);
 
-        const discount = chance(rOrder, 0.12) ? money(subtotal * pick(rOrder, [0.05, 0.1, 0.15])) : 0;
+        const discount = chance(rOrder, 0.12)
+          ? money(subtotal * pick(rOrder, [0.05, 0.1, 0.15]))
+          : 0;
         const tax = money((subtotal - discount) * 0.05); // 5% GST
         const totalAmount = money(subtotal - discount + tax);
 
@@ -593,17 +784,26 @@ async function main() {
       data: { orderSeq: seq },
     });
     for (let i = 0; i < orderItems.length; i += 1000) {
-      await prisma.orderItem.createMany({ data: orderItems.slice(i, i + 1000) });
+      await prisma.orderItem.createMany({
+        data: orderItems.slice(i, i + 1000),
+      });
     }
     bump("orderItem", orderItems.length);
 
     // ── customer rollups: DERIVED from paid orders, never invented ───────────
     // CANCELLED orders are excluded — a cancelled meal is not spend, and counting it
     // would inflate exactly the "top customers" figure the CRM exists to report.
-    const roll = new Map<string, { spend: number; visits: number; last: Date }>();
+    const roll = new Map<
+      string,
+      { spend: number; visits: number; last: Date }
+    >();
     for (const o of orders) {
       if (o.status !== OrderStatus.PAID || !o.customerId) continue;
-      const r = roll.get(o.customerId) ?? { spend: 0, visits: 0, last: o.createdAt };
+      const r = roll.get(o.customerId) ?? {
+        spend: 0,
+        visits: 0,
+        last: o.createdAt,
+      };
       r.spend = money(r.spend + o.totalAmount);
       r.visits += 1;
       if (o.createdAt > r.last) r.last = o.createdAt;
@@ -612,7 +812,11 @@ async function main() {
     for (const [customerId, r] of roll) {
       await prisma.customer.update({
         where: { id: customerId },
-        data: { totalSpend: r.spend, visitCount: r.visits, lastVisitAt: r.last },
+        data: {
+          totalSpend: r.spend,
+          visitCount: r.visits,
+          lastVisitAt: r.last,
+        },
       });
     }
 
@@ -638,7 +842,9 @@ async function main() {
       const lateTarget = stock(Math.max(threshold * 0.7, peakDailyBurn * 1.6));
       const lateEvery = 21;
       const floorOf = (late: boolean) =>
-        late ? peakDailyBurn * 1.1 : Math.max(threshold * 1.05, peakDailyBurn * 1.2);
+        late
+          ? peakDailyBurn * 1.1
+          : Math.max(threshold * 1.05, peakDailyBurn * 1.2);
 
       let balance = stock(target);
 
@@ -656,8 +862,15 @@ async function main() {
       bump("inventoryItem");
 
       const txns: {
-        id: string; inventoryItemId: string; restaurantId: string; type: TransactionType;
-        quantity: number; delta: number; balanceAfter: number; notes: string | null; createdAt: Date;
+        id: string;
+        inventoryItemId: string;
+        restaurantId: string;
+        type: TransactionType;
+        quantity: number;
+        delta: number;
+        balanceAfter: number;
+        notes: string | null;
+        createdAt: Date;
       }[] = [];
 
       /**
@@ -669,7 +882,12 @@ async function main() {
        * claims "took 12.9 from a stock of 9", and balanceAfter[n] no longer equals
        * balanceAfter[n-1] ± quantity. The ledger has to be able to prove itself.
        */
-      const push = (type: TransactionType, qty: number, at: Date, notes: string) => {
+      const push = (
+        type: TransactionType,
+        qty: number,
+        at: Date,
+        notes: string,
+      ) => {
         const inbound = type === TransactionType.STOCK_IN;
         const applied = stock(inbound ? qty : Math.min(qty, balance));
         if (applied <= 0) return;
@@ -717,27 +935,43 @@ async function main() {
         // order the ledger must read in when sorted by createdAt.
         if (d % effEvery === 0 && d !== 0 && balance < effTarget) {
           const t0 = at(8, int(rInv, 0, 45));
-          if (t0 <= NOW) push(TransactionType.STOCK_IN, effTarget - balance, t0, `Delivery — ${spec.supplier}`);
+          if (t0 <= NOW)
+            push(
+              TransactionType.STOCK_IN,
+              effTarget - balance,
+              t0,
+              `Delivery — ${spec.supplier}`,
+            );
         }
 
         // A kitchen about to run dry buys more — BEFORE service, not after it.
         if (balance < floorOf(late)) {
           const t1 = at(9, int(rInv, 0, 30));
-          if (t1 <= NOW) push(TransactionType.STOCK_IN, effTarget - balance, t1, "Emergency top-up");
+          if (t1 <= NOW)
+            push(
+              TransactionType.STOCK_IN,
+              effTarget - balance,
+              t1,
+              "Emergency top-up",
+            );
         }
 
         const used = stock(dayOrders * spec.burn * (0.85 + rInv() * 0.3));
         const t2 = at(23, 30);
-        if (t2 <= NOW) push(TransactionType.STOCK_OUT, used, t2, "Consumed by service");
+        if (t2 <= NOW)
+          push(TransactionType.STOCK_OUT, used, t2, "Consumed by service");
 
         if (chance(rInv, 0.04)) {
           const t3 = at(23, 45);
-          if (t3 <= NOW) push(TransactionType.WASTE, stock(used * 0.15), t3, "Spoilage");
+          if (t3 <= NOW)
+            push(TransactionType.WASTE, stock(used * 0.15), t3, "Spoilage");
         }
       }
 
       for (let i = 0; i < txns.length; i += 1000) {
-        await prisma.inventoryTransaction.createMany({ data: txns.slice(i, i + 1000) });
+        await prisma.inventoryTransaction.createMany({
+          data: txns.slice(i, i + 1000),
+        });
       }
       bump("inventoryTransaction", txns.length);
 
