@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en" data-palette="crema">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How Operato Works</title>
+<meta name="description" content="The flows of Operato — a multi-tenant restaurant SaaS with a text-to-SQL assistant — and how the code is written: request path, tenancy, the AI safety boundary, data model, conventions and tests." />
+<style>
+  /* Tokens are Operato's own (src/app/globals.css). Four palettes × light/dark, same as the app. */
+  :root, [data-palette="crema"] {
+    --bg: #fbf8f3; --fg: #23180f; --card: #fffdfa; --muted: #6b5747; --border: #e7dccb; --sub: #f4ede3;
+    --primary: #2a1d16; --pfg: #fbf8f3; --brand: #7a4c17; --success: #556a58; --warn: #96501b; --danger: #6c2342;
+    --code-bg: #23180f; --code-fg: #f4e9da; --code-k: #d9a566; --code-s: #adbdb6; --code-c: #a08b73;
+    --radius: 14px; --shadow: 0 18px 50px -30px rgba(42, 29, 22, .45);
+    --heading: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  }
+  [data-palette="forno"] { --bg: #f0e2ca; --fg: #1c1310; --card: #fff9f0; --muted: #6b534a; --border: #c8b38c; --sub: #efe2cc; --primary: #14100d; --pfg: #fff9f0; --brand: #6e1607; --success: #22400f; --radius: 16px; --shadow: 6px 6px 0 rgba(20, 16, 13, .9); --heading: "Arial Black", "Helvetica Neue", Arial, sans-serif; }
+  [data-palette="lievito"] { --bg: #efede6; --fg: #1b1a17; --card: #fcfbf7; --muted: #5c574e; --border: #e2dfd4; --sub: #eceae2; --primary: #22211d; --pfg: #fcfbf7; --brand: #8a3f2c; --success: #526258; --radius: 3px; --shadow: none; --heading: Futura, "Century Gothic", "Trebuchet MS", sans-serif; }
+  [data-palette="saffron"] { --bg: #efe6d5; --fg: #241a22; --card: #f8f2e7; --muted: #645159; --border: #d2c9bc; --sub: #ece3d3; --primary: #2e2130; --pfg: #f8f2e7; --brand: #584309; --success: #3a7264; --radius: 6px; --shadow: 0 1px 0 #d2c9bc; --heading: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
+  .dark, .dark[data-palette="crema"] { --bg: #1a130e; --fg: #f4e9da; --card: #241a13; --muted: #b7a48c; --border: #3b2c1f; --sub: #2f231a; --primary: #efe0c8; --pfg: #23180f; --brand: #d9a566; --success: #adbdb6; --warn: #e3a36b; --danger: #e59ab5; --code-bg: #120d09; --shadow: 0 18px 50px -30px rgba(0, 0, 0, .8); }
+  .dark[data-palette="forno"] { --bg: #14100d; --fg: #fff9f0; --card: #1c1512; --muted: #c0a995; --border: #3a2b22; --sub: #261c17; --primary: #f0e2ca; --pfg: #14100d; --brand: #ffa184; --success: #ddff9c; --shadow: 6px 6px 0 rgba(0, 0, 0, .9); }
+  .dark[data-palette="lievito"] { --bg: #171613; --fg: #f2f0e8; --card: #1f1e1a; --muted: #b3ada0; --border: #33312b; --sub: #25241f; --primary: #e8e4d8; --pfg: #171613; --brand: #d08c71; --success: #a9bdaf; }
+  .dark[data-palette="saffron"] { --bg: #130d12; --fg: #f5efe4; --card: #1d151b; --muted: #bfaeb5; --border: #3a2c36; --sub: #251b22; --primary: #c9a227; --pfg: #130d12; --brand: #c9a227; --success: #8fc7b6; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; transition: background .25s, color .25s; }
+  a { color: var(--brand); text-underline-offset: 3px; }
+  code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+  :not(pre) > code { font-size: .88em; background: var(--sub); border: 1px solid var(--border); padding: .08em .38em; border-radius: 6px; overflow-wrap: anywhere; }
+  h1, h2, h3 { font-family: var(--heading); letter-spacing: -.015em; line-height: 1.15; margin: 0; }
+  h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); }
+  h3 { font-size: 1.3rem; }
+  p { margin: .6em 0; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 720px) { .wrap { padding: 0 32px; } }
+
+  /* top bar */
+  .bar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+  .bar .wrap { display: flex; align-items: center; gap: 14px; height: 60px; }
+  .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); }
+  .mark .o { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 75%, #fff), var(--brand)); color: var(--card); display: grid; place-items: center; font: 700 20px var(--heading); }
+  .mark b { font: 700 19px var(--heading); }
+  .bar nav { display: none; gap: 4px; margin-left: 12px; overflow-x: auto; }
+  .bar nav a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+  .bar nav a:hover { color: var(--fg); background: var(--sub); }
+  @media (min-width: 1000px) { .bar nav { display: flex; } }
+  .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  select, .iconbtn { font: 600 13px/1 inherit; color: var(--fg); background: var(--card); border: 1px solid var(--border); border-radius: 9px; height: 34px; padding: 0 10px; cursor: pointer; }
+  .iconbtn { width: 34px; padding: 0; display: grid; place-items: center; }
+  .iconbtn svg { width: 17px; height: 17px; }
+
+  /* hero */
+  .hero { padding: 64px 0 40px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brand); border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent); background: var(--card); padding: 6px 12px; border-radius: 999px; }
+  .hero h1 { font-size: clamp(2.2rem, 6vw, 4rem); margin-top: 18px; max-width: 16ch; }
+  .hero .lede { font-size: 1.15rem; color: var(--muted); max-width: 62ch; margin-top: 18px; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 34px; }
+  @media (min-width: 720px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+  .stat b { display: block; font: 700 1.9rem/1.1 var(--heading); font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .video { margin-top: 34px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); background: var(--card); }
+  .video video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #000; }
+  .video figcaption { padding: 10px 16px; font-size: 13px; color: var(--muted); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brand); margin-bottom: 10px; }
+  .intro { color: var(--muted); max-width: 70ch; font-size: 1.05rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; }
+  .grid2 { display: grid; gap: 16px; margin-top: 24px; }
+  @media (min-width: 820px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  .grid3 { display: grid; gap: 16px; margin-top: 24px; }
+  @media (min-width: 820px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }
+  .path { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+
+  /* pipeline diagrams */
+  .pipe { display: flex; flex-direction: column; gap: 0; margin-top: 26px; }
+  .step { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding-bottom: 18px; }
+  .step:not(:last-child)::before { content: ""; position: absolute; left: 21px; top: 44px; bottom: 0; width: 2px; background: var(--border); }
+  .step .n { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--card); border: 2px solid var(--border); font: 700 15px var(--heading); }
+  .step .n.brand { background: var(--brand); border-color: var(--brand); color: var(--card); }
+  .step .n.safe { background: var(--success); border-color: var(--success); color: var(--card); }
+  .step .body { padding-top: 8px; min-width: 0; }
+  .step .body b { display: block; }
+  .step .body p { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
+
+  .flowrow { display: flex; flex-wrap: nowrap; align-items: stretch; gap: 6px; margin-top: 24px; }
+  .node { flex: 1 1 0; background: var(--card); border: 1px solid var(--border); border-radius: calc(var(--radius) - 4px); padding: 12px 14px; box-shadow: var(--shadow); min-width: 0; }
+  .node small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
+  .node b { display: block; font-size: 15px; margin-top: 2px; }
+  .node span { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+  .arrow { flex: 0 0 auto; align-self: center; color: var(--muted); font-size: 20px; }
+  @media (max-width: 899px) { .flowrow { flex-direction: column; } .node { flex: 0 0 auto; } .arrow { transform: rotate(90deg); align-self: flex-start; margin-left: 16px; } }
+
+  .states { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; }
+  .state { font: 700 12px/1 "JetBrains Mono", ui-monospace, Menlo, monospace; letter-spacing: .04em; padding: 8px 12px; border-radius: 999px; background: var(--sub); border: 1px solid var(--border); }
+  .state.paid { background: color-mix(in srgb, var(--success) 18%, var(--card)); color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, transparent); }
+  .state.cancel { color: var(--danger); }
+
+  /* code */
+  pre { margin: 14px 0 0; background: var(--code-bg); color: var(--code-fg); border-radius: calc(var(--radius) - 4px); padding: 16px 18px; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+  pre .k { color: var(--code-k); } pre .s { color: var(--code-s); } pre .c { color: var(--code-c); font-style: italic; }
+  .src { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+
+  /* tabs */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 26px; }
+  .tab { font: 600 14px/1 inherit; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 10px 14px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--primary); color: var(--pfg); border-color: var(--primary); }
+  .panel { margin-top: 18px; }
+  .js .panel[hidden] { display: none; }
+  .panel-grid { display: grid; gap: 18px; }
+  @media (min-width: 900px) { .panel-grid { grid-template-columns: 1fr 1.1fr; align-items: start; } }
+  .panel ol { margin: 10px 0 0; padding-left: 20px; }
+  .panel li { margin: 6px 0; }
+  .note { margin-top: 14px; font-size: 14px; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); }
+
+  /* tables */
+  .tablewrap { overflow-x: auto; margin-top: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sub); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child code { white-space: nowrap; }
+  .yes { color: var(--success); font-weight: 700; } .no { color: var(--muted); }
+  .tag { display: inline-block; font: 700 11px/1 "JetBrains Mono", ui-monospace, monospace; padding: 4px 7px; border-radius: 6px; margin-right: 4px; }
+  .tag.t { background: color-mix(in srgb, var(--brand) 16%, var(--card)); color: var(--brand); }
+  .tag.g { background: var(--sub); color: var(--muted); }
+
+  .layers { display: grid; gap: 10px; margin-top: 22px; }
+  .layer { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+  .layer .badge { font: 700 11px/1 inherit; letter-spacing: .1em; text-transform: uppercase; padding: 6px 9px; border-radius: 999px; white-space: nowrap; }
+  .badge.hard { background: color-mix(in srgb, var(--success) 18%, var(--card)); color: var(--success); }
+  .badge.soft { background: var(--sub); color: var(--muted); }
+  .layer p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+
+  ul.clean { list-style: none; padding: 0; margin: 12px 0 0; }
+  ul.clean li { padding: 8px 0; border-bottom: 1px dashed var(--border); }
+  ul.clean li:last-child { border-bottom: 0; }
+  footer { padding: 40px 0 60px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<script>
+  // Palette + mode before first paint, like the app's blocking inline script in layout.tsx.
+  (function () {
+    var d = document.documentElement;
+    d.className = "js";
+    try {
+      var p = localStorage.getItem("operato-doc-palette"); if (p) d.setAttribute("data-palette", p);
+      var m = localStorage.getItem("operato-doc-mode");
+      if (m === "dark" || (!m && window.matchMedia("(prefers-color-scheme: dark)").matches)) d.classList.add("dark");
+    } catch (e) {}
+  })();
+</script>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="#top"><span class="o">O</span><b>Operato</b></a>
+    <nav aria-label="Sections">
+      <a href="#architecture">Architecture</a>
+      <a href="#tenancy">Tenancy</a>
+      <a href="#flows">Flows</a>
+      <a href="#ai">The AI</a>
+      <a href="#data">Data</a>
+      <a href="#conventions">Code style</a>
+      <a href="#testing">Tests</a>
+    </nav>
+    <div class="controls">
+      <label class="sr" for="palette" style="position:absolute;left:-9999px">Palette</label>
+      <select id="palette" aria-label="Palette">
+        <option value="crema">Crema</option>
+        <option value="forno">Forno</option>
+        <option value="lievito">Lievito</option>
+        <option value="saffron">Saffron House</option>
+      </select>
+      <button class="iconbtn" id="mode" type="button" aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <span class="eyebrow">How it works</span>
+    <h1>Ask your restaurant a question. Here's what happens next.</h1>
+    <p class="lede">Operato is a multi-tenant SaaS for restaurants, cafés and cloud kitchens. It covers the day-to-day work (menu, orders and tables, an inventory ledger, regulars, staff, a dashboard). On top sits an assistant that turns plain English into SQL and runs it against the restaurant's own data. The database, not the prompt, makes sure that SQL can only read and only sees one restaurant. This page walks through each flow in the app and how the code behind it is written.</p>
+    <div class="stats">
+      <div class="stat"><b>51</b><span>HTTP handlers across 27 route files; 42 go through <code>withTenant</code></span></div>
+      <div class="stat"><b>19</b><span>Prisma models, 8 enums, 15 migrations</span></div>
+      <div class="stat"><b>14</b><span>tables under Row-Level Security for the AI role</span></div>
+      <div class="stat"><b>~143</b><span>tests: ~128 unit cases + 15 Playwright e2e</span></div>
+    </div>
+    <figure class="video">
+      <video controls preload="metadata" poster="../brag-output/brag.jpg" src="../brag-output/brag.mp4"></video>
+      <figcaption>The 23-second tour: a question, the answer and its SQL, the Monday summary, stock warnings, and the four palettes in light and dark.</figcaption>
+    </figure>
+  </div>
+
+  <!-- ─────────────── ARCHITECTURE ─────────────── -->
+  <section id="architecture">
+    <div class="wrap">
+      <div class="kicker">Architecture</div>
+      <h2>One path for almost every request</h2>
+      <p class="intro">Next.js 16 App Router with React Server Components, Prisma 7 on Neon Postgres, and Better Auth. There is no <code>middleware.ts</code> or <code>proxy.ts</code>, and only one Server Action. Everything else follows the same path: a server page checks membership, a client component calls a typed React Query hook, and a guarded route handler validates the input and hands it to a service.</p>
+
+      <div class="flowrow" role="list" aria-label="Request lifecycle">
+        <div class="node" role="listitem"><small>1 · Page (RSC)</small><b>requirePageMember()</b><span>not a member → 404</span></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node" role="listitem"><small>2 · Hook</small><b>useCreateOrder()</b><span>fetch <code>/api/restaurants/{id}/…</code></span></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node" role="listitem"><small>3 · Route</small><b>withTenant()</b><span>session + membership → 401 / 403</span></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node" role="listitem"><small>4 · Boundary</small><b>parseJson(req, zod)</b><span>422 with fieldErrors</span></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node" role="listitem"><small>5 · Service</small><b>createOrder()</b><span>transaction, row locks</span></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node" role="listitem"><small>6 · Reply</small><b>ok() / created()</b><span>serialize(): Decimal → number</span></div>
+      </div>
+      <p class="intro" style="margin-top:14px;font-size:15px">On success the hook invalidates its query keys and shows a toast. The Overview page is the exception: it queries directly in the RSC (<code>getOverview</code>, <code>getStockLines</code>).</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Folder</th><th>What lives there</th></tr></thead>
+          <tbody>
+            <tr><td><code>app/(marketing)</code></td><td>Landing page and <code>/pricing</code>. The landing page also routes signed-in users to <code>/onboarding</code> or to their first restaurant.</td></tr>
+            <tr><td><code>app/(auth)</code></td><td>Sign-in and sign-up. The forms are client components that call the Better Auth client.</td></tr>
+            <tr><td><code>app/(app)/onboarding</code></td><td>The one Server Action in the app: <code>createRestaurant</code>.</td></tr>
+            <tr><td><code>app/(app)/[restaurantId]</code></td><td>The tenant area: a guarded layout plus 8 pages (overview, assistant, menu, orders, inventory, staff, customers, billing).</td></tr>
+            <tr><td><code>app/api</code></td><td><code>auth/[...all]</code>, 22 tenant route files under <code>restaurants/[restaurantId]</code>, 2 crons, the Razorpay webhook, UploadThing.</td></tr>
+            <tr><td><code>lib/</code></td><td><code>db.ts</code> (two Prisma clients), guards, <code>api.ts</code> helpers, services (<code>orders</code>, <code>inventory</code>, <code>staff</code>, <code>analytics</code>), <code>ai/*</code>, <code>billing/*</code>, and <code>validations/*</code> (one Zod schema per route input).</td></tr>
+            <tr><td><code>hooks/</code></td><td>One React Query hook file per module: <code>use-orders.ts</code>, <code>use-menu.ts</code>, <code>use-ai.ts</code> and so on.</td></tr>
+            <tr><td><code>components/</code></td><td>21 shadcn "base-nova" primitives on <code>@base-ui/react</code>, feature folders of <code>*-client.tsx</code> components, and the shell (sidebar, restaurant switcher, palette switcher).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TENANCY ─────────────── -->
+  <section id="tenancy">
+    <div class="wrap">
+      <div class="kicker">Multi-tenancy</div>
+      <h2>The restaurant comes from the URL and nowhere else</h2>
+      <p class="intro">One user can belong to several restaurants through <code>RestaurantMember</code> (<code>OWNER</code>, <code>MANAGER</code> or <code>STAFF</code>). The tenant id is read only from the <code>[restaurantId]</code> segment, and request bodies never carry it. The app's Prisma client owns the tables, so RLS doesn't bind it; isolation is enforced in layers instead.</p>
+      <div class="grid2">
+        <div class="card">
+          <h3>Four layers</h3>
+          <ul class="clean">
+            <li><b>Pages:</b> <code>requirePageMember</code> runs in the tenant layout <em>and</em> in each page. A non-member gets a 404, so the pages can't be used to probe which restaurants exist.</li>
+            <li><b>API:</b> every tenant route is wrapped in <code>withTenant</code>, which returns 401 or 403. <code>{ roles }</code> narrows it further.</li>
+            <li><b>Queries:</b> every query filters on <code>where: {'{'} restaurantId {'}'}</code>.</li>
+            <li><b>Schema:</b> composite "tenant-pinned" foreign keys, e.g. <code>OrderItem → Order(id, restaurantId)</code>, so rows can't cross tenants even if a bug slipped through.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>The guard every tenant route goes through</h3>
+<pre><code><span class="k">const</span> params = <span class="k">await</span> segment.params;
+<span class="k">const</span> { restaurantId } = params;
+<span class="k">try</span> {
+  <span class="k">const</span> membership = options?.roles
+    ? <span class="k">await</span> requireRole(restaurantId, options.roles)
+    : <span class="k">await</span> requireMember(restaurantId);
+  <span class="k">return await</span> handler(req, { restaurantId, ...membership, params });
+} <span class="k">catch</span> (error) {
+  <span class="k">if</span> (error <span class="k">instanceof</span> AuthError) {
+    <span class="k">return new</span> Response(error.message, { status: error.status });
+  }
+  <span class="k">throw</span> error;
+}</code></pre>
+          <span class="src">src/lib/auth-guard.ts:120-132 · withTenant</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FLOWS ─────────────── -->
+  <section id="flows">
+    <div class="wrap">
+      <div class="kicker">The flows</div>
+      <h2>What each part of the app does, step by step</h2>
+      <p class="intro">Each tab follows one flow from the click to the database and back, with the files involved and the code at its heart.</p>
+
+      <div class="tabs" role="tablist" aria-label="App flows">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="f-onb" id="t-onb">Onboarding</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-ord" id="t-ord">Orders → payment</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-inv" id="t-inv">Inventory</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-menu" id="t-menu">Menu &amp; uploads</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-ovw" id="t-ovw">Overview</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-ai" id="t-ai">Ask AI</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-wk" id="t-wk">Monday summary</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="f-bill" id="t-bill">Billing</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-onb" aria-labelledby="t-onb">
+        <div class="panel-grid">
+          <div class="card">
+            <h3>Sign up → onboarding → your restaurant</h3>
+            <ol>
+              <li><code>sign-up-form.tsx</code> validates with Zod and calls <code>signUp.email()</code>, which goes to <code>/api/auth/[...all]</code>.</li>
+              <li>The landing page sees a session with no memberships and redirects to <code>/onboarding</code>.</li>
+              <li><code>onboarding-form.tsx</code> uses <code>useActionState</code> with the Server Action <code>createRestaurant</code>.</li>
+              <li>One transaction checks the limit (5 owned restaurants), creates the <code>Restaurant</code> and the <code>OWNER</code> membership, then redirects to <code>/{'{'}id{'}'}</code>. A duplicate slug is caught with <code>isUniqueViolation</code>.</li>
+            </ol>
+            <p class="path">app/(auth)/sign-up · app/(app)/onboarding/actions.ts · lib/auth.ts</p>
+          </div>
+          <div>
+<pre><code><span class="k">const</span> restaurant = <span class="k">await</span> prisma.$transaction(<span class="k">async</span> (tx) =&gt; {
+  <span class="k">const</span> owned = <span class="k">await</span> tx.restaurantMember.count({
+    where: { userId: session.user.id, role: MemberRole.OWNER },
+  });
+  <span class="k">if</span> (owned &gt;= OWNED_RESTAURANT_LIMIT) <span class="k">throw new</span> RestaurantLimitError();
+  <span class="k">const</span> created = <span class="k">await</span> tx.restaurant.create({
+    data: { name, slug },
+    select: { id: <span class="k">true</span> },
+  });
+  <span class="k">await</span> tx.restaurantMember.create({
+    data: { restaurantId: created.id, userId: session.user.id, role: MemberRole.OWNER },
+  });
+  <span class="k">return</span> created;
+});</code></pre>
+            <span class="src">app/(app)/onboarding/actions.ts · createRestaurant</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-ord" aria-labelledby="t-ord" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>Take an order, cook it, take payment</h3>
+            <ol>
+              <li><code>NewOrderDialog</code> ("Pick the dishes, then send it to the kitchen.") calls <code>useCreateOrder</code>, which POSTs to <code>orders/route.ts</code> and then <code>createOrder()</code>.</li>
+              <li>In one transaction: prices are read from the menu (the client's prices are never trusted), availability is checked, the table is locked with <code>FOR UPDATE</code>, and GST at 5% is added as a Decimal. An atomic counter mints the order number <code>ORD-0042</code>, the lines are inserted with their unit prices snapshotted, and the table is marked OCCUPIED.</li>
+              <li>Status moves go through PATCH, and only the transitions in <code>ALLOWED_TRANSITIONS</code> are accepted.</li>
+              <li><code>payOrder()</code> locks the order row, so the second of two racing tills gets 409 "already been paid". Only READY or SERVED orders can be paid. It sets PAID, rolls up the customer's <code>totalSpend</code> and <code>visitCount</code>, and frees the table if nothing else is open on it.</li>
+              <li>Money mutations are never optimistic: the UI waits, toasts "ORD-0042 paid", then invalidates the orders, tables and customers queries.</li>
+            </ol>
+            <div class="states" aria-label="Order status machine">
+              <span class="state">PENDING</span><span aria-hidden="true">→</span><span class="state">CONFIRMED</span><span aria-hidden="true">→</span><span class="state">PREPARING</span><span aria-hidden="true">→</span><span class="state">READY</span><span aria-hidden="true">→</span><span class="state">SERVED</span><span aria-hidden="true">→</span><span class="state paid">PAID</span>
+            </div>
+            <p class="path" style="margin-top:8px">Any state except PAID can go to <span class="state cancel" style="padding:3px 8px">CANCELLED</span></p>
+          </div>
+          <div>
+<pre><code><span class="c">// Atomic counter -&gt; the order number. Row lock, no race.</span>
+<span class="k">const</span> bumped = <span class="k">await</span> tx.$queryRaw&lt;{ orderSeq: number }[]&gt;`
+  <span class="k">UPDATE</span> "Restaurant" <span class="k">SET</span> "orderSeq" = "orderSeq" + 1
+   <span class="k">WHERE</span> id = ${restaurantId}
+   <span class="k">RETURNING</span> "orderSeq"`;
+
+<span class="c">// payOrder: lock the order before deciding anything</span>
+  <span class="k">SELECT</span> id, status, "totalAmount", "customerId", "tableId"
+    <span class="k">FROM</span> "Order"
+   <span class="k">WHERE</span> id = ${orderId} <span class="k">AND</span> "restaurantId" = ${restaurantId}
+   <span class="k">FOR UPDATE</span></code></pre>
+            <span class="src">lib/orders/service.ts · createOrder / payOrder</span>
+            <p class="note">Paying an order does not yet deduct inventory: there's no recipe or bill-of-materials link.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-inv" aria-labelledby="t-inv" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>A proper ledger, and warnings from real velocity</h3>
+            <ol>
+              <li><code>useInventory</code> reads <code>getStockLines()</code>: one SQL query that measures velocity as <code>SUM(-delta)</code> of outflows, then works out <code>daysLeft</code> and <code>needsReorder</code>.</li>
+              <li><code>MovementDialog</code> posts to <code>applyMovement()</code>, which locks the item with <code>FOR UPDATE</code> and computes a signed <code>delta</code>. An ADJUSTMENT is a stock-take (<code>counted − balance</code>). Taking out more than is on the shelf is refused.</li>
+              <li>Each movement writes an <code>InventoryTransaction</code> with <code>delta</code>, <code>balanceAfter</code>, the user, and an autoincrement <code>seq</code>. Opening stock is a real movement too.</li>
+              <li>STAFF can't post an ADJUSTMENT; that check is in the route handler.</li>
+              <li>"AI stock alert" turns the reorder list into prose. If nothing needs attention it returns a canned message and makes no model call, and it falls back to a plain list if the model fails.</li>
+            </ol>
+            <p class="path">lib/inventory/service.ts · inventory/[itemId]/movements/route.ts · lib/ai/inventory-alerts.ts</p>
+          </div>
+          <div>
+<pre><code><span class="k">const</span> rows = <span class="k">await</span> tx.$queryRaw&lt;...&gt;`
+  <span class="k">SELECT</span> id, "currentStock", name
+    <span class="k">FROM</span> "InventoryItem"
+   <span class="k">WHERE</span> id = ${itemId} <span class="k">AND</span> "restaurantId" = ${restaurantId}
+   <span class="k">FOR UPDATE</span>`;
+...
+<span class="k">const</span> counted = D(input.countedStock);
+delta = counted.sub(balance);          <span class="c">// ADJUSTMENT = stock-take</span>
+...
+delta = outbound ? quantity.negated() : quantity;</code></pre>
+            <span class="src">lib/inventory/service.ts · applyMovement</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-menu" aria-labelledby="t-menu" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>Menu management and image uploads</h3>
+            <ol>
+              <li><code>MenuClient</code> and <code>MenuItemDialog</code> go through <code>use-menu.ts</code>. Writes need OWNER or MANAGER (<code>{'{'} roles: MANAGES_MENU {'}'}</code>).</li>
+              <li>A new item's <code>categoryId</code> is checked against the tenant, and the composite foreign key backs that up.</li>
+              <li>Category edits are optimistic: <code>onMutate</code> writes the cache, and <code>onError</code> rolls it back.</li>
+              <li>Images upload with <code>useUploadThing("menuItemImage")</code>. The UploadThing middleware checks the role again (single image, 4 MB max). The resulting URL must be <code>https</code> on <code>*.ufs.sh</code> or <code>*.utfs.io</code>, as the Zod schema enforces.</li>
+            </ol>
+          </div>
+          <div>
+<pre><code>menuItemImage: f({
+  image: { maxFileSize: <span class="s">"4MB"</span>, maxFileCount: 1 },
+})
+  .input(z.object({ restaurantId: z.cuid() }))
+  .middleware(<span class="k">async</span> ({ req, input }) =&gt; {
+    <span class="k">try</span> {
+      <span class="k">const</span> { userId } = <span class="k">await</span> requireRole(input.restaurantId, MANAGES_MENU, req.headers);
+      <span class="k">return</span> { restaurantId: input.restaurantId, userId };</code></pre>
+            <span class="src">app/api/uploadthing/core.ts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-ovw" aria-labelledby="t-ovw" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>The Overview dashboard</h3>
+            <ol>
+              <li>The server page loads the restaurant's timezone, then runs <code>getOverview</code> and <code>getStockLines</code> in parallel.</li>
+              <li>Four KPIs (Revenue, Orders, Average order, New customers) compare the last 7 complete days with the 7 before.</li>
+              <li>Also on the page: a reorder warning card ("Paneer (3d left)"), a 30-day revenue trend zero-filled with <code>generate_series</code>, the order-type mix, top sellers, and a "Known customers" meter.</li>
+              <li>Every date boundary is computed in the restaurant's own timezone, not the server's.</li>
+            </ol>
+          </div>
+          <div>
+<pre><code><span class="k">WITH</span> bounds <span class="k">AS</span> (
+  <span class="k">SELECT</span> date_trunc(<span class="s">'day'</span>, NOW() <span class="k">AT TIME ZONE</span> ${timezone})
+           <span class="k">AT TIME ZONE</span> ${timezone} <span class="k">AT TIME ZONE</span> <span class="s">'UTC'</span> <span class="k">AS</span> today
+)
+<span class="k">SELECT CASE WHEN</span> o."paidAt" &gt;= b.today - make_interval(days =&gt; ${WINDOW_DAYS})
+         <span class="k">THEN</span> <span class="s">'current'</span> <span class="k">ELSE</span> <span class="s">'previous'</span> <span class="k">END AS</span> window,
+       <span class="k">SUM</span>(o."totalAmount") <span class="k">AS</span> revenue, <span class="k">COUNT</span>(*) <span class="k">AS</span> orders
+  <span class="k">FROM</span> "Order" o, bounds b
+ <span class="k">WHERE</span> o."restaurantId" = ${restaurantId} <span class="k">AND</span> o.status = <span class="s">'PAID'</span>
+   <span class="k">AND</span> o."paidAt" &gt;= b.today - make_interval(days =&gt; ${WINDOW_DAYS * 2})
+   <span class="k">AND</span> o."paidAt" &lt; b.today</code></pre>
+            <span class="src">lib/analytics/overview.ts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-ai" aria-labelledby="t-ai" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>Ask a question, get the answer and the working</h3>
+            <ol>
+              <li><code>AssistantClient</code> validates the question (3–500 characters). <code>useAskAi</code> POSTs it to <code>ai/query</code>.</li>
+              <li>The route loads the timezone and calls <code>answerQuestion()</code>, which runs these steps: rate limit → generate <code>{'{'}sql, explanation{'}'}</code> → sandboxed read-only run → serialize → a 1–4 sentence answer → an audit row.</li>
+              <li>The UI shows the answer, an expandable SQL panel, a "sample of data" badge when the rows were truncated, and "X of 25 questions left today".</li>
+              <li>Users only ever see <code>AiError.safeMessage</code>; Postgres errors become a 422 asking them to rephrase. <a href="#ai">The full safety design is below.</a></li>
+            </ol>
+          </div>
+          <div>
+<pre><code><span class="k">export const</span> POST = withTenant(<span class="k">async</span> (req, { restaurantId, userId }) =&gt; {
+  <span class="k">const</span> restaurant = <span class="k">await</span> prisma.restaurant.findUniqueOrThrow({
+    where: { id: restaurantId }, select: { timezone: <span class="k">true</span> },
+  });
+  <span class="k">const</span> parsed = <span class="k">await</span> parseJson(req, aiQuestionSchema);
+  <span class="k">if</span> (!parsed.ok) <span class="k">return</span> parsed.response;
+  <span class="k">try</span> {
+    <span class="k">const</span> answer = <span class="k">await</span> answerQuestion({ restaurantId, userId,
+      timezone: restaurant.timezone, question: parsed.data });
+    <span class="k">return</span> ok(answer);
+  } <span class="k">catch</span> (error) {
+    <span class="k">if</span> (error <span class="k">instanceof</span> AiError) {
+      <span class="k">return</span> Response.json({ error: error.safeMessage }, { status: error.status });
+    }</code></pre>
+            <span class="src">app/api/restaurants/[restaurantId]/ai/query/route.ts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-wk" aria-labelledby="t-wk" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>The Monday summary (Vercel Cron)</h3>
+            <ol>
+              <li><code>vercel.json</code> calls <code>/api/cron/weekly-summary</code> at <code>0 3 * * 1</code> (Monday 03:00 UTC). The route checks <code>Bearer CRON_SECRET</code> with <code>timingSafeEqual</code> and fails closed.</li>
+              <li><code>runWeeklySummaries()</code> walks the restaurants, skips any with a summary in the last 8 days, stops inside a 50-second budget, and reports whatever is left as <code>remaining</code>.</li>
+              <li>For each restaurant it runs 6 metric queries in parallel for the last completed local week. If that week is already summarised it spends no quota. A week with no orders gets a fixed sentence and no model call.</li>
+              <li>The result is upserted on <code>@@unique([restaurantId, weekStart])</code>, so re-running the cron is safe. The same run then checks that customer rollups haven't drifted from their orders.</li>
+            </ol>
+            <p class="note">Summaries are generated and stored, but no page shows them yet.</p>
+          </div>
+          <div>
+<pre><code><span class="k">if</span> (metrics.orders === 0) {
+  summary = <span class="s">"No sales were recorded last week."</span>;
+} <span class="k">else</span> {
+  <span class="k">const</span> result = <span class="k">await</span> generateTextWithFallback({
+    tier: <span class="s">"cron"</span>,
+    system: SUMMARY_SYSTEM,
+    prompt: `Week of ${metrics.weekStart} to ${metrics.weekEnd} (${timezone}).\n${JSON.stringify(metrics)}`,
+    temperature: 0.4,
+    maxOutputTokens: 400,
+  });
+  summary = result.text.trim();
+}
+<span class="k">await</span> prisma.weeklySummary.upsert({
+  where: { restaurantId_weekStart: { restaurantId, weekStart: bounds.start } },</code></pre>
+            <span class="src">lib/ai/weekly-summary.ts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="f-bill" aria-labelledby="t-bill" hidden>
+        <div class="panel-grid">
+          <div class="card">
+            <h3>Pro plan billing with Razorpay</h3>
+            <ol>
+              <li><b>Checkout</b> (OWNER only) reuses a pending subscription or creates one with <code>notes: {'{'} restaurantId {'}'}</code>. It never sets PRO itself.</li>
+              <li><b>Browser:</b> Razorpay Checkout opens with the <code>subscription_id</code>, and on success the page refreshes.</li>
+              <li><b>Webhook:</b> reads the raw body, checks the HMAC-SHA256 with <code>timingSafeEqual</code>, and only then parses it. Inside one transaction a <code>ProcessedWebhook</code> row (sha256 of the body) dedupes replays, and an ordering guard on <code>planUpdatedAt</code> ignores stale events.</li>
+              <li><b>Backstop:</b> a daily cron asks Razorpay for the real state and repairs any drift.</li>
+            </ol>
+            <p class="note">The billing code is built and unit-tested but not yet live-tested against Razorpay, and no feature is gated on the plan yet.</p>
+          </div>
+          <div>
+<pre><code><span class="k">await</span> prisma.$transaction(<span class="k">async</span> (tx) =&gt; {
+  <span class="k">await</span> tx.processedWebhook.create({
+    data: { dedupeKey, providerEventId, provider: <span class="s">"razorpay"</span> },
+  });
+  <span class="k">if</span> (!update || !entity) <span class="k">return</span>;
+  ...
+  <span class="k">if</span> (eventAt &amp;&amp; restaurant.planUpdatedAt &amp;&amp; eventAt &lt; restaurant.planUpdatedAt) { ... <span class="k">return</span>; }
+  <span class="k">await</span> tx.restaurant.update({ where: { id: restaurant.id },
+    data: { plan: update.plan, planExpiresAt: update.planExpiresAt,
+            planUpdatedAt: eventAt ?? <span class="k">new</span> Date() } });</code></pre>
+            <span class="src">app/api/webhooks/razorpay/route.ts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── AI ─────────────── -->
+  <section id="ai">
+    <div class="wrap">
+      <div class="kicker">The AI boundary</div>
+      <h2>A model-generated DELETE is impossible, not just unlikely</h2>
+      <p class="intro">The rule the design follows: <em>a SELECT-only check in the prompt is not security.</em> The layers that actually hold are in Postgres. The code checks on top are there to fail early, with one exception covered below.</p>
+
+      <div class="grid2">
+        <div class="pipe" aria-label="Text-to-SQL pipeline">
+          <div class="step"><div class="n">1</div><div class="body"><b>Rate limit</b><p>A rolling 24-hour count of <code>AiQuery</code> rows per restaurant; 25 by default, then 429. Failed attempts count too.</p></div></div>
+          <div class="step"><div class="n brand">2</div><div class="body"><b>Structured generation</b><p><code>generateObject</code> with a Zod schema <code>{'{'}sql, explanation{'}'}</code> at temperature 0. The model is never told the restaurant id.</p></div></div>
+          <div class="step"><div class="n">3</div><div class="body"><b>Static pre-filter</b><p><code>assertLooksLikeSafeSelect</code>: one statement, SELECT/WITH only, no comments or escapes, no forbidden keywords. Every quoted identifier must be on the allowlist.</p></div></div>
+          <div class="step"><div class="n safe">4</div><div class="body"><b>Read-only role, read-only transaction</b><p><code>operato_ai_ro</code> via <code>DATABASE_URL_AI</code>. <code>SET LOCAL</code> read-only mode, a statement timeout, and the tenant id; the query is wrapped in a LIMIT of 1001 rows.</p></div></div>
+          <div class="step"><div class="n safe">5</div><div class="body"><b>Row-Level Security</b><p>14 tables use <code>"restaurantId" = current_setting('app.restaurant_id', true)</code>. If the setting is missing, zero rows come back.</p></div></div>
+          <div class="step"><div class="n brand">6</div><div class="body"><b>Answer + audit</b><p>At most 50 rows or 12,000 characters go back to the model for a plain-English answer. The whole exchange is recorded in <code>AiQuery</code>.</p></div></div>
+        </div>
+        <div>
+<pre><code><span class="c">// inside the read-only transaction</span>
+<span class="k">await</span> tx.$executeRawUnsafe(`<span class="k">SET LOCAL</span> statement_timeout = '${STATEMENT_TIMEOUT}'`);
+<span class="k">await</span> tx.$executeRawUnsafe(`<span class="k">SET LOCAL</span> transaction_read_only = on`);
+<span class="k">await</span> tx.$executeRawUnsafe(`<span class="k">SET LOCAL</span> app.restaurant_id = '${restaurantId}'`);
+<span class="k">const</span> wrapped = `<span class="k">SELECT</span> * <span class="k">FROM</span> ( ${sql} ) <span class="k">AS</span> _q <span class="k">LIMIT</span> ${MAX_ROWS + 1}`;</code></pre>
+          <span class="src">lib/ai/run-readonly-sql.ts:104-167 (restaurantId is regex-checked before interpolation)</span>
+<pre><code><span class="k">for</span> (<span class="k">const</span> identifier <span class="k">of</span> extractQuotedIdentifiers(sql)) {
+  <span class="k">if</span> (!ALLOWED_IDENTIFIERS.has(identifier)) {
+    <span class="k">throw new</span> UnsafeSqlError(<span class="s">"unknown quoted identifier"</span>);
+  }
+}</code></pre>
+          <span class="src">lib/ai/sql-guard.ts:293-297</span>
+          <p class="note">Why the allowlist matters: in review, a quoted <code>"set_config"(…)</code> (or its Unicode-escaped form <code>U&amp;"\0073et_config"</code>) could re-point RLS at another restaurant. On Neon, <code>set_config</code> can't be revoked, so this code check is the real control for that attack. The code also re-reads the setting after the query and throws if it moved.</p>
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <h3>Least privilege, column by column</h3>
+          <p>The AI role gets no blanket <code>GRANT</code> and no default privileges. It's granted an explicit list of 13 tables, then narrowed per column: no customer phone or email, no staff salary, and no auth tables, webhook log, AI log or summary tables.</p>
+        </div>
+        <div class="card">
+          <h3>Gemini, then OpenRouter</h3>
+          <p><code>generateObjectWithFallback</code> / <code>generateTextWithFallback</code> try <code>gemini-flash-latest</code> first. On any error they log and retry <code>google/gemini-2.5-flash</code> through OpenRouter. If both fail, the user gets a 503 with a safe message. Models are resolved at call time, so a missing key doesn't break imports.</p>
+        </div>
+        <div class="card">
+          <h3>Proven, not assumed</h3>
+          <p><code>npm run verify:ai-boundary</code> runs against the live database and checks that the role can't write, isn't a superuser and has no BYPASSRLS; that no table is readable without RLS; that the auth tables are closed; that RLS returns zero rows with no tenant set; and that both <code>set_config</code> payloads are rejected.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>What the model is taught</h3>
+        <p><code>lib/ai/schema-context.ts</code> keeps a hand-curated column list for each table, written with <code>satisfies ColumnsOf&lt;typeof Prisma.XScalarFieldEnum&gt;</code> so that renaming a column breaks <code>tsc</code>. The prompt also carries enum values, a relationships block, and rules such as "never add a WHERE on restaurantId" and "revenue = SUM("totalAmount") where status = 'PAID', dated by "paidAt"". It ends with six worked examples ("What do I need to reorder?", "What time of day are we busiest?", …) that use a <code>{'{'}{'{'}TZ{'}'}{'}'}</code> placeholder for the restaurant's timezone.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── DATA ─────────────── -->
+  <section id="data">
+    <div class="wrap">
+      <div class="kicker">Data model</div>
+      <h2>19 models, one tenant root</h2>
+      <p class="intro"><span class="tag t">T</span> is tenant-scoped: it has <code>restaurantId</code>, cascades on delete, and has RLS. <span class="tag g">G</span> is global. Money is <code>Decimal(10,2)</code> and stock is <code>Decimal(10,3)</code>, all the way through.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Model</th><th>Key fields</th><th>Relations</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag t">T</span><b>Restaurant</b></td><td>slug, timezone, currency, plan, <code>orderSeq</code>, Razorpay ids</td><td>The tenant root; owns everything below</td></tr>
+            <tr><td><span class="tag t">T</span><b>RestaurantMember</b></td><td>role: OWNER · MANAGER · STAFF</td><td>User ↔ Restaurant, unique pair</td></tr>
+            <tr><td><span class="tag t">T</span><b>MenuCategory · MenuItem</b></td><td>price, isAvailable, isVeg, preparationTime</td><td>Item → category (composite FK); optional 1:1 InventoryItem</td></tr>
+            <tr><td><span class="tag t">T</span><b>RestaurantTable</b></td><td>number, capacity, status</td><td>Has Orders</td></tr>
+            <tr><td><span class="tag t">T</span><b>Order · OrderItem</b></td><td>ORD-0042, status, type, subtotal/tax/discount/total, paidAt; line <code>unitPrice</code> snapshot</td><td>Composite FKs to table, customer and <code>Order(id, restaurantId)</code></td></tr>
+            <tr><td><span class="tag t">T</span><b>InventoryItem · InventoryTransaction</b></td><td>currentStock, lowStockThreshold; ledger rows with delta, balanceAfter, seq</td><td>Item has many movements, each tied to a User</td></tr>
+            <tr><td><span class="tag t">T</span><b>Customer</b></td><td>phone (E.164, unique per restaurant), totalSpend, visitCount</td><td>Has Orders</td></tr>
+            <tr><td><span class="tag t">T</span><b>Staff · Shift</b></td><td>StaffRole (CHEF, WAITER…), clock-in/out</td><td>Roster only; staff aren't login accounts</td></tr>
+            <tr><td><span class="tag t">T</span><b>AiQuery · WeeklySummary</b></td><td>query, generatedSQL, response; weekStart, metrics JSON</td><td>Audit log + rate-limit counter; unique per week</td></tr>
+            <tr><td><span class="tag g">G</span><b>ProcessedWebhook</b></td><td>dedupeKey = sha256(raw body)</td><td>Idempotency for Razorpay</td></tr>
+            <tr><td><span class="tag g">G</span><b>User · Session · Account · Verification</b></td><td>Better Auth tables</td><td>Closed to the AI role</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:36px">Who can do what</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Action</th><th>Owner</th><th>Manager</th><th>Staff</th><th>Checked in</th></tr></thead>
+          <tbody>
+            <tr><td>Take orders, pay, change table status</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td><code>withTenant</code></td></tr>
+            <tr><td>Ask the AI</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td><code>withTenant</code> + rate limit</td></tr>
+            <tr><td>Edit menu, tables, staff, inventory catalogue; delete customers</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td><code>{'{'} roles {'}'}</code> on the route</td></tr>
+            <tr><td>Stock-take (ADJUSTMENT)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td>inline in the movements route</td></tr>
+            <tr><td>Billing checkout</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td><code>{'{'} roles: [OWNER] {'}'}</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── CONVENTIONS ─────────────── -->
+  <section id="conventions">
+    <div class="wrap">
+      <div class="kicker">How the code is written</div>
+      <h2>The patterns that repeat</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Zod at every boundary</h3>
+          <p>There's one schema per route input in <code>lib/validations/*</code>, and the client form reuses the same schema. <code>parseJson</code> returns a result object instead of throwing; a failure becomes a 422 with <code>fieldErrors</code> keyed by path.</p>
+<pre><code><span class="k">const</span> parsed = schema.safeParse(body);
+<span class="k">if</span> (!parsed.success) <span class="k">return</span> { ok: <span class="k">false</span>, response: invalid(parsed.error) };
+<span class="k">return</span> { ok: <span class="k">true</span>, data: parsed.data };</code></pre>
+          <span class="src">lib/api.ts · parseJson</span>
+        </div>
+        <div class="card">
+          <h3>Decimal money, serialized once</h3>
+          <p>Money stays <code>Prisma.Decimal</code> end to end: <code>const D = (v) =&gt; new Prisma.Decimal(v)</code> and <code>TAX_RATE = D("0.05")</code>. It becomes a number only at the edge. The replacer reads <code>this[key]</code> because <code>toJSON</code> has already run by then.</p>
+<pre><code>JSON.stringify(value, <span class="k">function</span> (<span class="k">this</span>: Record&lt;string, unknown&gt;, key, val: unknown) {
+  <span class="k">const</span> raw = <span class="k">this</span>[key];
+  <span class="k">if</span> (raw <span class="k">instanceof</span> Prisma.Decimal) <span class="k">return</span> raw.toNumber();
+  <span class="k">if</span> (<span class="k">typeof</span> val === <span class="s">"bigint"</span>) <span class="k">return</span> Number(val);</code></pre>
+          <span class="src">lib/serialize.ts</span>
+        </div>
+        <div class="card">
+          <h3>Row locks, in a fixed order</h3>
+          <p><code>SELECT … FOR UPDATE</code> on Order, Customer, RestaurantTable and InventoryItem, always in the same order (Restaurant → Table; Order → Customer → Table) so two requests can't deadlock. Transactions allow <code>{'{'}maxWait: 8_000, timeout: 12_000{'}'}</code>, inside the route's <code>maxDuration = 30</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Errors that carry their status</h3>
+          <p>Error classes carry their HTTP status: <code>OrderError</code>, <code>InventoryError</code>, <code>AiError(status, safeMessage, {'{'}cause{'}'})</code>, <code>AuthError</code>. Guards throw, and the route turns the error into a response. <code>isUniqueViolation</code> matches both Prisma's P2002 and Postgres's 23505.</p>
+        </div>
+        <div class="card">
+          <h3>React Query, keyed by tenant</h3>
+          <p>Every query key starts with <code>restaurantId</code>. <code>&lt;SidebarInset key={'{'}restaurantId{'}'}&gt;</code> remounts the tree, so switching restaurants throws the cache away. Money mutations are never optimistic; menu categories and inventory updates are, with rollback. Defaults: <code>staleTime: 30s</code>, no refetch on focus, <code>retry: 1</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Server-only by default</h3>
+          <p><code>import "server-only"</code> heads the db, auth, services and AI modules. Client code imports server types with <code>import type</code> only. Next 16 idioms throughout: <code>params</code> and <code>cookies()</code> are awaited, every route with real work sets <code>maxDuration</code>, and the React Compiler is on. Comments explain <em>why</em>: most files open with a rationale block.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── TESTING ─────────────── -->
+  <section id="testing">
+    <div class="wrap">
+      <div class="kicker">Tests &amp; tooling</div>
+      <h2>The risky parts are the tested parts</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Vitest: ~128 cases, pure logic</h3>
+          <ul class="clean">
+            <li><b>ai-sql-guard</b> (39): stacked statements, data-modifying CTEs, <code>pg_*</code>, the <code>set_config</code> pivot, the identifier allowlist, breaking out of the LIMIT wrapper.</li>
+            <li><b>billing</b> (24): HMAC signature, dedupe key, plan transitions, webhook schema.</li>
+            <li><b>ai-inventory-alert-rules</b> (13) · <b>ai-schema-context</b> (12, PII never exposed) · <b>validations</b> (12).</li>
+            <li><b>ai-fallback</b> (7): Gemini → OpenRouter · <b>design-tokens</b> (6).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Playwright: 15 end-to-end tests</h3>
+          <ul class="clean">
+            <li><b>auth</b>: sign up → onboarding → dashboard; seeded sign-in; a vague error on a wrong password.</li>
+            <li><b>tenant-isolation</b>: one owner gets 404 on another restaurant's pages and 403 on its APIs; no session gets 401.</li>
+            <li><b>order-pipeline</b>: create → kitchen → pay → customer rollup; can't pay before the order is ready.</li>
+            <li><b>ai-assistant</b> (model mocked): happy path, a 429 toast, the truncated badge.</li>
+            <li><b>billing-webhook</b>: missing signature, tampered body, dedupe, replay.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="intro" style="margin-top:18px">Also: <code>npm run lint</code> (ESLint 9 flat config), <code>npm run typecheck</code>, <code>npm run verify:ai-boundary</code>, and a deterministic 90-day seed with two restaurants: Spice Garden and The Daily Grind. <code>.claude/agents/</code> holds project-specific reviewer agents, including <code>sql-safety-reviewer</code> and <code>security-reviewer</code>.</p>
+
+      <div class="card" style="margin-top:22px">
+        <h3>Honest gaps</h3>
+        <ul class="clean">
+          <li>The AI limit is a flat 25 per restaurant per day; the landing page's "10 on Free" isn't enforced, and no feature is gated on the Pro plan yet.</li>
+          <li>Monday summaries are generated and stored, but no page shows them yet.</li>
+          <li>Selling an order doesn't deduct inventory (there's no recipe link), and there's no flow for inviting members.</li>
+          <li>Billing hasn't been live-tested against Razorpay, there's no CI workflow, and the app hasn't been deployed yet.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Operato · Next.js 16 · Prisma 7 · Better Auth · Vercel AI SDK · Razorpay · <a href="https://github.com/Itzsoham/operato">github.com/Itzsoham/operato</a> · Paths are relative to <code>src/</code> unless they start with <code>app/</code>, <code>prisma/</code> or <code>scripts/</code>.</div>
+</footer>
+
+<script>
+  (function () {
+    var d = document.documentElement;
+    var sel = document.getElementById("palette");
+    sel.value = d.getAttribute("data-palette") || "crema";
+    sel.addEventListener("change", function () {
+      d.setAttribute("data-palette", sel.value);
+      try { localStorage.setItem("operato-doc-palette", sel.value); } catch (e) {}
+    });
+    document.getElementById("mode").addEventListener("click", function () {
+      var dark = d.classList.toggle("dark");
+      try { localStorage.setItem("operato-doc-mode", dark ? "dark" : "light"); } catch (e) {}
+    });
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+    function select(tab) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      });
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { select(t); });
+      t.addEventListener("keydown", function (e) {
+        var n = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!n) return;
+        var next = tabs[(i + n + tabs.length) % tabs.length];
+        select(next); next.focus();
+      });
+    });
+    select(tabs[0]);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Operato — brag</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/audio-data.js"></script>
+    <style>
+      @font-face { font-family: "Plus Jakarta Sans"; font-weight: 600; src: url("assets/fonts/jakarta-600.woff2") format("woff2"); }
+      @font-face { font-family: "Plus Jakarta Sans"; font-weight: 700; src: url("assets/fonts/jakarta-700.woff2") format("woff2"); }
+      @font-face { font-family: "Plus Jakarta Sans"; font-weight: 800; src: url("assets/fonts/jakarta-800.woff2") format("woff2"); }
+      @font-face { font-family: "Gelasio"; font-weight: 700; src: url("assets/fonts/gelasio-700.woff2") format("woff2"); }
+      @font-face { font-family: "Gelasio"; font-weight: 600; font-style: italic; src: url("assets/fonts/gelasio-600i.woff2") format("woff2"); }
+
+      :root {
+        --sans: "Plus Jakarta Sans", sans-serif;
+        --serif: "Gelasio", serif;
+        --mono: "JetBrains Mono", monospace;
+      }
+      /* Crema light — src/app/globals.css :root */
+      #root {
+        --bg: #fbf8f3; --fg: #23180f; --card: #fffdfa; --muted: #6b5747; --border: #e7dccb;
+        --primary: #2a1d16; --pfg: #fbf8f3; --brand: #7a4c17; --bfg: #fffdfa; --success: #556a58; --sub: #f3ece2;
+        position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font-family: var(--sans);
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #1a130e; }
+
+      #bg { position: absolute; inset: 0; }
+      #glow { position: absolute; width: 1400px; height: 900px; left: 260px; top: 90px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 14%, transparent), transparent); }
+
+      .clip { position: absolute; inset: 0; }
+      .scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      .serif { font-family: var(--serif); }
+
+      .eyebrow { display: inline-flex; align-items: center; gap: 12px; padding: 10px 22px; border-radius: 999px; border: 2px solid color-mix(in srgb, var(--brand) 30%, transparent); background: var(--card); color: var(--brand); font-size: 22px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+      .eyebrow svg { width: 22px; height: 22px; display: block; }
+      .card { background: var(--card); border: 2px solid var(--border); border-radius: 22px; box-shadow: 0 30px 70px -40px rgba(42, 29, 22, 0.45); }
+
+      /* scene 1 */
+      .ask-col { width: 1300px; display: flex; flex-direction: column; align-items: flex-start; gap: 34px; }
+      .ask { width: 100%; display: flex; align-items: center; gap: 22px; padding: 26px 26px 26px 40px; }
+      .ask .q { flex: 1; font-size: 58px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
+      .ask .ch { opacity: 0; }
+      .caret { display: inline-block; width: 5px; height: 60px; background: var(--brand); vertical-align: -8px; margin-left: 4px; }
+      .btn { position: relative; display: inline-flex; align-items: center; gap: 12px; padding: 20px 34px; border-radius: 14px; background: var(--primary); color: var(--pfg); font-size: 30px; font-weight: 700; }
+      .btn svg { width: 28px; height: 28px; display: block; }
+      .usage { font-size: 26px; color: var(--muted); font-weight: 600; margin-left: 6px; }
+
+      /* scene 2 */
+      .reveal { display: flex; flex-direction: column; align-items: center; text-align: center; }
+      .mark { display: flex; align-items: center; gap: 28px; }
+      .mark .o { width: 128px; height: 128px; border-radius: 30px; background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 80%, #fff), var(--brand)); color: var(--bfg); display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-weight: 700; font-size: 84px; }
+      .mark .word { text-align: left; }
+      .mark .name { font-family: var(--serif); font-weight: 700; font-size: 132px; line-height: 0.95; letter-spacing: -0.03em; }
+      .mark .os { font-size: 26px; font-weight: 700; letter-spacing: 0.22em; color: var(--muted); margin-top: 10px; }
+      .hero { margin-top: 56px; font-family: var(--serif); font-weight: 700; font-size: 66px; line-height: 1.15; letter-spacing: -0.02em; max-width: 1300px; }
+      .hero .b { color: var(--brand); display: block; }
+
+      /* split scenes */
+      .split { display: grid; grid-template-columns: 560px 1060px; gap: 90px; align-items: center; }
+      .h2 { font-family: var(--serif); font-weight: 700; font-size: 76px; line-height: 1.06; letter-spacing: -0.03em; margin: 26px 0 0; }
+      .sub { margin-top: 24px; font-size: 30px; line-height: 1.4; color: var(--muted); font-weight: 600; }
+
+      /* answer card */
+      .ans { padding: 34px 40px; }
+      .qeb { font-size: 22px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+      .answer { margin-top: 14px; font-family: var(--serif); font-weight: 700; font-size: 44px; line-height: 1.2; letter-spacing: -0.015em; }
+      .answer b { color: var(--brand); }
+      .bars { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+      .bar { display: grid; grid-template-columns: 250px 1fr 80px; gap: 18px; align-items: center; font-size: 26px; font-weight: 700; }
+      .bar .track { height: 30px; border-radius: 999px; background: var(--sub); position: relative; overflow: hidden; }
+      .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 999px; background: var(--brand); transform-origin: 0% 50%; }
+      .bar.alt .fill { background: var(--success); }
+      .bar .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .sqlrow { margin-top: 26px; display: flex; align-items: center; justify-content: space-between; }
+      .sqlbtn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 12px; border: 2px solid var(--border); font-family: var(--mono); font-size: 24px; color: var(--fg); background: var(--bg); }
+      .badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px; background: color-mix(in srgb, var(--success) 14%, var(--card)); color: var(--success); font-size: 22px; font-weight: 800; }
+      .badge svg { width: 24px; height: 24px; display: block; }
+      .sqlwrap { height: 0; overflow: hidden; }
+      .sql { margin-top: 18px; padding: 24px 28px; border-radius: 14px; background: #23180f; color: #f4e9da; font-family: var(--mono); font-size: 21px; line-height: 1.45; white-space: pre; }
+      .sql .k { color: #d9a566; }
+      .sql .s { color: #adbdb6; }
+      .cursor { position: absolute; width: 44px; height: 54px; z-index: 5; }
+      .cursor svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3)); }
+      #cur-sql { left: 60%; top: 55%; }
+
+      /* summary + stock */
+      .stack { display: flex; flex-direction: column; gap: 28px; }
+      .sc { padding: 36px 42px; }
+      .sc .top { display: flex; align-items: center; gap: 16px; font-size: 24px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+      .sc .top svg { width: 30px; height: 30px; color: var(--brand); display: block; }
+      .sc .body { margin-top: 16px; font-size: 32px; line-height: 1.45; font-weight: 600; }
+      .sc .body b { color: var(--brand); }
+      .warn { border-color: color-mix(in srgb, #96501b 45%, var(--border)); }
+      .warn .top svg { color: #96501b; }
+      .warn .big { margin-top: 12px; font-family: var(--serif); font-weight: 700; font-size: 48px; letter-spacing: -0.015em; }
+      .meter { margin-top: 20px; height: 12px; border-radius: 999px; background: var(--sub); overflow: hidden; }
+      .meter i { display: block; height: 100%; width: 100%; background: #96501b; transform-origin: 0% 50%; }
+
+      /* four looks */
+      .looks { width: 1640px; display: flex; flex-direction: column; gap: 34px; }
+      .looks-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; }
+      .looks .h2 { margin: 0; font-size: 64px; max-width: 900px; }
+      .chips { display: flex; gap: 10px; padding: 8px; border-radius: 16px; background: var(--card); border: 2px solid var(--border); }
+      .chip { position: relative; padding: 12px 22px; border-radius: 10px; font-size: 24px; font-weight: 700; color: var(--muted); }
+      .chip .on { position: absolute; inset: 0; border-radius: 10px; background: var(--primary); color: var(--pfg); display: flex; align-items: center; justify-content: center; opacity: 0; }
+      .modes { display: flex; gap: 6px; padding: 6px; border-radius: 14px; background: var(--card); border: 2px solid var(--border); }
+      .mode { position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 22px; font-weight: 700; color: var(--muted); }
+      .mode svg { width: 22px; height: 22px; display: block; }
+      .mode .on { position: absolute; inset: 0; border-radius: 10px; background: var(--primary); color: var(--pfg); display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0; }
+      .dash { display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: 24px; }
+      .kpi { padding: 30px 32px; }
+      .kpi .l { font-size: 22px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+      .kpi .v { margin-top: 12px; font-size: 60px; font-weight: 700; letter-spacing: -0.03em; }
+      .kpi .d { margin-top: 8px; font-size: 24px; font-weight: 800; color: var(--success); }
+      .kpi .d.dn { color: #96501b; }
+      .trend { padding: 30px 32px; display: flex; flex-direction: column; }
+      .spark { flex: 1; display: flex; align-items: flex-end; gap: 8px; margin-top: 16px; height: 110px; }
+      .spark i { flex: 1; display: block; border-radius: 6px 6px 2px 2px; background: color-mix(in srgb, var(--brand) 55%, var(--card)); }
+      .spark i:last-child { background: var(--brand); }
+      .orders { padding: 8px 32px; }
+      .orow { display: grid; grid-template-columns: 200px 1fr 160px 180px; gap: 20px; align-items: center; padding: 20px 0; border-bottom: 2px solid var(--border); font-size: 26px; font-weight: 700; }
+      .orow:last-child { border-bottom: 0; }
+      .orow .note { color: var(--muted); font-weight: 600; }
+      .orow .amt { text-align: right; font-variant-numeric: tabular-nums; }
+      .st { justify-self: end; padding: 8px 18px; border-radius: 999px; font-size: 20px; font-weight: 800; letter-spacing: 0.06em; background: var(--sub); color: var(--fg); }
+      .st.ready { background: color-mix(in srgb, var(--success) 18%, var(--card)); color: var(--success); }
+      #cur-mode { left: 60%; top: 55%; }
+
+      /* outro */
+      .outro .price { margin-top: 44px; font-size: 38px; font-weight: 700; color: var(--muted); }
+      .outro .price b { color: var(--fg); }
+      .urls { margin-top: 30px; display: flex; gap: 18px; }
+      .url { padding: 14px 28px; border-radius: 999px; border: 2px solid var(--border); background: var(--card); font-family: var(--mono); font-size: 28px; color: var(--brand); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="23">
+      <div id="bg" class="clip" data-start="0" data-duration="23" data-track-index="0">
+        <div id="glow"></div>
+      </div>
+
+      <!-- Scene 1 — ask -->
+      <section id="s1" class="clip" data-start="0" data-duration="3.4" data-track-index="1">
+        <div class="scene" id="s1-in">
+          <div class="ask-col">
+            <div class="eyebrow" id="s1-eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#spark" /></svg>For restaurants, cafés and cloud kitchens</div>
+            <div class="card ask" id="s1-ask">
+              <div class="q"><span id="s1-q">What sold best last Saturday?</span><span class="caret" id="s1-caret"></span></div>
+              <div class="btn" id="s1-btn">Ask<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></div>
+            </div>
+            <div class="usage" id="s1-use">22 of 25 questions left today</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 2 — reveal -->
+      <section id="s2" class="clip" data-start="3.4" data-duration="2.9" data-track-index="1">
+        <div class="scene" id="s2-in">
+          <div class="reveal">
+            <div class="mark" id="s2-mark"><div class="o">O</div><div class="word"><div class="name">Operato</div><div class="os">RESTAURANT OS</div></div></div>
+            <div class="hero" id="s2-hero">Ask your restaurant a question. <span class="b">Get a straight answer.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 3 — the answer -->
+      <section id="s3" class="clip" data-start="6.3" data-duration="5.1" data-track-index="1">
+        <div class="scene" id="s3-in">
+          <div class="split">
+            <div id="s3-left">
+              <div class="eyebrow">How an answer arrives</div>
+              <h2 class="h2">You get the answer and the working</h2>
+              <p class="sub">The assistant writes the SQL against your own data — and shows it.</p>
+            </div>
+            <div class="card ans" id="s3-card">
+              <div class="qeb">What sold best last Saturday?</div>
+              <div class="answer">Filter Coffee led Saturday — <b>62 cups</b>, ₹5,580 of the day's takings.</div>
+              <div class="bars">
+                <div class="bar" id="b1"><span>Filter Coffee</span><span class="track"><span class="fill"></span></span><span class="n">62</span></div>
+                <div class="bar alt" id="b2"><span>Cappuccino</span><span class="track"><span class="fill"></span></span><span class="n">48</span></div>
+                <div class="bar alt" id="b3"><span>Flat White</span><span class="track"><span class="fill"></span></span><span class="n">31</span></div>
+                <div class="bar alt" id="b4"><span>Cold Brew</span><span class="track"><span class="fill"></span></span><span class="n">27</span></div>
+                <div class="bar alt" id="b5"><span>Butter Croissant</span><span class="track"><span class="fill"></span></span><span class="n">24</span></div>
+              </div>
+              <div class="sqlrow">
+                <div class="sqlbtn" id="s3-sqlbtn">▸ Show SQL<div class="cursor" id="cur-sql"><svg viewBox="0 0 24 29"><use href="#cursor" /></svg></div></div>
+                <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /><path d="M9 12l2 2 4-4" /></svg>Read-only · Row-Level Security</div>
+              </div>
+              <div class="sqlwrap" id="s3-sqlwrap"><div class="sql"><span class="k">SELECT</span> mi."name", <span class="k">SUM</span>(oi."quantity") <span class="k">AS</span> sold
+<span class="k">FROM</span> "OrderItem" oi
+<span class="k">JOIN</span> "MenuItem" mi <span class="k">ON</span> mi."id" = oi."menuItemId"
+<span class="k">JOIN</span> "Order" o <span class="k">ON</span> o."id" = oi."orderId"
+<span class="k">WHERE</span> o."status" = <span class="s">'PAID'</span>
+  <span class="k">AND</span> (o."paidAt" <span class="k">AT TIME ZONE</span> <span class="s">'Asia/Kolkata'</span>)::date = <span class="s">'2026-09-19'</span>
+<span class="k">GROUP BY</span> 1 <span class="k">ORDER BY</span> sold <span class="k">DESC LIMIT</span> 5;</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 4 — summary + stock -->
+      <section id="s4" class="clip" data-start="11.4" data-duration="4" data-track-index="1">
+        <div class="scene" id="s4-in">
+          <div class="split">
+            <div id="s4-left">
+              <div class="eyebrow">What you get</div>
+              <h2 class="h2">It summarises. It warns you first.</h2>
+              <p class="sub">A written summary every Monday, and stock warnings before you run out.</p>
+            </div>
+            <div class="stack">
+              <div class="card sc" id="s4-sum">
+                <div class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg>The Monday summary</div>
+                <div class="body">Takings up <b>9.2%</b> on the week — Saturday carried it. Cold brew slipped, and three regulars went quiet.</div>
+              </div>
+              <div class="card sc warn" id="s4-warn">
+                <div class="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>Stock that warns you first</div>
+                <div class="big">Three days of paneer left, order 12 kg</div>
+                <div class="meter"><i id="s4-meter"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 5 — four looks -->
+      <section id="s5" class="clip" data-start="15.4" data-duration="4.4" data-track-index="1">
+        <div class="scene" id="s5-in">
+          <div class="looks">
+            <div class="looks-head">
+              <h2 class="h2" id="s5-h">Four looks. Pick one and watch the whole thing change.</h2>
+              <div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-end">
+                <div class="chips">
+                  <div class="chip">Crema<span class="on" id="p-crema">Crema</span></div>
+                  <div class="chip">Forno<span class="on" id="p-forno">Forno</span></div>
+                  <div class="chip">Lievito<span class="on" id="p-lievito">Lievito</span></div>
+                  <div class="chip">Saffron House<span class="on" id="p-saffron">Saffron House</span></div>
+                </div>
+                <div class="modes">
+                  <div class="mode">Light<span class="on" id="m-light">Light</span></div>
+                  <div class="mode">Dark<span class="on" id="m-dark">Dark</span><div class="cursor" id="cur-mode"><svg viewBox="0 0 24 29"><use href="#cursor" /></svg></div></div>
+                  <div class="mode">System</div>
+                </div>
+              </div>
+            </div>
+            <div class="dash" id="s5-dash">
+              <div class="card kpi"><div class="l">Takings today</div><div class="v">₹38,420</div><div class="d">+9.2%</div></div>
+              <div class="card kpi"><div class="l">Tickets</div><div class="v">186</div><div class="d">+32</div></div>
+              <div class="card kpi"><div class="l">Average ticket</div><div class="v">₹207</div><div class="d dn">−2.1%</div></div>
+              <div class="card trend"><div class="l" style="font-size: 22px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted)">Last 14 days</div><div class="spark" id="spark"></div></div>
+            </div>
+            <div class="card orders" id="s5-orders">
+              <div class="orow"><span>Table 6</span><span class="note">2 flat white · 1 bun</span><span class="amt">₹520</span><span class="st ready">READY</span></div>
+              <div class="orow"><span>Counter</span><span class="note">1 cold brew 300 ml</span><span class="amt">₹240</span><span class="st">PREPARING</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 6 — outro -->
+      <section id="s6" class="clip" data-start="19.8" data-duration="3.2" data-track-index="1">
+        <div class="scene outro" id="s6-in">
+          <div class="reveal">
+            <div class="mark" id="s6-mark"><div class="o">O</div><div class="word"><div class="name">Operato</div><div class="os">RESTAURANT OS</div></div></div>
+            <div class="price" id="s6-price">Free plan forever · <b>Pro ₹999/month</b> · billed in ₹</div>
+            <div class="urls" id="s6-urls"><span class="url">operato-ai.vercel.app</span><span class="url">github.com/Itzsoham/operato</span></div>
+          </div>
+        </div>
+      </section>
+
+      <audio id="music" src="assets/music/happy-beats-business-moves-vol-11-by-ende-dot-app.mp3" data-start="0" data-duration="23" data-track-index="10" data-volume="0.4"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":0.4},{"t":21.5,"v":0.4},{"t":23,"v":0}]}]}'></audio>
+      <audio id="fx1" src="assets/sfx/drop_001.ogg" data-start="0.200" data-duration="0.11" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="fx2" src="assets/sfx/keypress-003.wav" data-start="0.500" data-duration="0.14" data-track-index="13" data-volume="0.45"></audio>
+      <audio id="fx3" src="assets/sfx/keypress-012.wav" data-start="0.590" data-duration="0.14" data-track-index="14" data-volume="0.45"></audio>
+      <audio id="fx4" src="assets/sfx/keypress-007.wav" data-start="0.680" data-duration="0.14" data-track-index="15" data-volume="0.45"></audio>
+      <audio id="fx5" src="assets/sfx/keypress-018.wav" data-start="0.770" data-duration="0.14" data-track-index="16" data-volume="0.45"></audio>
+      <audio id="fx6" src="assets/sfx/keypress-024.wav" data-start="0.860" data-duration="0.14" data-track-index="11" data-volume="0.45"></audio>
+      <audio id="fx7" src="assets/sfx/keypress-003.wav" data-start="0.950" data-duration="0.14" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="fx8" src="assets/sfx/keypress-012.wav" data-start="1.040" data-duration="0.14" data-track-index="13" data-volume="0.45"></audio>
+      <audio id="fx9" src="assets/sfx/keypress-007.wav" data-start="1.130" data-duration="0.14" data-track-index="14" data-volume="0.45"></audio>
+      <audio id="fx10" src="assets/sfx/keypress-018.wav" data-start="1.220" data-duration="0.14" data-track-index="15" data-volume="0.45"></audio>
+      <audio id="fx11" src="assets/sfx/keypress-024.wav" data-start="1.310" data-duration="0.14" data-track-index="16" data-volume="0.45"></audio>
+      <audio id="fx12" src="assets/sfx/keypress-003.wav" data-start="1.400" data-duration="0.14" data-track-index="11" data-volume="0.45"></audio>
+      <audio id="fx13" src="assets/sfx/keypress-012.wav" data-start="1.490" data-duration="0.14" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="fx14" src="assets/sfx/keypress-007.wav" data-start="1.580" data-duration="0.14" data-track-index="13" data-volume="0.45"></audio>
+      <audio id="fx15" src="assets/sfx/keypress-018.wav" data-start="1.670" data-duration="0.14" data-track-index="14" data-volume="0.45"></audio>
+      <audio id="fx16" src="assets/sfx/keypress-024.wav" data-start="1.760" data-duration="0.14" data-track-index="15" data-volume="0.45"></audio>
+      <audio id="fx17" src="assets/sfx/click_003.ogg" data-start="2.120" data-duration="0.01" data-track-index="16" data-volume="1"></audio>
+      <audio id="fx18" src="assets/sfx/card-slide-1.ogg" data-start="3.050" data-duration="0.4" data-track-index="11" data-volume="0.45"></audio>
+      <audio id="fx19" src="assets/sfx/impactSoft_medium_001.ogg" data-start="3.700" data-duration="0.18" data-track-index="12" data-volume="0.85"></audio>
+      <audio id="fx20" src="assets/sfx/drop_002.ogg" data-start="4.230" data-duration="0.19" data-track-index="13" data-volume="0.5"></audio>
+      <audio id="fx21" src="assets/sfx/card-slide-1.ogg" data-start="6.000" data-duration="0.4" data-track-index="14" data-volume="0.45"></audio>
+      <audio id="fx22" src="assets/sfx/impactGlass_light_001.ogg" data-start="6.860" data-duration="0.21" data-track-index="15" data-volume="0.4"></audio>
+      <audio id="fx23" src="assets/sfx/impactGlass_light_001.ogg" data-start="7.380" data-duration="0.21" data-track-index="16" data-volume="0.4"></audio>
+      <audio id="fx24" src="assets/sfx/impactGlass_light_001.ogg" data-start="7.910" data-duration="0.21" data-track-index="11" data-volume="0.4"></audio>
+      <audio id="fx25" src="assets/sfx/impactGlass_light_001.ogg" data-start="8.440" data-duration="0.21" data-track-index="12" data-volume="0.4"></audio>
+      <audio id="fx26" src="assets/sfx/impactGlass_light_001.ogg" data-start="8.960" data-duration="0.21" data-track-index="13" data-volume="0.4"></audio>
+      <audio id="fx27" src="assets/sfx/click2.ogg" data-start="9.500" data-duration="0.06" data-track-index="14" data-volume="0.9"></audio>
+      <audio id="fx28" src="assets/sfx/drop_001.ogg" data-start="9.550" data-duration="0.11" data-track-index="15" data-volume="0.5"></audio>
+      <audio id="fx29" src="assets/sfx/card-slide-1.ogg" data-start="11.100" data-duration="0.4" data-track-index="16" data-volume="0.45"></audio>
+      <audio id="fx30" src="assets/sfx/drop_002.ogg" data-start="12.120" data-duration="0.19" data-track-index="11" data-volume="0.55"></audio>
+      <audio id="fx31" src="assets/sfx/impactSoft_medium_004.ogg" data-start="12.650" data-duration="0.15" data-track-index="12" data-volume="0.8"></audio>
+      <audio id="fx32" src="assets/sfx/bong_001.ogg" data-start="12.900" data-duration="0.12" data-track-index="13" data-volume="0.5"></audio>
+      <audio id="fx33" src="assets/sfx/card-slide-1.ogg" data-start="15.100" data-duration="0.4" data-track-index="14" data-volume="0.45"></audio>
+      <audio id="fx34" src="assets/sfx/drop_001.ogg" data-start="15.600" data-duration="0.11" data-track-index="15" data-volume="0.5"></audio>
+      <audio id="fx35" src="assets/sfx/click_005.ogg" data-start="16.340" data-duration="0.01" data-track-index="16" data-volume="0.9"></audio>
+      <audio id="fx36" src="assets/sfx/click_005.ogg" data-start="16.860" data-duration="0.01" data-track-index="11" data-volume="0.9"></audio>
+      <audio id="fx37" src="assets/sfx/click_005.ogg" data-start="17.390" data-duration="0.01" data-track-index="12" data-volume="0.9"></audio>
+      <audio id="fx38" src="assets/sfx/click_005.ogg" data-start="17.910" data-duration="0.01" data-track-index="13" data-volume="0.9"></audio>
+      <audio id="fx39" src="assets/sfx/switch_006.ogg" data-start="18.440" data-duration="0.15" data-track-index="14" data-volume="0.7"></audio>
+      <audio id="fx40" src="assets/sfx/impactSoft_medium_001.ogg" data-start="18.460" data-duration="0.18" data-track-index="15" data-volume="0.6"></audio>
+      <audio id="fx41" src="assets/sfx/card-slide-1.ogg" data-start="19.500" data-duration="0.4" data-track-index="16" data-volume="0.4"></audio>
+      <audio id="fx42" src="assets/sfx/impactBell_heavy_000.ogg" data-start="20.020" data-duration="1.5" data-track-index="11" data-volume="0.55"></audio>
+      <audio id="fx43" src="assets/sfx/drop_002.ogg" data-start="20.540" data-duration="0.19" data-track-index="12" data-volume="0.45"></audio>
+
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <defs>
+          <symbol id="spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /></symbol>
+          <symbol id="cursor" viewBox="0 0 24 29"><path d="M2 2 L2 23 L7.5 17.8 L11.2 26.2 L15 24.6 L11.4 16.4 L19 16.2 Z" fill="#ffffff" stroke="#23180f" stroke-width="2" stroke-linejoin="round" /></symbol>
+        </defs>
+      </svg>
+    </div>
+
+    <script>
+      (function () {
+        var qEl = document.getElementById("s1-q");
+        var qText = qEl.textContent;
+        qEl.textContent = "";
+        var chars = [];
+        for (var i = 0; i < qText.length; i++) {
+          var sp = document.createElement("span");
+          sp.className = "ch";
+          sp.textContent = qText[i] === " " ? " " : qText[i];
+          qEl.appendChild(sp);
+          chars.push(sp);
+        }
+        var spark = document.getElementById("spark");
+        [58, 54, 72, 86, 80, 44, 61, 68, 74, 88, 97, 79, 46, 39].forEach(function (h) {
+          var b = document.createElement("i");
+          b.style.height = h + "%";
+          spark.appendChild(b);
+        });
+
+        // palettes from src/app/globals.css
+        var P = {
+          crema: { "--bg": "#fbf8f3", "--fg": "#23180f", "--card": "#fffdfa", "--muted": "#6b5747", "--border": "#e7dccb", "--primary": "#2a1d16", "--pfg": "#fbf8f3", "--brand": "#7a4c17", "--bfg": "#fffdfa", "--success": "#556a58", "--sub": "#f3ece2" },
+          forno: { "--bg": "#f0e2ca", "--fg": "#1c1310", "--card": "#fff9f0", "--muted": "#6b534a", "--border": "#c8b38c", "--primary": "#14100d", "--pfg": "#fff9f0", "--brand": "#6e1607", "--bfg": "#fff9f0", "--success": "#22400f", "--sub": "#efe2cc" },
+          lievito: { "--bg": "#efede6", "--fg": "#1b1a17", "--card": "#fcfbf7", "--muted": "#5c574e", "--border": "#e2dfd4", "--primary": "#22211d", "--pfg": "#fcfbf7", "--brand": "#8a3f2c", "--bfg": "#fcfbf7", "--success": "#526258", "--sub": "#eceae2" },
+          saffron: { "--bg": "#efe6d5", "--fg": "#241a22", "--card": "#f8f2e7", "--muted": "#645159", "--border": "#d2c9bc", "--primary": "#2e2130", "--pfg": "#f8f2e7", "--brand": "#584309", "--bfg": "#f8f2e7", "--success": "#3a7264", "--sub": "#ece3d3" },
+          cremaDark: { "--bg": "#1a130e", "--fg": "#f4e9da", "--card": "#241a13", "--muted": "#b7a48c", "--border": "#3b2c1f", "--primary": "#efe0c8", "--pfg": "#23180f", "--brand": "#d9a566", "--bfg": "#1a130e", "--success": "#adbdb6", "--sub": "#2f231a" }
+        };
+        function pal(name, dur) { var o = Object.assign({}, P[name]); o.duration = dur; o.ease = "power2.inOut"; return o; }
+
+        var tl = gsap.timeline({ paused: true });
+        var E = "power3.out";
+
+        // audio-reactive: the warm brand glow behind everything breathes with the bed
+        var A = window.AUDIO_RMS, glow = document.getElementById("glow");
+        for (var f = 0; f < A.frames.length; f++) {
+          tl.call((function (v) { return function () { glow.style.opacity = String(0.45 + v * 0.55); glow.style.scale = String(0.95 + v * 0.12); }; })(A.frames[f]), [], f / A.fps);
+        }
+
+        // ── Scene 1: ask (0–3.4)
+        tl.fromTo("#s1-eb", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: E }, 0.1);
+        tl.fromTo("#s1-ask", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 0.2);
+        tl.fromTo("#s1-use", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.5);
+        chars.forEach(function (c, i) { tl.set(c, { opacity: 1 }, 0.5 + i * 0.045); });
+        tl.fromTo("#s1-caret", { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "steps(1)", yoyo: true, repeat: 1 }, 1.85);
+        tl.to("#s1-btn", { scale: 0.93, duration: 0.08, yoyo: true, repeat: 1 }, 2.12); // beat-grid: Enter 2.12
+        tl.to("#s1-in", { opacity: 0, y: -60, duration: 0.35, ease: "power2.in" }, 3.05);
+
+        // ── Scene 2: reveal (3.4–6.3)
+        tl.fromTo("#s2-mark", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 3.7); // beat-locked: 3.70
+        tl.fromTo("#s2-hero", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: E }, 4.23);
+        tl.to("#s2-in", { opacity: 0, y: -50, duration: 0.3, ease: "power2.in" }, 6.0);
+
+        // ── Scene 3: answer (6.3–11.4)
+        tl.fromTo("#s3-left", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: E }, 6.34); // beat-locked: 6.34
+        tl.fromTo("#s3-card", { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.55, ease: E }, 6.34);
+        ["#b1", "#b2", "#b3", "#b4", "#b5"].forEach(function (b, i) { // beat-grid: 6.86 … 8.96
+          var t = [6.86, 7.38, 7.91, 8.44, 8.96][i];
+          tl.fromTo(b + " .fill", { scaleX: 0 }, { scaleX: [1, 0.77, 0.5, 0.44, 0.39][i], duration: 0.45, ease: E }, t);
+          tl.fromTo(b, { opacity: 0 }, { opacity: 1, duration: 0.25 }, t);
+        });
+        tl.fromTo("#cur-sql", { opacity: 0, x: 200, y: 120 }, { opacity: 1, x: 0, y: 0, duration: 0.45, ease: "power2.inOut" }, 9.0);
+        tl.to("#s3-sqlbtn", { scale: 0.94, duration: 0.07, yoyo: true, repeat: 1 }, 9.5); // beat-locked: 9.50
+        tl.fromTo("#s3-sqlwrap", { height: 0, opacity: 0 }, { height: 282, opacity: 1, duration: 0.45, ease: E }, 9.52);
+        tl.to("#s3-card", { y: -85, duration: 0.45, ease: E }, 9.52);
+        tl.to("#cur-sql", { opacity: 0, duration: 0.25 }, 9.8);
+        tl.to("#s3-in", { opacity: 0, x: -60, duration: 0.3, ease: "power2.in" }, 11.1);
+
+        // ── Scene 4: summary + stock (11.4–15.4)
+        tl.fromTo("#s4-left", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: E }, 11.45);
+        tl.fromTo("#s4-sum", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 12.12); // beat-grid
+        tl.fromTo("#s4-warn", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 12.65); // beat-locked: 12.65
+        tl.fromTo("#s4-meter", { scaleX: 1 }, { scaleX: 0.22, duration: 0.9, ease: "power2.out" }, 12.85);
+        tl.to("#s4-in", { opacity: 0, y: -50, duration: 0.3, ease: "power2.in" }, 15.1);
+
+        // ── Scene 5: four looks (15.4–19.8)
+        tl.set("#p-crema", { opacity: 1 }, 15.4);
+        tl.set("#m-light", { opacity: 1 }, 15.4);
+        tl.fromTo("#s5-h", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: E }, 15.45);
+        tl.fromTo("#s5-dash", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: E }, 15.6);
+        tl.fromTo("#s5-orders", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: E }, 15.75);
+        // beat-grid: palettes at 16.34, 16.86, 17.39, back to crema 17.91 (strong)
+        var seq = [["forno", 16.34, "#p-crema", "#p-forno"], ["lievito", 16.86, "#p-forno", "#p-lievito"], ["saffron", 17.39, "#p-lievito", "#p-saffron"], ["crema", 17.91, "#p-saffron", "#p-crema"]];
+        seq.forEach(function (s) {
+          tl.to("#root", pal(s[0], 0.3), s[1]);
+          tl.set(s[2], { opacity: 0 }, s[1]);
+          tl.set(s[3], { opacity: 1 }, s[1]);
+        });
+        tl.fromTo("#cur-mode", { opacity: 0, x: -220, y: 140 }, { opacity: 1, x: 0, y: 0, duration: 0.4, ease: "power2.inOut" }, 18.0);
+        tl.set("#m-light", { opacity: 0 }, 18.44); // beat-grid: Dark 18.44
+        tl.set("#m-dark", { opacity: 1 }, 18.44);
+        tl.to("#root", pal("cremaDark", 0.45), 18.44);
+        tl.to("#cur-mode", { opacity: 0, duration: 0.25 }, 18.8);
+        tl.to("#s5-in", { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, 19.5);
+
+        // ── Scene 6: outro (19.8–23), dark
+        tl.fromTo("#s6-mark", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.6)" }, 20.02); // beat-locked
+        tl.fromTo("#s6-price", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: E }, 20.54);
+        tl.fromTo("#s6-urls", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: E }, 21.07);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

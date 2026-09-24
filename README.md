@@ -2,6 +2,17 @@
 
 The AI operating system for restaurants — a multi-tenant SaaS whose AI assistant talks to the tenant's _real_ business database (text-to-SQL), with weekly auto-summaries and smart inventory alerts. Restaurant is vertical #1 of a vertical-extensible platform.
 
+<p align="center">
+  <a href="brag-output/brag.mp4">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="brag-output/brag-dark.jpg" />
+      <img src="brag-output/brag.jpg" alt="Operato — watch the 23-second tour" width="720" />
+    </picture>
+  </a>
+  <br />
+  <sub>▶️ <a href="brag-output/brag.mp4">Watch the 23-second tour</a> · 📖 <a href="docs/how-it-works.html">How Operato works: flows, architecture and code</a></sub>
+</p>
+
 ## Stack
 
 Next.js 16 (App Router, RSC) · TypeScript (strict) · Prisma + Neon Postgres · **Better Auth** · **Razorpay** · **Google Gemini 2.5 Flash via the Vercel AI SDK** · Shadcn/Tailwind · TanStack Query · Zod · Playwright · Vercel Cron.

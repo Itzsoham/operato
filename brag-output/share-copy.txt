@@ -1,0 +1,1 @@
+Built Operato: ask your restaurant a question, get a straight answer. The AI writes the SQL against your own sales through a read-only, row-level-secured role, writes up your week every Monday, and the whole app re-skins in four looks, light or dark. operato-ai.vercel.app
